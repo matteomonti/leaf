@@ -32,12 +32,9 @@ BLINKERFLAGS = -stdlib=libc++
 all: CXXFLAGS = $(BCXXFLAGS) -D __main__
 test: CXXFLAGS = $(BCXXFLAGS) -D __test__
 
-.PHONY: all run test clean
+.PHONY: all test clean
 
 all: $(BINDIR)/$(MAINEXEC)
-
-run: $(BINDIR)/$(MAINEXEC)
-	$(BINDIR)/$(MAINEXEC)
 
 test: $(BINDIR)/$(TESTEXEC)
 	$(BINDIR)/$(TESTEXEC)
