@@ -1,5 +1,10 @@
-
 # Created by https://www.gitignore.io/api/osx,c++,linux,windows
+
+### Build folders ###
+
+bin
+dep
+obj
 
 ### C++ ###
 # Prerequisites
