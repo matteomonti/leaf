@@ -5,6 +5,7 @@
 
 #include "bytewise.h"
 #include "endianess.hpp"
+#include "drop/data/varint.hpp"
 
 namespace drop
 {
@@ -42,7 +43,7 @@ namespace drop
                 (*this) << acceptor[i];
         else if constexpr (traits :: is_vector <atype> :: value)
         {
-            (*this) << (uint32_t) acceptor.size();
+            (*this) << varint(acceptor.size());
             for(size_t i = 0; i < acceptor.size(); i++)
                 (*this) << acceptor[i];
         }
