@@ -8,6 +8,11 @@ namespace drop
 #if !defined(__forward__) && !defined(__drop__bytewise__bytewise__h)
 #define __drop__bytewise__bytewise__h
 
+// Libraries
+
+#include <type_traits>
+#include <vector>
+
 // Includes
 
 #include "endianess.h"
@@ -46,6 +51,18 @@ namespace drop
             	template <typename ttype> static std :: false_type test(...);
 
             	static constexpr bool value = std :: is_same <std :: true_type, decltype(test <utype> (nullptr))> :: value;
+            };
+
+            template <typename vtype> struct is_vector;
+            template <typename itype> struct is_vector <std :: vector <itype>>
+            {
+                static constexpr bool value = true;
+                typedef itype type;
+            };
+
+            template <typename vtype> struct is_vector
+            {
+                static constexpr bool value = false;
             };
         };
 

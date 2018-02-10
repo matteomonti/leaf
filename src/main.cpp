@@ -32,11 +32,5 @@ struct acceptor
 int main()
 {
     visitor my_visitor;
-
-    int x[3][3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    acceptor my_acceptor(33, 99);
-
-    bytewise :: visit(my_visitor, 44, x, my_acceptor);
-
-    std :: cout << std :: endl;
+    bytewise :: visit(my_visitor, std :: vector <int> {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
 }
