@@ -33,14 +33,10 @@ int main()
 {
     visitor my_visitor;
 
-    bytewise :: visit(my_visitor, 44);
-    std :: cout << std :: endl << std :: endl;
-
     int x[3][3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    bytewise :: visit(my_visitor, x);
-    std :: cout << std :: endl << std :: endl;
-
     acceptor my_acceptor(33, 99);
-    bytewise :: visit(my_visitor, my_acceptor);
-    std :: cout << std :: endl << std :: endl;
+
+    bytewise :: visit(my_visitor, 44, x, my_acceptor);
+
+    std :: cout << std :: endl;
 }

@@ -52,10 +52,10 @@ namespace drop
 
     // Static methods
 
-    template <typename vtype, typename atype, std :: enable_if_t <bytewise :: constraints :: visitor <vtype> () && bytewise :: constraints :: acceptor <atype, vtype> ()> *> inline void bytewise :: visit(vtype & wrappee, const atype & acceptor)
+    template <typename vtype, typename... atypes, std :: enable_if_t <bytewise :: constraints :: visitor <vtype> () && (... && (bytewise :: constraints :: acceptor <atypes, vtype> ()))> *> inline void bytewise :: visit(vtype & wrappee, const atypes & ... acceptors)
     {
         visitor <vtype> wrapper(wrappee);
-        wrapper << acceptor;
+        (wrapper << ... << acceptors);
     }
 };
 
