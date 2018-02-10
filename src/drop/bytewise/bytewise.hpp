@@ -12,7 +12,10 @@ namespace drop
 
     template <typename atype, typename vtype> constexpr bool bytewise :: constraints :: acceptor()
     {
-        return traits :: can_accept <atype, vtype> :: value || std :: is_integral <atype> :: value;
+        if constexpr (std :: is_array <atype> :: value)
+            return acceptor <std :: remove_all_extents_t <atype>, vtype> ();
+        else
+            return traits :: can_accept <atype, vtype> :: value || std :: is_integral <atype> :: value;
     }
 
     template <typename vtype> constexpr bool bytewise :: constraints :: visitor()
@@ -32,7 +35,10 @@ namespace drop
 
     template <typename vtype> template <typename atype, std :: enable_if_t <bytewise :: constraints :: acceptor <atype, vtype> ()> *> inline bytewise :: visitor <vtype> & bytewise :: visitor <vtype> :: operator << (const atype & acceptor)
     {
-        if constexpr (traits :: can_accept <atype, vtype> :: value)
+        if constexpr (std :: is_array <atype> :: value)
+            for(size_t i = 0; i < std :: extent <atype, std :: rank <atype> :: value - 1> :: value; i++)
+                (*this) << acceptor[i];
+        else if constexpr (traits :: can_accept <atype, vtype> :: value)
             acceptor.accept(*this);
         else if constexpr (std :: is_integral <atype> :: value)
         {
