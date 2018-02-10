@@ -16,6 +16,11 @@ namespace drop
 #include <iostream>
 #include <iomanip>
 
+// Includes
+
+#include "varint.h"
+#include "drop/bytewise/bytewise.h"
+
 namespace drop
 {
     class buffer
@@ -61,6 +66,7 @@ namespace drop
         // Methods
 
         void alloc(const size_t &);
+        template <typename vtype> void accept(bytewise :: visitor <vtype> &) const;
 
         // Operators
 

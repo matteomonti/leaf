@@ -94,6 +94,10 @@ namespace drop
 
             visitor(vtype &);
 
+            // Methods
+
+            inline visitor & update(const uint8_t *, const size_t &);
+
             // Operators
 
             template <typename atype, std :: enable_if_t <constraints :: acceptor <atype, vtype> ()> * = nullptr> inline visitor & operator << (const atype &);

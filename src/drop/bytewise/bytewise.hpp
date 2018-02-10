@@ -34,6 +34,14 @@ namespace drop
     {
     }
 
+    // Methods
+
+    template <typename vtype> inline bytewise :: visitor <vtype> & bytewise :: visitor <vtype> :: update(const uint8_t * bytes, const size_t & size)
+    {
+        this->_visitor.update(bytes, size);
+        return (*this);
+    }
+
     // Operators
 
     template <typename vtype> template <typename atype, std :: enable_if_t <bytewise :: constraints :: acceptor <atype, vtype> ()> *> inline bytewise :: visitor <vtype> & bytewise :: visitor <vtype> :: operator << (const atype & acceptor)
