@@ -24,40 +24,37 @@ namespace drop
 
     private:
 
-        // Service nested classes
+        // Traits
 
-        template <typename atype, typename vtype> struct can_accept
+        struct traits
         {
-            // SFINAE
+            template <typename atype, typename vtype> struct can_accept
+            {
+            	template <typename stype, void (stype :: *) (visitor <vtype> &) const> struct sfinae{};
 
-        	typedef std :: true_type yes;
-        	typedef std :: false_type no;
+            	template <typename ttype> static std :: true_type test(sfinae <ttype, &ttype :: accept> *);
+            	template <typename ttype> static std :: false_type test(...);
 
-        	template <typename stype, void (stype :: *) (visitor <vtype> &) const> struct sfinae{};
+            	static constexpr bool value = std :: is_same <std :: true_type, decltype(test <atype> (nullptr))> :: value;
+            };
 
-        	template <class ttype> static yes test(sfinae <ttype, &ttype :: accept> *);
-        	template <class ttype> static no test(...);
+            template <typename utype> struct can_update
+            {
+            	template <typename stype, void (stype :: *) (const uint8_t *, const size_t &)> struct sfinae{};
 
-            // Static members
+            	template <typename ttype> static std :: true_type test(sfinae <ttype, &ttype :: update> *);
+            	template <typename ttype> static std :: false_type test(...);
 
-        	static constexpr bool value = std :: is_same <yes, decltype(test <atype> (nullptr))> :: value;
+            	static constexpr bool value = std :: is_same <std :: true_type, decltype(test <utype> (nullptr))> :: value;
+            };
         };
 
-        template <typename utype> struct can_update
+        // Constraints
+
+        struct constraints
         {
-            // SFINAE
-
-        	typedef std :: true_type yes;
-        	typedef std :: false_type no;
-
-        	template <typename stype, void (stype :: *) (const uint8_t *, const size_t &)> struct sfinae{};
-
-        	template <class ttype> static yes test(sfinae <ttype, &ttype :: update> *);
-        	template <class ttype> static no test(...);
-
-            // Static members
-
-        	static constexpr bool value = std :: is_same <yes, decltype(test <utype> (nullptr))> :: value;
+            template <typename atype, typename vtype> static constexpr bool acceptor();
+            template <typename vtype> static constexpr bool visitor();
         };
 
     public:
@@ -68,7 +65,7 @@ namespace drop
         {
             // Asserts
 
-            static_assert(can_update <vtype> :: value, "Visitor must implement an update(const uint8_t *, const size_t) interface.");
+            static_assert(constraints :: visitor <vtype> (), "Visitor must implement an update(const uint8_t *, const size_t) interface.");
 
             // Members
 
@@ -82,8 +79,7 @@ namespace drop
 
             // Operators
 
-            template <typename ttype, std :: enable_if_t <std :: is_integral <ttype> :: value> * = nullptr> inline visitor & operator << (const ttype &);
-            template <typename atype, std :: enable_if_t <can_accept <atype, vtype> :: value> * = nullptr> inline visitor & operator << (const atype &);
+            template <typename atype, std :: enable_if_t <constraints :: acceptor <atype, vtype> ()> * = nullptr> inline visitor & operator << (const atype &);
         };
     };
 };

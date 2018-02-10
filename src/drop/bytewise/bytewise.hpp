@@ -8,6 +8,18 @@
 
 namespace drop
 {
+    // constraints
+
+    template <typename atype, typename vtype> constexpr bool bytewise :: constraints :: acceptor()
+    {
+        return traits :: can_accept <atype, vtype> :: value || std :: is_integral <atype> :: value;
+    }
+
+    template <typename vtype> constexpr bool bytewise :: constraints :: visitor()
+    {
+        return traits :: can_update <vtype> :: value;
+    }
+
     // visitor
 
     // Constructors
@@ -18,16 +30,15 @@ namespace drop
 
     // Operators
 
-    template <typename vtype> template <typename ttype, std :: enable_if_t <std :: is_integral <ttype> :: value> *> inline bytewise :: visitor <vtype> & bytewise :: visitor <vtype> :: operator << (const ttype & target)
+    template <typename vtype> template <typename atype, std :: enable_if_t <bytewise :: constraints :: acceptor <atype, vtype> ()> *> inline bytewise :: visitor <vtype> & bytewise :: visitor <vtype> :: operator << (const atype & acceptor)
     {
-        ttype translated = endianess :: translate(target);
-        this->_visitor.update((const uint8_t *) &translated, sizeof(ttype));
-        return *this;
-    }
-
-    template <typename vtype> template <typename atype, std :: enable_if_t <bytewise :: can_accept <atype, vtype> :: value> *> inline bytewise :: visitor <vtype> & bytewise :: visitor <vtype> :: operator << (const atype & acceptor)
-    {
-        acceptor.accept(*this);
+        if constexpr (traits :: can_accept <atype, vtype> :: value)
+            acceptor.accept(*this);
+        else if constexpr (std :: is_integral <atype> :: value)
+        {
+            atype translated = endianess :: translate(acceptor);
+            this->_visitor.update((const uint8_t *) &translated, sizeof(atype));
+        }
         return *this;
     }
 };
