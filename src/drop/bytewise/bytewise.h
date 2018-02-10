@@ -81,6 +81,10 @@ namespace drop
 
             template <typename atype, std :: enable_if_t <constraints :: acceptor <atype, vtype> ()> * = nullptr> inline visitor & operator << (const atype &);
         };
+
+        // Static methods
+
+        template <typename vtype, typename atype, std :: enable_if_t <constraints :: visitor <vtype> () && constraints :: acceptor <atype, vtype> ()> * = nullptr> static inline void visit(vtype &, const atype &);
     };
 };
 

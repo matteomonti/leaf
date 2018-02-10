@@ -47,6 +47,16 @@ namespace drop
         }
         return *this;
     }
+
+    // bytewise
+
+    // Static methods
+
+    template <typename vtype, typename atype, std :: enable_if_t <bytewise :: constraints :: visitor <vtype> () && bytewise :: constraints :: acceptor <atype, vtype> ()> *> inline void bytewise :: visit(vtype & wrappee, const atype & acceptor)
+    {
+        visitor <vtype> wrapper(wrappee);
+        wrapper << acceptor;
+    }
 };
 
 #endif

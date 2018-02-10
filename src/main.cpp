@@ -32,16 +32,15 @@ struct acceptor
 int main()
 {
     visitor my_visitor;
-    bytewise :: visitor <visitor> bvisitor(my_visitor);
 
-    bvisitor << 44;
+    bytewise :: visit(my_visitor, 44);
     std :: cout << std :: endl << std :: endl;
 
-    int values[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    bvisitor << values;
+    int x[3][3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    bytewise :: visit(my_visitor, x);
     std :: cout << std :: endl << std :: endl;
 
     acceptor my_acceptor(33, 99);
-    bvisitor << my_acceptor;
+    bytewise :: visit(my_visitor, my_acceptor);
     std :: cout << std :: endl << std :: endl;
 }
