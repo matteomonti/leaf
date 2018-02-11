@@ -13,6 +13,15 @@ namespace drop
     {
         (reader << varint(this->_size)).update(this->_bytes, this->_size);
     }
+
+    template <typename vtype> void buffer :: accept(bytewise :: writer <vtype> & writer)
+    {
+        varint size;
+        writer >> size;
+
+        this->alloc(size);
+        memcpy((char *)(this->_bytes), (char *)(writer.pop(size)), size);
+    }
 };
 
 #endif

@@ -35,6 +35,27 @@ namespace drop
             reader << buffer;
         }
     }
+
+    template <typename vtype> void varint :: accept(bytewise :: writer <vtype> & writer)
+    {
+        uint8_t buffer[4];
+
+        writer >> buffer[0];
+        if(buffer[0] & 0x80)
+        {
+            writer >> buffer[1];
+
+            if(buffer[0] & 0x40)
+            {
+                writer >> buffer[2] >> buffer[3];
+                this->_value = ((uint32_t)(buffer[0] & 0x3f) << 24) | ((uint32_t)(buffer[1]) << 16) | ((uint32_t)(buffer[2]) << 8) | (uint32_t)(buffer[3]);
+            }
+            else
+                this->_value = ((uint32_t)(buffer[0] & 0x7f) << 8) | (uint32_t)(buffer[1]);
+        }
+        else
+            this->_value = buffer[0];
+    }
 };
 
 #endif

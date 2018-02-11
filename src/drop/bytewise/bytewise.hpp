@@ -11,19 +11,34 @@ namespace drop
 {
     // constraints
 
-    template <typename atype, typename vtype> constexpr bool bytewise :: constraints :: acceptor()
+    template <typename atype, typename vtype> constexpr bool bytewise :: constraints :: readable()
     {
         if constexpr (std :: is_array <atype> :: value)
-            return acceptor <std :: remove_all_extents_t <atype>, vtype> ();
+            return readable <std :: remove_all_extents_t <atype>, vtype> ();
         else if constexpr (traits :: is_vector <atype> :: value)
-            return acceptor <typename traits :: is_vector <atype> :: type, vtype> ();
+            return readable <typename traits :: is_vector <atype> :: type, vtype> ();
         else
-            return traits :: can_accept <atype, vtype> :: value || std :: is_integral <atype> :: value;
+            return traits :: can_accept_reader <atype, vtype> :: value || std :: is_integral <atype> :: value;
+    }
+
+    template <typename atype, typename vtype> constexpr bool bytewise :: constraints :: writable()
+    {
+        if constexpr (std :: is_array <atype> :: value)
+            return writable <std :: remove_all_extents_t <atype>, vtype> ();
+        else if constexpr (traits :: is_vector <atype> :: value)
+            return writable <typename traits :: is_vector <atype> :: type, vtype> ();
+        else
+            return traits :: can_accept_writer <atype, vtype> :: value || std :: is_integral <atype> :: value;
     }
 
     template <typename vtype> constexpr bool bytewise :: constraints :: reader()
     {
         return traits :: can_update <vtype> :: value;
+    }
+
+    template <typename vtype> constexpr bool bytewise :: constraints :: writer()
+    {
+        return traits :: can_pop <vtype> :: value;
     }
 
     // reader
@@ -44,7 +59,7 @@ namespace drop
 
     // Operators
 
-    template <typename vtype> template <typename atype, std :: enable_if_t <bytewise :: constraints :: acceptor <atype, vtype> ()> *> inline bytewise :: reader <vtype> & bytewise :: reader <vtype> :: operator << (const atype & acceptor)
+    template <typename vtype> template <typename atype, std :: enable_if_t <bytewise :: constraints :: readable <atype, vtype> ()> *> inline bytewise :: reader <vtype> & bytewise :: reader <vtype> :: operator << (const atype & acceptor)
     {
         if constexpr (std :: is_array <atype> :: value)
             for(size_t i = 0; i < std :: extent <atype, std :: rank <atype> :: value - 1> :: value; i++)
@@ -55,7 +70,7 @@ namespace drop
             for(size_t i = 0; i < acceptor.size(); i++)
                 (*this) << acceptor[i];
         }
-        else if constexpr (traits :: can_accept <atype, vtype> :: value)
+        else if constexpr (traits :: can_accept_reader <atype, vtype> :: value)
             acceptor.accept(*this);
         else if constexpr (std :: is_integral <atype> :: value)
         {
@@ -65,14 +80,66 @@ namespace drop
         return *this;
     }
 
+    // writer
+
+    // Constructors
+
+    template <typename vtype> bytewise :: writer <vtype> :: writer(vtype & writer) : _writer(writer)
+    {
+    }
+
+    // Methods
+
+    template <typename vtype> inline const uint8_t * bytewise :: writer <vtype> :: pop(const size_t & size)
+    {
+        return this->_writer.pop(size);
+    }
+
+    // Operators
+
+    template <typename vtype> template <typename atype, std :: enable_if_t <bytewise :: constraints :: writable <atype, vtype> ()> *> inline bytewise :: writer <vtype> & bytewise :: writer <vtype> :: operator >> (atype & acceptor)
+    {
+        if constexpr (std :: is_array <atype> :: value)
+            for(size_t i = 0; i < std :: extent <atype, std :: rank <atype> :: value - 1> :: value; i++)
+                (*this) >> acceptor[i];
+        else if constexpr (traits :: is_vector <atype> :: value)
+        {
+            varint size;
+            (*this) >> size;
+
+            acceptor.resize(size);
+            for(size_t i = 0; i < size; i++)
+                (*this) >> acceptor[i];
+        }
+        else if constexpr (traits :: can_accept_writer <atype, vtype> :: value)
+            acceptor.accept(*this);
+        else if constexpr (std :: is_integral <atype> :: value)
+        {
+            const uint8_t * value = this->_writer.pop(sizeof(atype));
+            acceptor = endianess :: translate(*((atype *) value));
+        }
+        return *this;
+    }
+
     // bytewise
 
     // Static methods
 
-    template <typename vtype, typename... atypes, std :: enable_if_t <bytewise :: constraints :: reader <vtype> () && (... && (bytewise :: constraints :: acceptor <atypes, vtype> ()))> *> inline void bytewise :: visit(vtype & wrappee, const atypes & ... acceptors)
+    template <typename vtype, typename... atypes, std :: enable_if_t <bytewise :: constraints :: reader <vtype> () && (... && (bytewise :: constraints :: readable <atypes, vtype> ()))> *> inline void bytewise :: read(vtype & wrappee, const atypes & ... acceptors)
     {
         reader <vtype> wrapper(wrappee);
         (wrapper << ... << acceptors);
+    }
+
+    template <typename vtype, typename atype, typename... atypes, std :: enable_if_t <bytewise :: constraints :: writer <vtype> () && bytewise :: constraints :: writable <atype, vtype> () && (... && (bytewise :: constraints :: writable <atypes, vtype> ()))> *> inline void bytewise :: write(vtype & wrappee, atype & acceptor, atypes & ... acceptors)
+    {
+        writer <vtype> wrapper(wrappee);
+        wrapper >> acceptor;
+
+        if constexpr (sizeof...(acceptors) > 0)
+            write(wrappee, acceptors...);
+
+        // (wrapper >> ... >> acceptors);
     }
 };
 
