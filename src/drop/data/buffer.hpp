@@ -9,9 +9,9 @@ namespace drop
 {
     // Methods
 
-    template <typename vtype> void buffer :: accept(bytewise :: visitor <vtype> & visitor) const
+    template <typename vtype> void buffer :: accept(bytewise :: reader <vtype> & reader) const
     {
-        (visitor << varint(this->_size)).update(this->_bytes, this->_size);
+        (reader << varint(this->_size)).update(this->_bytes, this->_size);
     }
 };
 

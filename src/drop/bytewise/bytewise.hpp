@@ -21,30 +21,30 @@ namespace drop
             return traits :: can_accept <atype, vtype> :: value || std :: is_integral <atype> :: value;
     }
 
-    template <typename vtype> constexpr bool bytewise :: constraints :: visitor()
+    template <typename vtype> constexpr bool bytewise :: constraints :: reader()
     {
         return traits :: can_update <vtype> :: value;
     }
 
-    // visitor
+    // reader
 
     // Constructors
 
-    template <typename vtype> bytewise :: visitor <vtype> :: visitor(vtype & visitor) : _visitor(visitor)
+    template <typename vtype> bytewise :: reader <vtype> :: reader(vtype & reader) : _reader(reader)
     {
     }
 
     // Methods
 
-    template <typename vtype> inline bytewise :: visitor <vtype> & bytewise :: visitor <vtype> :: update(const uint8_t * bytes, const size_t & size)
+    template <typename vtype> inline bytewise :: reader <vtype> & bytewise :: reader <vtype> :: update(const uint8_t * bytes, const size_t & size)
     {
-        this->_visitor.update(bytes, size);
+        this->_reader.update(bytes, size);
         return (*this);
     }
 
     // Operators
 
-    template <typename vtype> template <typename atype, std :: enable_if_t <bytewise :: constraints :: acceptor <atype, vtype> ()> *> inline bytewise :: visitor <vtype> & bytewise :: visitor <vtype> :: operator << (const atype & acceptor)
+    template <typename vtype> template <typename atype, std :: enable_if_t <bytewise :: constraints :: acceptor <atype, vtype> ()> *> inline bytewise :: reader <vtype> & bytewise :: reader <vtype> :: operator << (const atype & acceptor)
     {
         if constexpr (std :: is_array <atype> :: value)
             for(size_t i = 0; i < std :: extent <atype, std :: rank <atype> :: value - 1> :: value; i++)
@@ -60,7 +60,7 @@ namespace drop
         else if constexpr (std :: is_integral <atype> :: value)
         {
             atype translated = endianess :: translate(acceptor);
-            this->_visitor.update((const uint8_t *) &translated, sizeof(atype));
+            this->_reader.update((const uint8_t *) &translated, sizeof(atype));
         }
         return *this;
     }
@@ -69,9 +69,9 @@ namespace drop
 
     // Static methods
 
-    template <typename vtype, typename... atypes, std :: enable_if_t <bytewise :: constraints :: visitor <vtype> () && (... && (bytewise :: constraints :: acceptor <atypes, vtype> ()))> *> inline void bytewise :: visit(vtype & wrappee, const atypes & ... acceptors)
+    template <typename vtype, typename... atypes, std :: enable_if_t <bytewise :: constraints :: reader <vtype> () && (... && (bytewise :: constraints :: acceptor <atypes, vtype> ()))> *> inline void bytewise :: visit(vtype & wrappee, const atypes & ... acceptors)
     {
-        visitor <vtype> wrapper(wrappee);
+        reader <vtype> wrapper(wrappee);
         (wrapper << ... << acceptors);
     }
 };

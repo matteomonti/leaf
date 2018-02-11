@@ -33,7 +33,7 @@ namespace drop
 
         // Methods
 
-        template <typename vtype> void accept(bytewise :: visitor <vtype> &) const;
+        template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
 
         // Operators
 

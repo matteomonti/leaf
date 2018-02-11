@@ -25,7 +25,7 @@ namespace drop
 
         // Forward declarations
 
-        template <typename vtype> class visitor;
+        template <typename vtype> class reader;
 
     private:
 
@@ -35,7 +35,7 @@ namespace drop
         {
             template <typename atype, typename vtype> struct can_accept
             {
-            	template <typename stype, void (stype :: *) (visitor <vtype> &) const> struct sfinae{};
+            	template <typename stype, void (stype :: *) (reader <vtype> &) const> struct sfinae{};
 
             	template <typename ttype> static std :: true_type test(sfinae <ttype, &ttype :: accept> *);
             	template <typename ttype> static std :: false_type test(...);
@@ -71,41 +71,41 @@ namespace drop
         struct constraints
         {
             template <typename atype, typename vtype> static constexpr bool acceptor();
-            template <typename vtype> static constexpr bool visitor();
+            template <typename vtype> static constexpr bool reader();
         };
 
     public:
 
         // Nested classes
 
-        template <typename vtype> class visitor
+        template <typename vtype> class reader
         {
             // Asserts
 
-            static_assert(constraints :: visitor <vtype> (), "Visitor must implement an update(const uint8_t *, const size_t) interface.");
+            static_assert(constraints :: reader <vtype> (), "reader must implement an update(const uint8_t *, const size_t) interface.");
 
             // Members
 
-            vtype & _visitor;
+            vtype & _reader;
 
         public:
 
             // Constructors
 
-            visitor(vtype &);
+            reader(vtype &);
 
             // Methods
 
-            inline visitor & update(const uint8_t *, const size_t &);
+            inline reader & update(const uint8_t *, const size_t &);
 
             // Operators
 
-            template <typename atype, std :: enable_if_t <constraints :: acceptor <atype, vtype> ()> * = nullptr> inline visitor & operator << (const atype &);
+            template <typename atype, std :: enable_if_t <constraints :: acceptor <atype, vtype> ()> * = nullptr> inline reader & operator << (const atype &);
         };
 
         // Static methods
 
-        template <typename vtype, typename... atypes, std :: enable_if_t <constraints :: visitor <vtype> () && (... && (constraints :: acceptor <atypes, vtype> ()))> * = nullptr> static inline void visit(vtype &, const atypes & ...);
+        template <typename vtype, typename... atypes, std :: enable_if_t <constraints :: reader <vtype> () && (... && (constraints :: acceptor <atypes, vtype> ()))> * = nullptr> static inline void visit(vtype &, const atypes & ...);
     };
 };
 
