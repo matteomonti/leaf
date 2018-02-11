@@ -6,6 +6,8 @@
 #include "bytewise.h"
 #include "endianess.hpp"
 #include "drop/data/varint.hpp"
+#include "drop/data/buffer.hpp"
+#include "drop/utils/visit.hpp"
 
 namespace drop
 {
@@ -121,6 +123,58 @@ namespace drop
         return *this;
     }
 
+    // sizer
+
+    // Constructors
+
+    inline bytewise :: sizer :: sizer() : size(0)
+    {
+    }
+
+    // Methods
+
+    inline void bytewise :: sizer :: update(const uint8_t *, const size_t & size)
+    {
+        this->size += size;
+    }
+
+    // rstream
+
+    // Constructors
+
+    inline bytewise :: rstream :: rstream(buffer & bytes) : bytes(bytes), cursor(0)
+    {
+    }
+
+    // Methods
+
+    inline void bytewise :: rstream :: update(const uint8_t * bytes, const size_t & size)
+    {
+        memcpy((char *)(this->bytes) + this->cursor, bytes, size);
+        this->cursor += size;
+    }
+
+    // wstream
+
+    // Constructors
+
+    inline bytewise :: wstream :: wstream(const buffer & bytes) : bytes(bytes), cursor(0)
+    {
+    }
+
+    // Methods
+
+    inline const uint8_t * bytewise :: wstream :: pop(const size_t & size)
+    {
+        if(this->cursor + size > this->bytes.size())
+            throw "Error!"; // TODO: throw a more meaningful error
+
+        const uint8_t * ret = ((const uint8_t *)(this->bytes) + this->cursor);
+        this->cursor += size;
+
+        return ret;
+    }
+
     // bytewise
 
     // Static methods
@@ -140,6 +194,43 @@ namespace drop
             write(wrappee, acceptors...);
 
         // (wrapper >> ... >> acceptors);
+    }
+
+    template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, bytewise :: sizer> ())) && (... && (bytewise :: constraints :: readable <atypes, bytewise :: rstream> ()))> *> inline buffer bytewise :: serialize(const atypes & ... acceptors)
+    {
+        sizer sizer;
+        read(sizer, acceptors...);
+
+        buffer bytes;
+        bytes.alloc(sizer.size);
+
+        rstream rstream(bytes);
+        read(rstream, acceptors...);
+
+        return bytes;
+    }
+
+    template <typename atype, std :: enable_if_t <std :: is_default_constructible <atype> :: value && bytewise :: constraints :: writable <atype, bytewise :: wstream> ()> *> inline atype bytewise :: deserialize(const buffer & bytes)
+    {
+        wstream wstream(bytes);
+
+        atype acceptor;
+        write(wstream, acceptor);
+
+        return acceptor;
+    }
+
+    template <typename... atypes, std :: enable_if_t <(sizeof...(atypes) > 1) && (... && (std :: is_default_constructible <atypes> :: value)) && (... && (bytewise :: constraints :: writable <atypes, bytewise :: wstream> ()))> *> inline std :: tuple <atypes...> bytewise :: deserialize(const buffer & bytes)
+    {
+        wstream wstream(bytes);
+
+        std :: tuple <atypes...> acceptors;
+        visit :: tuple(acceptors, [&](auto & ... acceptors)
+        {
+            write(wstream, acceptors...);
+        });
+
+        return acceptors;
     }
 };
 

@@ -13,6 +13,12 @@ namespace drop
 #include <type_traits>
 #include <vector>
 
+// Forward includes
+
+#define __forward__
+#include "drop/data/buffer.h"
+#undef __forward__
+
 // Includes
 
 #include "endianess.h"
@@ -151,6 +157,59 @@ namespace drop
             template <typename atype, std :: enable_if_t <constraints :: writable <atype, vtype> ()> * = nullptr> inline writer & operator >> (atype &);
         };
 
+    private:
+
+        // Service nested classes
+
+        struct sizer
+        {
+            // Members
+
+            size_t size;
+
+            // Constructors
+
+            inline sizer();
+
+            // Methods
+
+            inline void update(const uint8_t *, const size_t &);
+        };
+
+        struct rstream
+        {
+            // Members
+
+            buffer & bytes;
+            size_t cursor;
+
+            // Constructors
+
+            inline rstream(buffer &);
+
+            // Methods
+
+            inline void update(const uint8_t *, const size_t &);
+        };
+
+        struct wstream
+        {
+            // Members
+
+            const buffer & bytes;
+            size_t cursor;
+
+            // Constructors
+
+            inline wstream(const buffer &);
+
+            // Methods
+
+            inline const uint8_t * pop(const size_t &);
+        };
+
+    public:
+
         // Static methods
 
         template <typename vtype, typename... atypes, std :: enable_if_t <constraints :: reader <vtype> () && (... && (constraints :: readable <atypes, vtype> ()))> * = nullptr> static inline void read(vtype &, const atypes & ...);
@@ -159,6 +218,11 @@ namespace drop
         // https://bugs.llvm.org/show_bug.cgi?id=32563
         // is fixed.
         template <typename vtype, typename atype, typename... atypes, std :: enable_if_t <constraints :: writer <vtype> () && constraints :: writable <atype, vtype> () && (... && (constraints :: writable <atypes, vtype> ()))> * = nullptr> static inline void write(vtype &, atype &, atypes & ...);
+
+        template <typename... atypes, std :: enable_if_t <(... && (constraints :: readable <atypes, sizer> ())) && (... && (constraints :: readable <atypes, rstream> ()))> * = nullptr> static inline buffer serialize(const atypes & ...);
+
+        template <typename atype, std :: enable_if_t <std :: is_default_constructible <atype> :: value && constraints :: writable <atype, wstream> ()> * = nullptr> static inline atype deserialize(const buffer &);
+        template <typename... atypes, std :: enable_if_t <(sizeof...(atypes) > 1) && (... && (std :: is_default_constructible <atypes> :: value)) && (... && (constraints :: writable <atypes, wstream> ()))> * = nullptr> static inline std :: tuple <atypes...> deserialize(const buffer &);
     };
 };
 
