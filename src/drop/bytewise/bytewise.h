@@ -93,6 +93,8 @@ namespace drop
             };
         };
 
+    public:
+
         // Constraints
 
         struct constraints
@@ -102,8 +104,6 @@ namespace drop
             template <typename vtype> static constexpr bool reader();
             template <typename vtype> static constexpr bool writer();
         };
-
-    public:
 
         // Nested classes
 

@@ -1,36 +1,19 @@
 #include <iostream>
 #include <iomanip>
+#include <stdio.h>
+#include <string.h>
 
-#include "drop/bytewise/bytewise.hpp"
-#include "drop/data/buffer.hpp"
+#include "drop/crypto/sha256.hpp"
 
 using namespace drop;
 
-struct acceptor
-{
-    uint32_t i;
-    uint64_t j;
-    buffer b;
-
-    template <typename vtype> void accept(bytewise :: reader <vtype> & visitor) const
-    {
-        visitor << this->i << this->j << this->b;
-    }
-
-    template <typename vtype> void accept(bytewise :: writer <vtype> & visitor)
-    {
-        visitor >> this->i >> this->j >> this->b;
-    }
-};
-
 int main()
 {
-    buffer bytes = bytewise :: serialize(33, uint64_t(44), acceptor{.i = 33, .j = 99, .b = "Hello World!"});
-    std :: cout << bytes << std :: endl;
+    sha256 my_sha;
+    my_sha.update(3, 4, 5, 6);
+    sha256 :: digest my_digest = my_sha;
 
-    std :: tuple <uint32_t, uint64_t, acceptor> restored = bytewise :: deserialize <uint32_t, uint64_t, acceptor> (bytes);
+    std :: cout << my_digest << std :: endl;
 
-    std :: cout << std :: get <2> (restored).i << std :: endl;
-    std :: cout << std :: get <2> (restored).j << std :: endl;
-    std :: cout << std :: get <2> (restored).b << std :: endl;
+    std :: cout << sha256(buffer("Hello world!")) << std :: endl;
 }

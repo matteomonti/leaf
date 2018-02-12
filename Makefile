@@ -26,8 +26,8 @@ TTREE := $(patsubst %/,%,$(dir $(TOBJS)))
 SCPPFLAGS  = -MMD -MP -MF $(@:$(SOBJDIR)/%.o=$(SDEPDIR)/%.d)
 TCPPFLAGS  = -MMD -MP -MF $(@:$(TOBJDIR)/%.o=$(TDEPDIR)/%.d)
 
-BCXXFLAGS = -I$(SRCDIR) -I$(TESTDIR) -O3 -std=c++2a -fcoroutines-ts -stdlib=libc++
-BLINKERFLAGS = -stdlib=libc++
+BCXXFLAGS = -I$(SRCDIR) -I$(TESTDIR) -I$(OPENSSLPATH)/include -O3 -std=c++2a -fcoroutines-ts -stdlib=libc++
+BLINKERFLAGS = -L$(OPENSSLPATH)/lib -lcrypto -stdlib=libc++
 
 all: CXXFLAGS = $(BCXXFLAGS) -D __main__
 test: CXXFLAGS = $(BCXXFLAGS) -D __test__
