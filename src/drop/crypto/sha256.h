@@ -11,6 +11,8 @@ namespace drop
 // Libraries
 
 #include <openssl/sha.h>
+#include <openssl/evp.h>
+
 #include <iostream>
 #include <iomanip>
 
@@ -55,6 +57,8 @@ namespace drop
             // Operators
 
             const uint8_t & operator [] (const size_t &) const;
+
+            bool operator == (const digest &) const;
 
             // Casting
 

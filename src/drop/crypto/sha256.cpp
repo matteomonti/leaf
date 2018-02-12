@@ -13,11 +13,16 @@ namespace drop
         SHA256_Final(this->_bytes, &ctx);
     }
 
-    // Operatorssha2
+    // Operators
 
     const uint8_t & sha256 :: digest :: operator [] (const size_t & index) const
     {
         return this->_bytes[index];
+    }
+
+    bool sha256 :: digest :: operator == (const digest & rho) const
+    {
+        return !CRYPTO_memcmp(this->_bytes, rho._bytes, size);
     }
 
     // Casting
@@ -60,7 +65,7 @@ namespace drop
             out << std :: hex << std :: setw(2) << std :: setfill('0') << (unsigned int)(digest[i]);
 
         out << ">";
-        
+
         return out;
     }
 };
