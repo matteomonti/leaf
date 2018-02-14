@@ -27,6 +27,44 @@ namespace drop
 
         static constexpr size_t size = crypto_generichash_BYTES;
 
+        // Nested classes
+
+        class key
+        {
+        public:
+
+            // Properties
+
+            static constexpr size_t size = crypto_generichash_KEYBYTES;
+
+        private:
+
+            // Members
+
+            uint8_t _bytes[size];
+
+        public:
+
+            // Methods
+
+            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+            template <typename vtype> void accept(bytewise :: writer <vtype> &);
+
+            // Operators
+
+            const uint8_t & operator [] (const size_t &) const;
+
+            bool operator == (const key &) const;
+
+            // Casting
+
+            operator const uint8_t * () const;
+
+            // Static methods
+
+            static key random();
+        };
+
     private:
 
         // Friends
@@ -70,6 +108,7 @@ namespace drop
 
     // Ostream integration
 
+    std :: ostream & operator << (std :: ostream &, const hash :: key &);
     std :: ostream & operator << (std :: ostream &, const hash &);
 
     class hasher

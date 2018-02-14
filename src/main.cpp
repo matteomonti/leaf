@@ -10,5 +10,5 @@ using namespace drop;
 
 int main()
 {
-    std :: cout << hash(44, 55, buffer("Hello World!")) << std :: endl;
+    std :: cout << hash :: key :: random() << std :: endl;
 }

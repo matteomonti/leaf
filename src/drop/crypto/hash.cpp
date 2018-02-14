@@ -4,6 +4,36 @@
 
 namespace drop
 {
+    // key
+
+    // Operators
+
+    const uint8_t & hash :: key :: operator [] (const size_t & index) const
+    {
+        return this->_bytes[index];
+    }
+
+    bool hash :: key :: operator == (const key & rho) const
+    {
+        return !(memcmp(this->_bytes, rho._bytes, size));
+    }
+
+    // Casting
+
+    hash :: key :: operator const uint8_t * () const
+    {
+        return this->_bytes;
+    }
+
+    // Static methods
+
+    hash :: key hash :: key :: random()
+    {
+        key key;
+        randombytes_buf(key._bytes, size);
+        return key;
+    }
+
     // hash
 
     // Private constructors
@@ -26,6 +56,18 @@ namespace drop
     }
 
     // Ostream integration
+
+    std :: ostream & operator << (std :: ostream & out, const hash :: key & key)
+    {
+        out << "<";
+
+        for(size_t i = 0; i < hash :: key :: size; i++)
+            out << std :: hex << std :: setw(2) << std :: setfill('0') << (unsigned int)(key[i]);
+
+        out << ">";
+
+        return out;
+    }
 
     std :: ostream & operator << (std :: ostream & out, const hash & hash)
     {
