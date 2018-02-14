@@ -10,7 +10,5 @@ using namespace drop;
 
 int main()
 {
-    hasher my_hasher;
-    my_hasher.update(44, 55, buffer("Hello World!"));
-    std :: cout << my_hasher.finalize() << std :: endl;
+    std :: cout << hash(44, 55, buffer("Hello World!")) << std :: endl;
 }

@@ -42,6 +42,7 @@ namespace drop
         // Constructors
 
         hash() = default;
+        template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, hasher> ()))> * = nullptr> hash(const atypes & ...);
 
     private:
 
