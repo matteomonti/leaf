@@ -7,6 +7,18 @@
 
 namespace drop
 {
+    // key
+
+    template <typename vtype> void hash :: key :: accept(bytewise :: reader <vtype> & reader) const
+    {
+        reader << (this->_bytes);
+    }
+
+    template <typename vtype> void hash :: key :: accept(bytewise :: writer <vtype> & writer)
+    {
+        writer >> (this->_bytes);
+    }
+
     // hash
 
     template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, hasher> ()))> *> hash :: hash(const atypes & ... acceptors)
