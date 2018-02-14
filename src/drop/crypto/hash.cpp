@@ -90,6 +90,11 @@ namespace drop
         crypto_generichash_init(&(this->_state), nullptr, 0, hash :: size);
     }
 
+    hasher :: hasher(const hash :: key & key)
+    {
+        crypto_generichash_init(&(this->_state), key, hash :: key :: size, hash :: size);
+    }
+
     // Methods
 
     void hasher :: update(const uint8_t * bytes, const size_t & size)

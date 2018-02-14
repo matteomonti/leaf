@@ -104,6 +104,10 @@ namespace drop
         // Casting
 
         operator const uint8_t * () const;
+
+        // Static methods
+
+        template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, hasher> ()))> * = nullptr> static hash keyed(const key &, const atypes & ...);
     };
 
     // Ostream integration
@@ -122,6 +126,7 @@ namespace drop
         // Constructors
 
         hasher();
+        hasher(const hash :: key &);
 
         // Methods
 
