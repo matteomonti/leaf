@@ -23,6 +23,16 @@ namespace drop
     {
     public:
 
+        // Exceptions
+
+        struct exceptions
+        {
+            class decryption_failed : public std :: exception
+            {
+                const char * what() const throw();
+            };
+        };
+
         // Nested classes
 
         class key
@@ -99,12 +109,51 @@ namespace drop
 
             static nonce random();
         };
+
+        class mac
+        {
+        public:
+
+            // Static members
+
+            static constexpr size_t size = crypto_secretbox_MACBYTES;
+        };
+
+    private:
+
+        // Members
+
+        key _key;
+        nonce _nonce;
+
+    public:
+
+        // Constructors
+
+        secretbox();
+        secretbox(const key &);
+        secretbox(const key &, const nonce &);
+        secretbox(const secretbox &) = delete;
+
+        // Getters
+
+        const key & key() const;
+        const nonce & nonce() const;
+
+        // Methods
+
+        buffer encrypt(const buffer &);
+        buffer decrypt(const buffer &);
+
+        // Operators
+
+        secretbox & operator = (const secretbox &) = delete;
     };
 
     // Ostream integration
 
-    std :: ostream & operator << (std :: ostream &, const secretbox :: key &);
-    std :: ostream & operator << (std :: ostream &, const secretbox :: nonce &);
+    std :: ostream & operator << (std :: ostream &, const class secretbox :: key &);
+    std :: ostream & operator << (std :: ostream &, const class secretbox :: nonce &);
 };
 
 #endif

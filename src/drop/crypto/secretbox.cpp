@@ -4,6 +4,13 @@
 
 namespace drop
 {
+    // Exceptions
+
+    const char * secretbox :: exceptions :: decryption_failed :: what() const throw()
+    {
+        return "Failed to decrypt the message (message too short, or MAC not successfully verified).";
+    }
+
     // key
 
     // Operators
@@ -27,7 +34,7 @@ namespace drop
 
     // Static methods
 
-    secretbox :: key secretbox :: key :: random()
+    class secretbox :: key secretbox :: key :: random()
     {
         key key;
         randombytes_buf(key._bytes, size);
@@ -43,13 +50,13 @@ namespace drop
         return this->_bytes[index];
     }
 
-    secretbox :: nonce & secretbox :: nonce :: operator ++ ()
+    class secretbox :: nonce & secretbox :: nonce :: operator ++ ()
     {
         sodium_increment(this->_bytes, size);
         return (*this);
     }
 
-    secretbox :: nonce & secretbox :: nonce :: operator ++ (int)
+    class secretbox :: nonce & secretbox :: nonce :: operator ++ (int)
     {
         sodium_increment(this->_bytes, size);
         return (*this);
@@ -69,16 +76,74 @@ namespace drop
 
     // Static methods
 
-    secretbox :: nonce secretbox :: nonce :: random()
+    class secretbox :: nonce secretbox :: nonce :: random()
     {
         nonce nonce;
         randombytes_buf(nonce._bytes, size);
         return nonce;
     }
 
+    // secretbox
+
+    // Constructors
+
+    secretbox :: secretbox() : _key(key :: random()), _nonce(nonce :: random())
+    {
+    }
+
+    secretbox :: secretbox(const class key & key) : _key(key), _nonce(nonce :: random())
+    {
+    }
+
+    secretbox :: secretbox(const class key & key, const class nonce & nonce) : _key(key), _nonce(nonce)
+    {
+    }
+
+    // Getters
+
+    const class secretbox :: key & secretbox :: key() const
+    {
+        return this->_key;
+    }
+
+    const class secretbox :: nonce & secretbox :: nonce() const
+    {
+        return this->_nonce;
+    }
+
+    // Methods
+
+    buffer secretbox :: encrypt(const buffer & plaintext)
+    {
+        (this->_nonce)++;
+
+        buffer ciphertext;
+        ciphertext.alloc(mac :: size + plaintext.size());
+
+        crypto_secretbox_easy(ciphertext, plaintext, plaintext.size(), this->_nonce, this->_key);
+
+        return ciphertext;
+    }
+
+    buffer secretbox :: decrypt(const buffer & ciphertext)
+    {
+        (this->_nonce)++;
+
+        if(ciphertext.size() < mac :: size)
+            throw exceptions :: decryption_failed();
+
+        buffer plaintext;
+        plaintext.alloc(ciphertext.size() - mac :: size);
+
+        if(crypto_secretbox_open_easy(plaintext, ciphertext, ciphertext.size(), this->_nonce, this->_key))
+            throw exceptions :: decryption_failed();
+
+        return plaintext;
+    }
+
     // Ostream integration
 
-    std :: ostream & operator << (std :: ostream & out, const secretbox :: key & key)
+    std :: ostream & operator << (std :: ostream & out, const class secretbox :: key & key)
     {
         out << "<";
 
@@ -90,7 +155,7 @@ namespace drop
         return out;
     }
 
-    std :: ostream & operator << (std :: ostream & out, const secretbox :: nonce & nonce)
+    std :: ostream & operator << (std :: ostream & out, const class secretbox :: nonce & nonce)
     {
         out << "<";
 

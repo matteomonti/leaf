@@ -10,8 +10,16 @@ using namespace drop;
 
 int main()
 {
-    secretbox :: nonce my_nonce = secretbox :: nonce :: random();
+    secretbox tx;
+    secretbox rx(tx.key(), tx.nonce());
 
-    while(true)
-        std :: cout << my_nonce++ << std :: endl;
+    buffer plaintext = "Hello World!";
+    buffer ciphertext = tx.encrypt(plaintext);
+
+    std :: cout << "(" << plaintext.size() << ") " << plaintext << std :: endl;
+    std :: cout << "(" << ciphertext.size() << ") " << ciphertext << std :: endl;
+
+    plaintext = rx.decrypt(ciphertext);
+
+    std :: cout << "(" << plaintext.size() << ") " << plaintext << std :: endl;
 }
