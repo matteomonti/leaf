@@ -10,7 +10,12 @@ using namespace drop;
 
 int main()
 {
-    box my_box;
-    std :: cout << my_box.publickey() << std :: endl;
-    std :: cout << my_box.secretkey() << std :: endl;
+    box alice;
+    box bob;
+
+    buffer ciphertext = alice.encrypt(bob.publickey(), "Attack at dawn!");
+    std :: cout << "(" << ciphertext.size() << ") " << ciphertext << std :: endl;
+
+    buffer plaintext = bob.decrypt(alice.publickey(), ciphertext);
+    std :: cout << "(" << plaintext.size() << ") " << plaintext << std :: endl;
 }

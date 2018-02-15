@@ -11,6 +11,7 @@ namespace drop
 // Libraries
 
 #include <iostream>
+#include <exception>
 #include <sodium.h>
 
 // Includes
