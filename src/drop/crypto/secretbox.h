@@ -16,6 +16,7 @@ namespace drop
 // Includes
 
 #include "drop/data/buffer.h"
+#include "drop/bytewise/bytewise.hpp"
 
 namespace drop
 {
@@ -144,6 +145,9 @@ namespace drop
 
         buffer encrypt(const buffer &);
         buffer decrypt(const buffer &);
+
+        template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <atypes> ()))> * = nullptr> buffer encrypt(const atypes & ...);
+        template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <atypes> ()))> * = nullptr> auto decrypt(const buffer &);
 
         // Operators
 

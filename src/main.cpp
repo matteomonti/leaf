@@ -5,6 +5,7 @@
 
 #include "drop/data/buffer.hpp"
 #include "drop/crypto/secretbox.hpp"
+#include "drop/crypto/hash.hpp"
 
 using namespace drop;
 
@@ -13,19 +14,8 @@ int main()
     secretbox tx;
     secretbox rx(tx.key(), tx.nonce());
 
-    buffer plaintext = "Hello World!";
-    buffer ciphertext = tx.encrypt(plaintext);
+    std :: cout << rx.decrypt(tx.encrypt(33)) << std :: endl << std :: endl;
 
-    std :: cout << "(" << plaintext.size() << ") " << plaintext << std :: endl;
-    std :: cout << "(" << ciphertext.size() << ") " << ciphertext << std :: endl;
-
-    plaintext = rx.decrypt(ciphertext);
-
-    std :: cout << "(" << plaintext.size() << ") " << plaintext << std :: endl;
-
-    std :: cout << bytewise :: serialize(1, 2, 3, 4) << std :: endl;
-    std :: cout << bytewise :: deserialize <int> (bytewise :: serialize(1)) << std :: endl;
-    auto x = bytewise :: deserialize <int, int> (bytewise :: serialize(1, 2));
-    std :: cout << std :: get <0> (x) << std :: endl;
-    std :: cout << std :: get <1> (x) << std :: endl;
+    auto plaintext = rx.decrypt <int, int, buffer, hash> (tx.encrypt(44, 92, buffer("Hello World!"), hash(buffer("Hash me baby one more time!"))));
+    std :: cout << std :: get <0> (plaintext) << ", " << std :: get <1> (plaintext) << ", " << std :: get <2> (plaintext) << ", " << std :: get <3> (plaintext) << std :: endl;
 }

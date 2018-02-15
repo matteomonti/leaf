@@ -36,6 +36,18 @@ namespace drop
     {
         writer >> (this->_bytes);
     }
+
+    // secretbox
+
+    template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <atypes> ()))> *> buffer secretbox :: encrypt(const atypes & ... acceptors)
+    {
+        return this->encrypt(bytewise :: serialize(acceptors...));
+    }
+
+    template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <atypes> ()))> *> auto secretbox :: decrypt(const buffer & ciphertext)
+    {
+        return bytewise :: deserialize <atypes...> (this->decrypt(ciphertext));
+    }
 };
 
 #endif
