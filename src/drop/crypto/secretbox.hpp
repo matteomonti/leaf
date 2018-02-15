@@ -22,6 +22,20 @@ namespace drop
     {
         writer >> (this->_bytes);
     }
+
+    // nonce
+
+    // Methods
+
+    template <typename vtype> void secretbox :: nonce :: accept(bytewise :: reader <vtype> & reader) const
+    {
+        reader << (this->_bytes);
+    }
+
+    template <typename vtype> void secretbox :: nonce :: accept(bytewise :: writer <vtype> & writer)
+    {
+        writer >> (this->_bytes);
+    }
 };
 
 #endif

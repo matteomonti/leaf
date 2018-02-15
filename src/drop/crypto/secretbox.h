@@ -22,7 +22,7 @@ namespace drop
     class secretbox
     {
     public:
-        
+
         // Nested classes
 
         class key
@@ -60,11 +60,51 @@ namespace drop
 
             static key random();
         };
+
+        class nonce
+        {
+        public:
+
+            // Properties
+
+            static constexpr size_t size = crypto_secretbox_NONCEBYTES;
+
+        private:
+
+            // Members
+
+            uint8_t _bytes[size];
+
+        public:
+
+            // Methods
+
+            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+            template <typename vtype> void accept(bytewise :: writer <vtype> &);
+
+            // Operators
+
+            const uint8_t & operator [] (const size_t &) const;
+
+            nonce & operator ++ ();
+            nonce & operator ++ (int);
+
+            bool operator == (const nonce &) const;
+
+            // Casting
+
+            operator const uint8_t * () const;
+
+            // Static methods
+
+            static nonce random();
+        };
     };
 
     // Ostream integration
 
     std :: ostream & operator << (std :: ostream &, const secretbox :: key &);
+    std :: ostream & operator << (std :: ostream &, const secretbox :: nonce &);
 };
 
 #endif

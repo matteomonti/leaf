@@ -10,5 +10,8 @@ using namespace drop;
 
 int main()
 {
-    std :: cout << secretbox :: key :: random() << std :: endl;
+    secretbox :: nonce my_nonce = secretbox :: nonce :: random();
+
+    while(true)
+        std :: cout << my_nonce++ << std :: endl;
 }
