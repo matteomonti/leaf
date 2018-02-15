@@ -22,4 +22,10 @@ int main()
     plaintext = rx.decrypt(ciphertext);
 
     std :: cout << "(" << plaintext.size() << ") " << plaintext << std :: endl;
+
+    std :: cout << bytewise :: serialize(1, 2, 3, 4) << std :: endl;
+    std :: cout << bytewise :: deserialize <int> (bytewise :: serialize(1)) << std :: endl;
+    auto x = bytewise :: deserialize <int, int> (bytewise :: serialize(1, 2));
+    std :: cout << std :: get <0> (x) << std :: endl;
+    std :: cout << std :: get <1> (x) << std :: endl;
 }

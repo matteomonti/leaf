@@ -11,7 +11,7 @@
 
 namespace drop
 {
-    // constraints
+    // Constraints
 
     template <typename atype, typename vtype> constexpr bool bytewise :: constraints :: readable()
     {
@@ -41,6 +41,16 @@ namespace drop
     template <typename vtype> constexpr bool bytewise :: constraints :: writer()
     {
         return traits :: can_pop <vtype> :: value;
+    }
+
+    template <typename atype> constexpr bool bytewise :: constraints :: serializable()
+    {
+        return readable <atype, sizer> () && readable <atype, rstream> ();
+    }
+
+    template <typename atype> constexpr bool bytewise :: constraints :: deserializable()
+    {
+        return std :: is_default_constructible <atype> :: value && writable <atype, wstream> ();
     }
 
     // reader
@@ -196,7 +206,7 @@ namespace drop
         // (wrapper >> ... >> acceptors);
     }
 
-    template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, bytewise :: sizer> ())) && (... && (bytewise :: constraints :: readable <atypes, bytewise :: rstream> ()))> *> inline buffer bytewise :: serialize(const atypes & ... acceptors)
+    template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <atypes> ()))> *> inline buffer bytewise :: serialize(const atypes & ... acceptors)
     {
         sizer sizer;
         read(sizer, acceptors...);
@@ -210,7 +220,7 @@ namespace drop
         return bytes;
     }
 
-    template <typename atype, std :: enable_if_t <std :: is_default_constructible <atype> :: value && bytewise :: constraints :: writable <atype, bytewise :: wstream> ()> *> inline atype bytewise :: deserialize(const buffer & bytes)
+    template <typename atype, std :: enable_if_t <bytewise :: constraints :: deserializable <atype> ()> *> inline atype bytewise :: deserialize(const buffer & bytes)
     {
         wstream wstream(bytes);
 
@@ -220,7 +230,7 @@ namespace drop
         return acceptor;
     }
 
-    template <typename... atypes, std :: enable_if_t <(sizeof...(atypes) > 1) && (... && (std :: is_default_constructible <atypes> :: value)) && (... && (bytewise :: constraints :: writable <atypes, bytewise :: wstream> ()))> *> inline std :: tuple <atypes...> bytewise :: deserialize(const buffer & bytes)
+    template <typename... atypes, std :: enable_if_t <(sizeof...(atypes) > 1) && (... && (bytewise :: constraints :: deserializable <atypes> ()))> *> inline std :: tuple <atypes...> bytewise :: deserialize(const buffer & bytes)
     {
         wstream wstream(bytes);
 

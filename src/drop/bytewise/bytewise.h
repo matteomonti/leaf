@@ -101,8 +101,12 @@ namespace drop
         {
             template <typename atype, typename vtype> static constexpr bool readable();
             template <typename atype, typename vtype> static constexpr bool writable();
+
             template <typename vtype> static constexpr bool reader();
             template <typename vtype> static constexpr bool writer();
+
+            template <typename atype> static constexpr bool serializable();
+            template <typename atype> static constexpr bool deserializable();
         };
 
         // Nested classes
@@ -219,10 +223,10 @@ namespace drop
         // is fixed.
         template <typename vtype, typename atype, typename... atypes, std :: enable_if_t <constraints :: writer <vtype> () && constraints :: writable <atype, vtype> () && (... && (constraints :: writable <atypes, vtype> ()))> * = nullptr> static inline void write(vtype &, atype &, atypes & ...);
 
-        template <typename... atypes, std :: enable_if_t <(... && (constraints :: readable <atypes, sizer> ())) && (... && (constraints :: readable <atypes, rstream> ()))> * = nullptr> static inline buffer serialize(const atypes & ...);
+        template <typename... atypes, std :: enable_if_t <(... && (constraints :: serializable <atypes> ()))> * = nullptr> static inline buffer serialize(const atypes & ...);
 
-        template <typename atype, std :: enable_if_t <std :: is_default_constructible <atype> :: value && constraints :: writable <atype, wstream> ()> * = nullptr> static inline atype deserialize(const buffer &);
-        template <typename... atypes, std :: enable_if_t <(sizeof...(atypes) > 1) && (... && (std :: is_default_constructible <atypes> :: value)) && (... && (constraints :: writable <atypes, wstream> ()))> * = nullptr> static inline std :: tuple <atypes...> deserialize(const buffer &);
+        template <typename atype, std :: enable_if_t <constraints :: deserializable <atype> ()> * = nullptr> static inline atype deserialize(const buffer &);
+        template <typename... atypes, std :: enable_if_t <(sizeof...(atypes) > 1) && (... && (constraints :: deserializable <atypes> ()))> * = nullptr> static inline std :: tuple <atypes...> deserialize(const buffer &);
     };
 };
 
