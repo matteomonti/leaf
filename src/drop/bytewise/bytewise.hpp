@@ -5,12 +5,35 @@
 
 #include "bytewise.h"
 #include "endianess.hpp"
+#include "drop/utils/sfinae.hpp"
 #include "drop/data/varint.hpp"
 #include "drop/data/buffer.hpp"
 #include "drop/utils/visit.hpp"
 
 namespace drop
 {
+    // Traits
+
+    template <typename atype, typename vtype> constexpr bool bytewise :: traits :: can_accept_reader()
+    {
+        return sfinae :: is_valid([](auto && acceptor) -> decltype(acceptor.accept(std :: declval <reader <vtype> &> ())) {}).template satisfied <const atype> ();
+    }
+
+    template <typename atype, typename vtype> constexpr bool bytewise :: traits :: can_accept_writer()
+    {
+        return sfinae :: is_valid([](auto && acceptor) -> decltype(acceptor.accept(std :: declval <writer <vtype> &> ())) {}).template satisfied <atype> ();
+    }
+
+    template <typename utype> constexpr bool bytewise :: traits :: can_update()
+    {
+        return sfinae :: is_valid([](auto && object) -> decltype(object.update(std :: declval <const uint8_t *> (), std :: declval <const size_t> ())) {}).template satisfied <utype> ();
+    }
+
+    template <typename utype> constexpr bool bytewise :: traits :: can_pop()
+    {
+        return sfinae :: returns <const uint8_t *> ([](auto && object) -> decltype(object.pop(std :: declval <const size_t> ())) {}).template satisfied <utype> ();
+    }
+
     // Constraints
 
     template <typename atype, typename vtype> constexpr bool bytewise :: constraints :: readable()
@@ -20,7 +43,7 @@ namespace drop
         else if constexpr (traits :: is_vector <atype> :: value)
             return readable <typename traits :: is_vector <atype> :: type, vtype> ();
         else
-            return traits :: can_accept_reader <atype, vtype> :: value || std :: is_integral <atype> :: value;
+            return traits :: can_accept_reader <atype, vtype> () || std :: is_integral <atype> :: value;
     }
 
     template <typename atype, typename vtype> constexpr bool bytewise :: constraints :: writable()
@@ -30,17 +53,17 @@ namespace drop
         else if constexpr (traits :: is_vector <atype> :: value)
             return writable <typename traits :: is_vector <atype> :: type, vtype> ();
         else
-            return traits :: can_accept_writer <atype, vtype> :: value || std :: is_integral <atype> :: value;
+            return traits :: can_accept_writer <atype, vtype> () || std :: is_integral <atype> :: value;
     }
 
     template <typename vtype> constexpr bool bytewise :: constraints :: reader()
     {
-        return traits :: can_update <vtype> :: value;
+        return traits :: can_update <vtype> ();
     }
 
     template <typename vtype> constexpr bool bytewise :: constraints :: writer()
     {
-        return traits :: can_pop <vtype> :: value;
+        return traits :: can_pop <vtype> ();
     }
 
     template <typename atype> constexpr bool bytewise :: constraints :: serializable()
@@ -82,7 +105,7 @@ namespace drop
             for(size_t i = 0; i < acceptor.size(); i++)
                 (*this) << acceptor[i];
         }
-        else if constexpr (traits :: can_accept_reader <atype, vtype> :: value)
+        else if constexpr (traits :: can_accept_reader <atype, vtype> ())
             acceptor.accept(*this);
         else if constexpr (std :: is_integral <atype> :: value)
         {
@@ -123,7 +146,7 @@ namespace drop
             for(size_t i = 0; i < size; i++)
                 (*this) >> acceptor[i];
         }
-        else if constexpr (traits :: can_accept_writer <atype, vtype> :: value)
+        else if constexpr (traits :: can_accept_writer <atype, vtype> ())
             acceptor.accept(*this);
         else if constexpr (std :: is_integral <atype> :: value)
         {

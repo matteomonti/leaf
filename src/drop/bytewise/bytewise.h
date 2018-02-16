@@ -22,6 +22,7 @@ namespace drop
 // Includes
 
 #include "endianess.h"
+#include "drop/utils/sfinae.h"
 
 namespace drop
 {
@@ -40,45 +41,11 @@ namespace drop
 
         struct traits
         {
-            template <typename atype, typename vtype> struct can_accept_reader
-            {
-            	template <typename stype, void (stype :: *) (reader <vtype> &) const> struct sfinae{};
+            template <typename atype, typename vtype> static constexpr bool can_accept_reader();
+            template <typename atype, typename vtype> static constexpr bool can_accept_writer();
 
-            	template <typename ttype> static std :: true_type test(sfinae <ttype, &ttype :: accept> *);
-            	template <typename ttype> static std :: false_type test(...);
-
-            	static constexpr bool value = std :: is_same <std :: true_type, decltype(test <atype> (nullptr))> :: value;
-            };
-
-            template <typename atype, typename vtype> struct can_accept_writer
-            {
-            	template <typename stype, void (stype :: *) (writer <vtype> &)> struct sfinae{};
-
-            	template <typename ttype> static std :: true_type test(sfinae <ttype, &ttype :: accept> *);
-            	template <typename ttype> static std :: false_type test(...);
-
-            	static constexpr bool value = std :: is_same <std :: true_type, decltype(test <atype> (nullptr))> :: value;
-            };
-
-            template <typename utype> struct can_update
-            {
-            	template <typename stype, void (stype :: *) (const uint8_t *, const size_t &)> struct sfinae{};
-
-            	template <typename ttype> static std :: true_type test(sfinae <ttype, &ttype :: update> *);
-            	template <typename ttype> static std :: false_type test(...);
-
-            	static constexpr bool value = std :: is_same <std :: true_type, decltype(test <utype> (nullptr))> :: value;
-            };
-
-            template <typename utype> struct can_pop
-            {
-                template <typename stype, const uint8_t * (stype :: *) (const size_t &)> struct sfinae{};
-
-            	template <typename ttype> static std :: true_type test(sfinae <ttype, &ttype :: pop> *);
-            	template <typename ttype> static std :: false_type test(...);
-
-            	static constexpr bool value = std :: is_same <std :: true_type, decltype(test <utype> (nullptr))> :: value;
-            };
+            template <typename utype> static constexpr bool can_update();
+            template <typename utype> static constexpr bool can_pop();
 
             template <typename vtype> struct is_vector;
             template <typename itype> struct is_vector <std :: vector <itype>>

@@ -3,23 +3,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "drop/utils/sfinae.hpp"
+#include "drop/bytewise/bytewise.hpp"
 
 using namespace drop;
 
-class x
-{
-public:
-
-    int serialize()
-    {
-        return 44;
-    }
-};
-
-constexpr auto has_serialize = sfinae :: returns <int> ([](auto && x) -> decltype(x.serialize()) {});
-
 int main()
 {
-    std :: cout << has_serialize.satisfied <x> () << std :: endl;
+    std :: cout << std :: get <0> (bytewise :: deserialize <int, int, int> (bytewise :: serialize(44, 55, 66))) << std :: endl;
 }
