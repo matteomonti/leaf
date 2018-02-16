@@ -3,19 +3,23 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "drop/crypto/box.hpp"
-#include "drop/bytewise/bytewise.hpp"
+#include "drop/utils/sfinae.hpp"
 
 using namespace drop;
 
+class x
+{
+public:
+
+    int serialize()
+    {
+        return 44;
+    }
+};
+
+constexpr auto has_serialize = sfinae :: returns <int> ([](auto && x) -> decltype(x.serialize()) {});
+
 int main()
 {
-    box alice;
-    box bob;
-
-    buffer ciphertext = alice.encrypt(bob.publickey(), "Attack at dawn!");
-    std :: cout << "(" << ciphertext.size() << ") " << ciphertext << std :: endl;
-
-    buffer plaintext = bob.decrypt(alice.publickey(), ciphertext);
-    std :: cout << "(" << plaintext.size() << ") " << plaintext << std :: endl;
+    std :: cout << has_serialize.satisfied <x> () << std :: endl;
 }
