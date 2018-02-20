@@ -16,66 +16,28 @@ namespace drop
 // Includes
 
 #include "drop/bytewise/bytewise.hpp"
+#include "drop/data/tag.h"
 
 namespace drop
 {
-    class hash
+    class hash : public tag <crypto_generichash_BYTES>
     {
+        // Friends
+
+        friend class hasher;
+
     public:
-
-        // Properties
-
-        static constexpr size_t size = crypto_generichash_BYTES;
 
         // Nested classes
 
-        class key
+        class key : public tag <crypto_generichash_KEYBYTES>
         {
         public:
-
-            // Properties
-
-            static constexpr size_t size = crypto_generichash_KEYBYTES;
-
-        private:
-
-            // Members
-
-            uint8_t _bytes[size];
-
-        public:
-
-            // Methods
-
-            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
-            template <typename vtype> void accept(bytewise :: writer <vtype> &);
-
-            // Operators
-
-            const uint8_t & operator [] (const size_t &) const;
-
-            bool operator == (const key &) const;
-
-            // Casting
-
-            operator const uint8_t * () const;
 
             // Static methods
 
             static key random();
         };
-
-    private:
-
-        // Friends
-
-        friend class hasher;
-
-        // Members
-
-        uint8_t _bytes[size];
-
-    public:
 
         // Constructors
 
@@ -90,30 +52,12 @@ namespace drop
 
     public:
 
-        // Methods
-
-        template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
-        template <typename vtype> void accept(bytewise :: writer <vtype> &);
-
-        // Operators
-
-        const uint8_t & operator [] (const size_t &) const;
-
-        bool operator == (const hash &) const;
-
-        // Casting
-
-        operator const uint8_t * () const;
-
         // Static methods
 
         template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, hasher> ()))> * = nullptr> static hash keyed(const key &, const atypes & ...);
     };
 
     // Ostream integration
-
-    std :: ostream & operator << (std :: ostream &, const hash :: key &);
-    std :: ostream & operator << (std :: ostream &, const hash &);
 
     class hasher
     {
@@ -130,8 +74,8 @@ namespace drop
 
         // Methods
 
-        void update(const uint8_t *, const size_t &);
-        template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, hasher> ()))> * = nullptr> void update(const atypes & ...);
+        hasher & update(const uint8_t *, const size_t &);
+        template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, hasher> ()))> * = nullptr> hasher & update(const atypes & ...);
         hash finalize();
     };
 };

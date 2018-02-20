@@ -4,23 +4,10 @@
 // Includes
 
 #include "hash.h"
+#include "drop/data/tag.hpp"
 
 namespace drop
 {
-    // key
-
-    // Methods
-
-    template <typename vtype> void hash :: key :: accept(bytewise :: reader <vtype> & reader) const
-    {
-        reader << (this->_bytes);
-    }
-
-    template <typename vtype> void hash :: key :: accept(bytewise :: writer <vtype> & writer)
-    {
-        writer >> (this->_bytes);
-    }
-
     // hash
 
     // Constructors
@@ -32,33 +19,20 @@ namespace drop
         (*this) = hasher.finalize();
     }
 
-    // Methods
-
-    template <typename vtype> void hash :: accept(bytewise :: reader <vtype> & reader) const
-    {
-        reader << (this->_bytes);
-    }
-
-    template <typename vtype> void hash :: accept(bytewise :: writer <vtype> & writer)
-    {
-        writer >> (this->_bytes);
-    }
-
     // Static methods
 
     template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, hasher> ()))> *> hash hash :: keyed(const key & key, const atypes & ... acceptors)
     {
-        hasher hasher(key);
-        hasher.update(acceptors...);
-        return hasher.finalize();
+        return hasher(key).update(acceptors...).finalize();
     }
 
     // hasher
 
-    template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, hasher> ()))> *> void hasher :: update(const atypes & ... acceptors)
+    template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, hasher> ()))> *> hasher & hasher :: update(const atypes & ... acceptors)
     {
         bytewise :: reader <hasher> reader(*this);
         (reader << ... << acceptors);
+        return (*this);
     }
 };
 

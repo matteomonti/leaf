@@ -3,19 +3,19 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "drop/crypto/box.hpp"
-#include "drop/bytewise/bytewise.hpp"
+#include "drop/crypto/hash.hpp"
+#include "drop/data/buffer.hpp"
 
 using namespace drop;
 
 int main()
 {
-    box alice;
-    box bob;
+    auto my_key = hash :: key :: random();
 
-    buffer ciphertext = alice.encrypt(bob.publickey(), "Attack at dawn!");
-    std :: cout << "(" << ciphertext.size() << ") " << ciphertext << std :: endl;
+    std :: cout << my_key << std :: endl << std :: endl;
 
-    buffer plaintext = bob.decrypt(alice.publickey(), ciphertext);
-    std :: cout << "(" << plaintext.size() << ") " << plaintext << std :: endl;
+    std :: cout << hash(1, 2, 3) << std :: endl;
+    std :: cout << hash :: keyed(my_key, 1, 2, 3) << std :: endl;
+    std :: cout << hash :: keyed(my_key, 1, 2) << std :: endl;
+    std :: cout << hash :: keyed(my_key, 1, 2, 3) << std :: endl;
 }
