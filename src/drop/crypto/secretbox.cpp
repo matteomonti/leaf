@@ -13,25 +13,6 @@ namespace drop
 
     // key
 
-    // Operators
-
-    const uint8_t & secretbox :: key :: operator [] (const size_t & index) const
-    {
-        return this->_bytes[index];
-    }
-
-    bool secretbox :: key :: operator == (const key & rho) const
-    {
-        return !(memcmp(this->_bytes, rho._bytes, size));
-    }
-
-    // Casting
-
-    secretbox :: key :: operator const uint8_t * () const
-    {
-        return this->_bytes;
-    }
-
     // Static methods
 
     class secretbox :: key secretbox :: key :: random()
@@ -45,11 +26,6 @@ namespace drop
 
     // Operators
 
-    const uint8_t & secretbox :: nonce :: operator [] (const size_t & index) const
-    {
-        return this->_bytes[index];
-    }
-
     class secretbox :: nonce & secretbox :: nonce :: operator ++ ()
     {
         sodium_increment(this->_bytes, size);
@@ -60,18 +36,6 @@ namespace drop
     {
         sodium_increment(this->_bytes, size);
         return (*this);
-    }
-
-    bool secretbox :: nonce :: operator == (const nonce & rho) const
-    {
-        return !(memcmp(this->_bytes, rho._bytes, size));
-    }
-
-    // Casting
-
-    secretbox :: nonce :: operator const uint8_t * () const
-    {
-        return this->_bytes;
     }
 
     // Static methods

@@ -6,38 +6,13 @@
 #include "secretbox.h"
 #include "drop/bytewise/bytewise.hpp"
 #include "drop/data/buffer.hpp"
+#include "drop/data/tag.hpp"
 
 namespace drop
 {
-    // key
-
-    // Methods
-
-    template <typename vtype> void secretbox :: key :: accept(bytewise :: reader <vtype> & reader) const
-    {
-        reader << (this->_bytes);
-    }
-
-    template <typename vtype> void secretbox :: key :: accept(bytewise :: writer <vtype> & writer)
-    {
-        writer >> (this->_bytes);
-    }
-
-    // nonce
-
-    // Methods
-
-    template <typename vtype> void secretbox :: nonce :: accept(bytewise :: reader <vtype> & reader) const
-    {
-        reader << (this->_bytes);
-    }
-
-    template <typename vtype> void secretbox :: nonce :: accept(bytewise :: writer <vtype> & writer)
-    {
-        writer >> (this->_bytes);
-    }
-
     // secretbox
+
+    // Methods
 
     template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <atypes> ()))> *> buffer secretbox :: encrypt(const atypes & ... acceptors)
     {

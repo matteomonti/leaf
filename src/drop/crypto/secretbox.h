@@ -18,6 +18,7 @@ namespace drop
 
 #include "drop/data/buffer.h"
 #include "drop/bytewise/bytewise.hpp"
+#include "drop/data/tag.h"
 
 namespace drop
 {
@@ -37,75 +38,23 @@ namespace drop
 
         // Nested classes
 
-        class key
+        class key : public tag <crypto_secretbox_KEYBYTES>
         {
         public:
-
-            // Properties
-
-            static constexpr size_t size = crypto_secretbox_KEYBYTES;
-
-        private:
-
-            // Members
-
-            uint8_t _bytes[size];
-
-        public:
-
-            // Methods
-
-            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
-            template <typename vtype> void accept(bytewise :: writer <vtype> &);
-
-            // Operators
-
-            const uint8_t & operator [] (const size_t &) const;
-
-            bool operator == (const key &) const;
-
-            // Casting
-
-            operator const uint8_t * () const;
 
             // Static methods
 
             static key random();
         };
 
-        class nonce
+        class nonce : public tag <crypto_secretbox_NONCEBYTES>
         {
         public:
 
-            // Properties
-
-            static constexpr size_t size = crypto_secretbox_NONCEBYTES;
-
-        private:
-
-            // Members
-
-            uint8_t _bytes[size];
-
-        public:
-
-            // Methods
-
-            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
-            template <typename vtype> void accept(bytewise :: writer <vtype> &);
-
             // Operators
-
-            const uint8_t & operator [] (const size_t &) const;
 
             nonce & operator ++ ();
             nonce & operator ++ (int);
-
-            bool operator == (const nonce &) const;
-
-            // Casting
-
-            operator const uint8_t * () const;
 
             // Static methods
 
@@ -154,11 +103,6 @@ namespace drop
 
         secretbox & operator = (const secretbox &) = delete;
     };
-
-    // Ostream integration
-
-    std :: ostream & operator << (std :: ostream &, const class secretbox :: key &);
-    std :: ostream & operator << (std :: ostream &, const class secretbox :: nonce &);
 };
 
 #endif
