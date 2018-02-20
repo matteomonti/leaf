@@ -50,12 +50,12 @@ namespace drop
 
     template <size_t length> std :: ostream & operator << (std :: ostream & out, const tag <length> & tag)
     {
-        out << "<";
+        out << std :: hex << "<";
 
         for(size_t i = 0; i < length; i++)
-            out << std :: hex << std :: setw(2) << std :: setfill('0') << (unsigned int)(tag[i]);
+            out << std :: setw(2) << std :: setfill('0') << (unsigned int)(tag[i]);
 
-        out << ">";
+        out << ">" << std :: dec;
 
         return out;
     }

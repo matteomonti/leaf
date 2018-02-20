@@ -3,23 +3,20 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "drop/crypto/box.hpp"
-#include "drop/bytewise/bytewise.hpp"
+#include "drop/crypto/signature.hpp"
 
 using namespace drop;
 
 int main()
 {
-    box alice;
-    box bob;
+    signer my_signer;
+    signature my_signature = my_signer.sign(1, 2, buffer("Hello World!"), 3);
 
-    buffer ciphertext = alice.encrypt(bob.publickey(), 1, 2, buffer("Attack at dawn!"), 3);
-    std :: cout << "(" << ciphertext.size() << ") " << ciphertext << std :: endl;
+    std :: cout << my_signer.publickey() << std :: endl;
+    std :: cout << my_signature << std :: endl;
 
-    auto plaintext = bob.decrypt <int, int, buffer, int> (alice.publickey(), ciphertext);
+    verifier my_verifier(my_signer.publickey());
+    my_verifier.verify(my_signature, 1, 2, buffer("Hello World!"), 3);
 
-    std :: cout << std :: get <0> (plaintext) << std :: endl;
-    std :: cout << std :: get <1> (plaintext) << std :: endl;
-    std :: cout << std :: get <2> (plaintext) << std :: endl;
-    std :: cout << std :: get <3> (plaintext) << std :: endl;
+    std :: cout << "Verification successful!" << std :: endl;
 }
