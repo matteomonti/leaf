@@ -14,6 +14,12 @@ namespace drop
 #include <exception>
 #include <sodium.h>
 
+// Forward includes
+
+#define __forward__
+#include "keyexchanger.h"
+#undef __forward__
+
 // Includes
 
 #include "drop/data/buffer.h"
@@ -40,6 +46,10 @@ namespace drop
 
         class key : public tag <crypto_secretbox_KEYBYTES>
         {
+            // Friends
+
+            friend class keyexchanger;
+
         public:
 
             // Static methods
