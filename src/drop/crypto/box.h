@@ -97,6 +97,9 @@ namespace drop
 
         buffer encrypt(const class publickey &, const buffer &);
         buffer decrypt(const class publickey &, const buffer &);
+
+        template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <atypes> ()))> * = nullptr> buffer encrypt(const class publickey &, const atypes & ...);
+        template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <atypes> ()))> * = nullptr> auto decrypt(const class publickey &, const buffer &);
     };
 };
 

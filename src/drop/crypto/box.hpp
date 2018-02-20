@@ -8,6 +8,17 @@
 
 namespace drop
 {
+    // Methods
+
+    template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <atypes> ()))> *> buffer box :: encrypt(const class publickey & to, const atypes & ... acceptors)
+    {
+        return this->encrypt(to, bytewise :: serialize(acceptors...));
+    }
+
+    template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <atypes> ()))> *> auto box :: decrypt(const class publickey & from, const buffer & ciphertext)
+    {
+        return bytewise :: deserialize <atypes...> (this->decrypt(from, ciphertext));
+    }
 };
 
 #endif
