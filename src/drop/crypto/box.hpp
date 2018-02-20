@@ -4,34 +4,10 @@
 // Includes
 
 #include "box.h"
+#include "drop/data/tag.hpp"
 
 namespace drop
 {
-    // publickey
-
-    // Methods
-
-    template <typename vtype> void box :: publickey :: accept(bytewise :: reader <vtype> & reader) const
-    {
-        reader << (this->_bytes);
-    }
-
-    template <typename vtype> void box :: publickey :: accept(bytewise :: writer <vtype> & writer)
-    {
-        writer >> (this->_bytes);
-    }
-
-    // secretkey
-
-    template <typename vtype> void box :: secretkey :: accept(bytewise :: reader <vtype> & reader) const
-    {
-        reader << (this->_bytes);
-    }
-
-    template <typename vtype> void box :: secretkey :: accept(bytewise :: writer <vtype> & writer)
-    {
-        writer >> (this->_bytes);
-    }
 };
 
 #endif

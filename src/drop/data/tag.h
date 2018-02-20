@@ -10,7 +10,7 @@ namespace drop
 };
 
 #if !defined(__forward__) && !defined(__drop__data__tag__h)
-#define __drop__data__tag__hpp
+#define __drop__data__tag__h
 
 // Libraries
 

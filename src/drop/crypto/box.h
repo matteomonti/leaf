@@ -17,6 +17,7 @@ namespace drop
 // Includes
 
 #include "drop/bytewise/bytewise.hpp"
+#include "drop/data/tag.h"
 
 namespace drop
 {
@@ -41,88 +42,18 @@ namespace drop
 
         // Nested classes
 
-        class publickey
+        class publickey : public tag <crypto_box_PUBLICKEYBYTES>
         {
-        public:
-
-            // Properties
-
-            static constexpr size_t size = crypto_box_PUBLICKEYBYTES;
-
-        private:
-
             // Friends
 
             friend class box;
-
-            // Members
-
-            uint8_t _bytes[size];
-
-        public:
-
-            // Methods
-
-            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
-            template <typename vtype> void accept(bytewise :: writer <vtype> &);
-
-            // Operators
-
-            const uint8_t & operator [] (const size_t &) const;
-
-            bool operator == (const publickey &) const;
-
-            // Casting
-
-            operator const uint8_t * () const;
-
-        private:
-
-            // Private casting
-
-            operator uint8_t * ();
         };
 
-        class secretkey
+        class secretkey : public tag <crypto_box_SECRETKEYBYTES>
         {
-        public:
-
-            // Properties
-
-            static constexpr size_t size = crypto_box_SECRETKEYBYTES;
-
-        private:
-
             // Friends
 
             friend class box;
-
-            // Members
-
-            uint8_t _bytes[size];
-
-        public:
-
-            // Methods
-
-            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
-            template <typename vtype> void accept(bytewise :: writer <vtype> &);
-
-            // Operators
-
-            const uint8_t & operator [] (const size_t &) const;
-
-            bool operator == (const secretkey &) const;
-
-            // Casting
-
-            operator const uint8_t * () const;
-
-        private:
-
-            // Private casting
-
-            operator uint8_t * ();
         };
 
         class nonce
@@ -167,11 +98,6 @@ namespace drop
         buffer encrypt(const class publickey &, const buffer &);
         buffer decrypt(const class publickey &, const buffer &);
     };
-
-    // Ostream integration
-
-    std :: ostream & operator << (std :: ostream &, const class box :: publickey &);
-    std :: ostream & operator << (std :: ostream &, const class box :: secretkey &);
 };
 
 #endif
