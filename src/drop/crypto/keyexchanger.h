@@ -16,6 +16,7 @@ namespace drop
 
 #include "drop/data/tag.hpp"
 #include "secretbox.hpp"
+#include "drop/bytewise/endianess.h"
 
 namespace drop
 {
@@ -73,6 +74,8 @@ namespace drop
 
             class secretbox :: key transmit();
             class secretbox :: key receive();
+
+            uint64_t number(const char *, const uint64_t &);
         };
 
     private:

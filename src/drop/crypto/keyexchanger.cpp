@@ -1,6 +1,7 @@
 // Includes
 
 #include "keyexchanger.h"
+#include "drop/bytewise/endianess.hpp"
 
 namespace drop
 {
@@ -36,6 +37,13 @@ namespace drop
         class secretbox :: key key;
         crypto_kdf_derive_from_key((uint8_t *) key, secretbox :: key :: size, (this->_lesser ? 1 : 0), "rxtx", this->_bytes);
         return key;
+    }
+
+    uint64_t keyexchanger :: sessionkey :: number(const char * scope, const uint64_t & id)
+    {
+        uint8_t buffer[16];
+        crypto_kdf_derive_from_key(buffer, 16, id, scope, this->_bytes);
+        return endianess :: translate(*((uint64_t *) buffer));
     }
 
     // keyexchanger

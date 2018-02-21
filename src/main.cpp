@@ -17,4 +17,6 @@ int main()
 
     std :: cout << alicekey.transmit() << " - " << bobkey.receive() << std :: endl;
     std :: cout << alicekey.receive() << " - " << bobkey.transmit() << std :: endl;
+
+    std :: cout << alicekey.number("myscope", 44) << " - " << bobkey.number("myscope", 44) << std :: endl;
 }
