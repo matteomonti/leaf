@@ -11,9 +11,17 @@ namespace drop
 {
     // Traits
 
-    template <typename... types> template <typename ctype, typename vtype> constexpr bool variant <types...> :: traits :: callable()
+    template <typename... types> template <typename ctype, typename vtype> constexpr bool variant <types...> :: traits :: is_callable()
     {
-        return sfinae :: is_valid([](auto && callback) -> decltype(callback(std :: declval <vtype &> ())) {}).template satisfied <ctype> ();
+        return sfinae :: returns <void> ([](auto && callback) -> decltype(callback(std :: declval <vtype &> ())) {}).template satisfied <ctype> ();
+    }
+
+    template <typename... types> template <typename ctype, typename vtype> constexpr bool variant <types...> :: traits :: is_directly_callable()
+    {
+        if constexpr (std :: is_const <vtype> :: value)
+            return sfinaes :: template call_operator_accepts_reference <ctype, vtype> :: value;
+        else
+            return sfinaes :: template call_operator_accepts_reference <ctype, vtype> :: value || sfinaes :: template call_operator_accepts_reference <ctype, const vtype> :: value;
     }
 
     // Constraints

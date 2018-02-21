@@ -18,11 +18,29 @@ namespace drop
 {
     template <typename... types> class variant
     {
+    public: // REMOVE ME
+
         // Traits
 
         struct traits
         {
-            template <typename ctype, typename vtype> static constexpr bool callable();
+            struct sfinaes
+            {
+                template <typename ctype, typename vtype> struct call_operator_accepts_reference
+                {
+                    template <typename ftype, void (ftype :: *)(vtype &)> struct mhelper {};
+                    template <typename ftype, void (ftype :: *)(vtype &) const> struct chelper {};
+
+                    template <typename ftype> static uint8_t sfinae(...);
+                    template <typename ftype> static uint32_t sfinae(mhelper <ftype, &ftype :: operator ()> *);
+                    template <typename ftype> static uint32_t sfinae(chelper <ftype, &ftype :: operator ()> *);
+
+                    static constexpr bool value = std :: is_same <decltype(sfinae <ctype> (0)), uint32_t> :: value;
+                };
+            };
+
+            template <typename ctype, typename vtype> static constexpr bool is_callable();
+            template <typename ctype, typename vtype> static constexpr bool is_directly_callable();
         };
 
     public:
