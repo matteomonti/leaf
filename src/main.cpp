@@ -3,20 +3,27 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "drop/crypto/keyexchanger.h"
+// #include "drop/data/variant.hpp"
 
-using namespace drop;
+// using namespace drop;
+
+#define typeswitch(type)
+#define typecase(type)
 
 int main()
 {
-    keyexchanger alice;
-    keyexchanger bob;
+    typedef int x;
+    std :: cout << sizeof(x) << std :: endl;
+    {
+        typedef double x;
+        std :: cout << sizeof(x) << std :: endl;
+    }
 
-    auto alicekey = alice.exchange(bob.publickey());
-    auto bobkey = bob.exchange(alice.publickey());
+    /*typeswitch(int)
+    {
+        typecase(int)
+        {
 
-    std :: cout << alicekey.transmit() << " - " << bobkey.receive() << std :: endl;
-    std :: cout << alicekey.receive() << " - " << bobkey.transmit() << std :: endl;
-
-    std :: cout << alicekey.number("myscope", 44) << " - " << bobkey.number("myscope", 44) << std :: endl;
+        }
+    }*/
 }
