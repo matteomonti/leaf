@@ -10,4 +10,5 @@ using namespace drop;
 
 int main()
 {
+    variant <int, double, float, char> x = 'q';
 }

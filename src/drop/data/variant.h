@@ -45,34 +45,36 @@ namespace drop
             template <typename ctype, typename vtype> static constexpr bool is_callable();
             template <typename ctype, typename vtype> static constexpr bool is_directly_callable();
 
-            template <typename needle, typename haywire, typename... haystack> static constexpr bool in();
+            template <typename needle, typename haywire, typename... haystack> static constexpr ssize_t typeid_of();
             template <typename vtype, typename... vtypes> static constexpr bool distinct();
         };
 
-    public:
-
         // Constraints
 
-        struct constraints
+        struct constraints // TODO: Find better names for these constraints
         {
-            template <typename ctype> static constexpr bool callback();
             static constexpr bool variants();
+            template <typename vtype> static constexpr bool variant();
+            template <typename ctype> static constexpr bool callback();
         };
 
         // Asserts
 
         static_assert(constraints :: variants(), "A variant must have one or more distinct types.");
 
-    private:
+        // Private constructors
+
+        template <typename vtype> variant_base(const vtype &);
 
         // Members
 
         uint8_t _typeid;
         std :: aligned_storage_t <max({sizeof(types)...}), max({alignof(types)...})> _value;
 
-        // Private constructors
+        // Private methods
 
-        variant_base();
+        template <size_t index, typename vtype, typename... vtypes> auto valueptr();
+        template <size_t index, typename vtype, typename... vtypes> const auto valueptr() const;
     };
 
     template <typename... types> class variant : public variant_base <types...>,
@@ -86,6 +88,16 @@ namespace drop
         // Constraints
 
         typedef typename variant_base <types...> :: constraints constraints;
+
+    private:
+
+        // Private constructors
+
+        variant();
+
+    public:
+
+        template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> () && std :: is_copy_constructible <vtype> :: value> * = nullptr> variant(const vtype &);
     };
 };
 
