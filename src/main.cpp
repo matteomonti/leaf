@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "drop/data/variant.hpp"
+#include "drop/utils/enablers.h"
 
 using namespace drop;
 
