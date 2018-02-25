@@ -139,6 +139,13 @@ namespace drop
         });
     }
 
+    // Getters
+
+    template <typename... types> bool variant_base <types...> :: empty() const
+    {
+        return (this->_typeid == 0xff);
+    }
+
     // Methods
 
     template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template readable <vtype> ()> *> void variant_base <types...> :: accept(bytewise :: reader <vtype> & visitor) const
@@ -212,13 +219,11 @@ namespace drop
 
     template <typename... types> template <typename vtype, typename... vtypes, typename lambda> void variant_base <types...> :: unwrap(const size_t & index, lambda && callback)
     {
-        if constexpr (sizeof...(vtypes) == 0)
+        if(index == 0)
             callback(reinterpret_cast <vtype &> (this->_value));
         else
         {
-            if(index == 0)
-                callback(reinterpret_cast <vtype &> (this->_value));
-            else
+            if constexpr (sizeof...(vtypes) > 0)
                 this->unwrap <vtypes...> (index - 1, callback);
         }
     }
@@ -335,15 +340,20 @@ namespace drop
         return "Wrong variant. Get failed.";
     }
 
-    // Private constructors
+    // Constructors
 
     template <typename... types> variant <types...> :: variant()
     {
+        this->_typeid = 0xff;
     }
 
-    // Constructors
-
     template <typename... types> template <typename vtype, std :: enable_if_t <variant <types...> :: constraints :: template variant <vtype> ()  && std :: is_copy_constructible <vtype> :: value> *> variant <types...> :: variant(const vtype & value) : variant_base <types...> (value)
+    {
+    }
+
+    // Private constructors
+
+    template <typename... types> variant <types...> :: variant(no_op)
     {
     }
 
@@ -351,7 +361,7 @@ namespace drop
 
     template <typename... types> template <typename vtype, typename... atypes, std :: enable_if_t <variant <types...> :: constraints :: template variant <vtype> () && std :: is_constructible <vtype, atypes...> :: value> *> variant <types...> variant <types...> :: construct(atypes && ... args)
     {
-        variant <types...> variant;
+        variant <types...> variant(no_op{});
         variant._typeid = traits :: template typeid_of <vtype, types...> ();
         new (&(variant._value)) vtype(args...);
         return variant;

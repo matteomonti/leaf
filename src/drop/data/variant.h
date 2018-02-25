@@ -94,6 +94,10 @@ namespace drop
 
         ~variant_base();
 
+        // Getters
+
+        bool empty() const;
+
         // Methods
 
         template <typename vtype, std :: enable_if_t <constraints :: template readable <vtype> ()> * = nullptr> void accept(bytewise :: reader <vtype> &) const;
@@ -148,6 +152,16 @@ namespace drop
 
         typedef typename variant_base <types...> :: constraints constraints;
 
+    private:
+
+        // Service nested classes
+
+        struct no_op
+        {
+        };
+
+    public:
+
         // Exceptions
 
         struct exceptions
@@ -158,17 +172,18 @@ namespace drop
             };
         };
 
+        // Constructors
+
+        variant();
+        template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> () && std :: is_copy_constructible <vtype> :: value> * = nullptr> variant(const vtype &);
+
     private:
 
         // Private constructors
 
-        variant();
+        variant(no_op);
 
     public:
-
-        // Constructors
-
-        template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> () && std :: is_copy_constructible <vtype> :: value> * = nullptr> variant(const vtype &);
 
         // Static methods
 

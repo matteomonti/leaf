@@ -72,7 +72,38 @@ public:
 
 int main()
 {
-    auto x = variant <int, myclass> :: construct <myclass> (4, 4.44, 'q');
-    buffer y = bytewise :: serialize(x);
-    std :: cout << y << std :: endl;
+    variant <int, myclass> x;
+    std :: cout << x.empty() << std :: endl;
+
+    x.visit([](auto && x)
+    {
+        std :: cout << "Something wrong!" << std :: endl;
+    });
+
+    x.match([](int & x)
+    {
+        std :: cout << "Got an int" << std :: endl;
+    }, [](myclass & x)
+    {
+        std :: cout << "Got a myclass" << std :: endl;
+    });
+
+    std :: cout << "------------------------------------" << std :: endl;
+
+    x = myclass(4, 4.44, 'q');
+
+    std :: cout << x.empty() << std :: endl;
+
+    x.visit([](auto && x)
+    {
+        std :: cout << "All fine!" << std :: endl;
+    });
+
+    x.match([](int & x)
+    {
+        std :: cout << "Got an int" << std :: endl;
+    }, [](myclass & x)
+    {
+        std :: cout << "Got a myclass" << std :: endl;
+    });
 }
