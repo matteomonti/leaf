@@ -94,6 +94,17 @@ namespace drop
         new (&(this->_value)) vtype(value);
     }
 
+    // Destructor
+
+    template <typename... types> variant_base <types...> :: ~variant_base()
+    {
+        this->visit([](auto && value)
+        {
+            typedef std :: remove_reference_t <decltype(value)> vtype;
+            value.~vtype();
+        });
+    }
+
     // Methods
 
     template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template variant <vtype> ()> *> vtype & variant_base <types...> :: get()

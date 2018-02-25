@@ -70,17 +70,21 @@ namespace drop
 
         static_assert(constraints :: valid_types(), "A variant must have one or more distinct types.");
 
-        // Private constructors
-
-        variant_base();
-        template <typename vtype> variant_base(const vtype &);
-
         // Members
 
         uint8_t _typeid;
         std :: aligned_storage_t <max({sizeof(types)...}), max({alignof(types)...})> _value;
 
+        // Private constructors
+
+        variant_base();
+        template <typename vtype> variant_base(const vtype &);
+
     public:
+
+        // Destructor
+
+        ~variant_base();
 
         // Methods
 

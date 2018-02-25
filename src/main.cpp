@@ -20,7 +20,17 @@ public:
 
     myclass(int, double, char)
     {
+        std :: cout << "Creating myclass!" << std :: endl;
     }
+
+    // Destructor
+
+    ~myclass()
+    {
+        std :: cout << "Deleting myclass!" << std :: endl;
+    }
+
+    // Methods
 
     void f()
     {
@@ -30,6 +40,7 @@ public:
 
 int main()
 {
+    std :: cout << "Creating variant" << std :: endl;
     auto x = variant <int, myclass> :: construct <myclass> (1, 4.44, 'q');
     myclass & y = x.reinterpret <myclass> ();
 
@@ -39,4 +50,6 @@ int main()
     {
         std :: cout << x.i << std :: endl;
     });
+
+    std :: cout << "Deleting variant" << std :: endl;
 }
