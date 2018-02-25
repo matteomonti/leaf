@@ -82,6 +82,12 @@ namespace drop
 
     public:
 
+        // Constructors
+
+        variant_base(const variant_base &);
+        variant_base(variant_base &&);
+
+
         // Destructor
 
         ~variant_base();

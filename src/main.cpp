@@ -23,6 +23,16 @@ public:
         std :: cout << "Creating myclass!" << std :: endl;
     }
 
+    myclass(const myclass & that) : i(that.i)
+    {
+        std :: cout << "Copying myclass!" << std :: endl;
+    }
+
+    myclass(myclass && that) : i(that.i)
+    {
+        std :: cout << "Moving myclass!" << std :: endl;
+    }
+
     // Destructor
 
     ~myclass()
@@ -38,18 +48,10 @@ public:
     }
 };
 
+
 int main()
 {
-    std :: cout << "Creating variant" << std :: endl;
-    auto x = variant <int, myclass> :: construct <myclass> (1, 4.44, 'q');
-    myclass & y = x.reinterpret <myclass> ();
-
-    y.i = 55;
-
-    x.match([](const myclass & x)
-    {
-        std :: cout << x.i << std :: endl;
-    });
-
-    std :: cout << "Deleting variant" << std :: endl;
+    auto x = variant <int, myclass> :: construct <myclass> (4, 4.44, 'q');
+    auto y = x;
+    auto z = std :: move(y);
 }

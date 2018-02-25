@@ -94,6 +94,30 @@ namespace drop
         new (&(this->_value)) vtype(value);
     }
 
+    // Constructors
+
+    template <typename... types> variant_base <types...> :: variant_base(const variant_base & that)
+    {
+        this->_typeid = that._typeid;
+
+        that.visit([&](auto && that)
+        {
+            typedef std :: remove_const_t <std :: remove_reference_t <decltype(that)>> vtype;
+            new (&(this->_value)) vtype(that);
+        });
+    }
+
+    template <typename... types> variant_base <types...> :: variant_base(variant_base && that)
+    {
+        this->_typeid = that._typeid;
+
+        that.visit([&](auto && that)
+        {
+            typedef std :: remove_const_t <std :: remove_reference_t <decltype(that)>> vtype;
+            new (&(this->_value)) vtype(std :: move(that));
+        });
+    }
+
     // Destructor
 
     template <typename... types> variant_base <types...> :: ~variant_base()
