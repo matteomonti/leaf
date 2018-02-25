@@ -96,6 +96,32 @@ namespace drop
 
     // Methods
 
+    template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template variant <vtype> ()> *> vtype & variant_base <types...> :: get()
+    {
+        if(this->_typeid != traits :: template typeid_of <vtype, types...> ())
+            throw typename variant <types...> :: exceptions :: wrong_variant();
+
+        return reinterpret_cast <vtype &> (this->_value);
+    }
+
+    template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template variant <vtype> ()> *> const vtype & variant_base <types...> :: get() const
+    {
+        if(this->_typeid != traits :: template typeid_of <vtype, types...> ())
+            throw typename variant <types...> :: exceptions :: wrong_variant();
+
+        return reinterpret_cast <const vtype &> (this->_value);
+    }
+
+    template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template variant <vtype> ()> *> vtype & variant_base <types...> :: reinterpret()
+    {
+        return reinterpret_cast <vtype &> (this->_value);
+    }
+
+    template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template variant <vtype> ()> *> const vtype & variant_base <types...> :: reinterpret() const
+    {
+        return reinterpret_cast <const vtype &> (this->_value);
+    }
+
     template <typename... types> template <typename lambda, std :: enable_if_t <variant_base <types...> :: constraints :: template mutable_visitor <lambda> ()> *> void variant_base <types...> :: visit(lambda && callback)
     {
         this->unwrap <types...> (this->_typeid, callback);
@@ -193,6 +219,13 @@ namespace drop
     }
 
     // variant
+
+    // Exceptions
+
+    template <typename... types> const char * variant <types...> :: exceptions :: wrong_variant :: what() const throw()
+    {
+        return "Wrong variant. Get failed.";
+    }
 
     // Private constructors
 

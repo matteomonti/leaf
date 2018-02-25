@@ -64,6 +64,8 @@ namespace drop
             template <typename ctype> static constexpr bool const_case();
         };
 
+    private:
+
         // Asserts
 
         static_assert(constraints :: valid_types(), "A variant must have one or more distinct types.");
@@ -81,6 +83,12 @@ namespace drop
     public:
 
         // Methods
+
+        template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> ()> * = nullptr> vtype & get();
+        template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> ()> * = nullptr> const vtype & get() const;
+
+        template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> ()> * = nullptr> vtype & reinterpret();
+        template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> ()> * = nullptr> const vtype & reinterpret() const;
 
         template <typename lambda, std :: enable_if_t <constraints :: template mutable_visitor <lambda> ()> * = nullptr> void visit(lambda &&);
         template <typename lambda, std :: enable_if_t <constraints :: template const_visitor <lambda> ()> * = nullptr> void visit(lambda &&) const;
@@ -117,6 +125,16 @@ namespace drop
         // Constraints
 
         typedef typename variant_base <types...> :: constraints constraints;
+
+        // Exceptions
+
+        struct exceptions
+        {
+            class wrong_variant : public std :: exception
+            {
+                const char * what() const throw();
+            };
+        };
 
     private:
 

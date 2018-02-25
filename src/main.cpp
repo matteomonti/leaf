@@ -12,6 +12,10 @@ class myclass
 {
 public:
 
+    // Members
+
+    int i;
+
     // Constructors
 
     myclass(int, double, char)
@@ -27,10 +31,12 @@ public:
 int main()
 {
     auto x = variant <int, myclass> :: construct <myclass> (1, 4.44, 'q');
+    myclass & y = x.reinterpret <myclass> ();
 
-    x.match([](myclass & x)
+    y.i = 55;
+
+    x.match([](const myclass & x)
     {
-        std :: cout << "Got a myclass!" << std :: endl;
-        x.f();
+        std :: cout << x.i << std :: endl;
     });
 }
