@@ -170,6 +170,11 @@ namespace drop
             {
                 const char * what() const throw();
             };
+
+            class typeid_out_of_range : public std :: exception
+            {
+                const char * what() const throw();
+            };
         };
 
         // Constructors

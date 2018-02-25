@@ -65,7 +65,7 @@ namespace drop
 
     template <typename... types> template <typename vtype> constexpr bool variant_base <types...> :: constraints :: writable()
     {
-        return (... && (std :: is_constructible <types> :: value)) && (... && (bytewise :: constraints :: readable <types, vtype> ()));
+        return (... && (std :: is_default_constructible <types> :: value)) && (... && (bytewise :: constraints :: writable <types, vtype> ()));
     }
 
     template <typename... types> template <typename vtype> constexpr bool variant_base <types...> :: constraints :: variant()
@@ -155,6 +155,42 @@ namespace drop
         {
             visitor << value;
         });
+    }
+
+    template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template writable <vtype> ()> *> void variant_base <types...> :: accept(bytewise :: writer <vtype> & visitor)
+    {
+        uint8_t ttypeid;
+        visitor >> ttypeid;
+
+        if(ttypeid == 0xff)
+        {
+            this->~variant_base();
+            this->_typeid = 0xff;
+        }
+        else if(ttypeid < sizeof...(types))
+        {
+            if(this->_typeid == ttypeid)
+                this->visit([&](auto & value)
+                {
+                    if constexpr (!(std :: is_const <std :: remove_reference_t <decltype(value)>> :: value))
+                        visitor >> value;
+                });
+            else
+            {
+                this->~variant_base();
+                this->_typeid = ttypeid;
+                this->visit([&](auto & value)
+                {
+                    typedef std :: remove_reference_t <decltype(value)> ntype;
+                    new (&(this->_value)) ntype();
+
+                    if constexpr (!(std :: is_const <std :: remove_reference_t <decltype(value)>> :: value))
+                        visitor >> value;
+                });
+            }
+        }
+        else
+            throw typename variant <types...> :: exceptions :: typeid_out_of_range();
     }
 
     template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template variant <vtype> ()> *> vtype & variant_base <types...> :: get()
@@ -338,6 +374,11 @@ namespace drop
     template <typename... types> const char * variant <types...> :: exceptions :: wrong_variant :: what() const throw()
     {
         return "Wrong variant. Get failed.";
+    }
+
+    template <typename... types> const char * variant <types...> :: exceptions :: typeid_out_of_range :: what() const throw()
+    {
+        return "Typeid out of range. Stream malformed.";
     }
 
     // Constructors
