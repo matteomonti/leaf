@@ -87,7 +87,6 @@ namespace drop
         variant_base(const variant_base &);
         variant_base(variant_base &&);
 
-
         // Destructor
 
         ~variant_base();
@@ -118,13 +117,20 @@ namespace drop
 
         template <typename vtype, typename lambda, typename... lambdas> void dispatch(vtype &, lambda &&, lambdas && ...);
         template <typename vtype, typename lambda, typename... lambdas> void dispatch(const vtype &, lambda &&, lambdas && ...) const;
+
+    public:
+
+        // Operators
+
+        variant_base & operator = (const variant_base &);
+        variant_base & operator = (variant_base &&);
     };
 
     template <typename... types> class variant : public variant_base <types...>,
                                                  public enablers :: copy_constructible <(... && (std :: is_copy_constructible <types> :: value))>,
                                                  public enablers :: move_constructible <(... && (std :: is_move_constructible <types> :: value))>,
-                                                 public enablers :: copy_assignable <(... && (std :: is_copy_assignable <types> :: value))>,
-                                                 public enablers :: move_assignable <(... && (std :: is_move_assignable <types> :: value))>
+                                                 public enablers :: copy_assignable <(... && (std :: is_copy_assignable <types> :: value)) && (... && (std :: is_copy_constructible <types> :: value))>,
+                                                 public enablers :: move_assignable <(... && (std :: is_move_assignable <types> :: value)) && (... && (std :: is_copy_constructible <types> :: value))>
     {
         // Traits
 

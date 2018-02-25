@@ -253,6 +253,60 @@ namespace drop
 
     }
 
+    // Operators
+
+    // Operators
+
+    template <typename... types> variant_base <types...> & variant_base <types...> :: operator = (const variant_base & that)
+    {
+        if(this->_typeid == that._typeid)
+        {
+            that.visit([&](auto && that)
+            {
+                typedef std :: remove_const_t <std :: remove_reference_t <decltype(that)>> vtype;
+                reinterpret_cast <vtype &> (this->_value) = that;
+            });
+        }
+        else
+        {
+            this->~variant_base();
+            this->_typeid = that._typeid;
+
+            that.visit([&](auto && that)
+            {
+                typedef std :: remove_const_t <std :: remove_reference_t <decltype(that)>> vtype;
+                new (&(this->_value)) vtype(that);
+            });
+        }
+
+        return (*this);
+    }
+
+    template <typename... types> variant_base <types...> & variant_base <types...> :: operator = (variant_base && that)
+    {
+        if(this->_typeid == that._typeid)
+        {
+            that.visit([&](auto && that)
+            {
+                typedef std :: remove_const_t <std :: remove_reference_t <decltype(that)>> vtype;
+                reinterpret_cast <vtype &> (this->_value) = std :: move(that);
+            });
+        }
+        else
+        {
+            this->~variant_base();
+            this->_typeid = that._typeid;
+
+            that.visit([&](auto && that)
+            {
+                typedef std :: remove_const_t <std :: remove_reference_t <decltype(that)>> vtype;
+                new (&(this->_value)) vtype(std :: move(that));
+            });
+        }
+
+        return (*this);
+    }
+
     // variant
 
     // Exceptions

@@ -46,12 +46,29 @@ public:
     {
         std :: cout << "Hello from myclass!" << std :: endl;
     }
+
+    // Operators
+
+    myclass & operator = (const myclass & rho)
+    {
+        std :: cout << "Assigning myclass!" << std :: endl;
+        this->i = rho.i;
+        return (*this);
+    }
+
+    myclass & operator = (myclass && rho)
+    {
+        std :: cout << "Move assigning myclass!" << std :: endl;
+        this->i = rho.i;
+        return (*this);
+    }
 };
 
 
 int main()
 {
     auto x = variant <int, myclass> :: construct <myclass> (4, 4.44, 'q');
-    auto y = x;
-    auto z = std :: move(y);
+    variant <int, myclass> y = 33;
+
+    x = std :: move(y);
 }
