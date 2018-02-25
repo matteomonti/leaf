@@ -18,7 +18,7 @@ public:
 
     // Constructors
 
-    myclass(int, double, char)
+    myclass(int i, double, char) : i(i)
     {
         std :: cout << "Creating myclass!" << std :: endl;
     }
@@ -41,6 +41,11 @@ public:
     }
 
     // Methods
+
+    template <typename vtype> void accept(bytewise :: reader <vtype> & visitor) const
+    {
+        visitor << (this->i);
+    }
 
     void f()
     {
@@ -68,7 +73,6 @@ public:
 int main()
 {
     auto x = variant <int, myclass> :: construct <myclass> (4, 4.44, 'q');
-    variant <int, myclass> y = 33;
-
-    x = std :: move(y);
+    buffer y = bytewise :: serialize(x);
+    std :: cout << y << std :: endl;
 }

@@ -58,6 +58,16 @@ namespace drop
             return traits :: template distinct <types...> ();
     }
 
+    template <typename... types> template <typename vtype> constexpr bool variant_base <types...> :: constraints :: readable()
+    {
+        return (... && (bytewise :: constraints :: readable <types, vtype> ()));
+    }
+
+    template <typename... types> template <typename vtype> constexpr bool variant_base <types...> :: constraints :: writable()
+    {
+        return (... && (std :: is_constructible <types> :: value)) && (... && (bytewise :: constraints :: readable <types, vtype> ()));
+    }
+
     template <typename... types> template <typename vtype> constexpr bool variant_base <types...> :: constraints :: variant()
     {
         return (traits :: template typeid_of <vtype, types...> () != -1);
@@ -130,6 +140,15 @@ namespace drop
     }
 
     // Methods
+
+    template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template readable <vtype> ()> *> void variant_base <types...> :: accept(bytewise :: reader <vtype> & visitor) const
+    {
+        visitor << (this->_typeid);
+        this->visit([&](const auto & value)
+        {
+            visitor << value;
+        });
+    }
 
     template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template variant <vtype> ()> *> vtype & variant_base <types...> :: get()
     {

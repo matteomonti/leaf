@@ -55,6 +55,9 @@ namespace drop
         {
             static constexpr bool valid_types();
 
+            template <typename vtype> static constexpr bool readable();
+            template <typename vtype> static constexpr bool writable();
+
             template <typename vtype> static constexpr bool variant();
 
             template <typename vtype> static constexpr bool mutable_visitor();
@@ -92,6 +95,9 @@ namespace drop
         ~variant_base();
 
         // Methods
+
+        template <typename vtype, std :: enable_if_t <constraints :: template readable <vtype> ()> * = nullptr> void accept(bytewise :: reader <vtype> &) const;
+        template <typename vtype, std :: enable_if_t <constraints :: template writable <vtype> ()> * = nullptr> void accept(bytewise :: writer <vtype> &);
 
         template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> ()> * = nullptr> vtype & get();
         template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> ()> * = nullptr> const vtype & get() const;
