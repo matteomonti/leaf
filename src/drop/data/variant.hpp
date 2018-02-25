@@ -50,7 +50,7 @@ namespace drop
 
     // Constraints
 
-    template <typename... types> constexpr bool variant_base <types...> :: constraints :: variants()
+    template <typename... types> constexpr bool variant_base <types...> :: constraints :: valid_types()
     {
         if constexpr (sizeof...(types) == 0)
             return false;
@@ -63,34 +63,79 @@ namespace drop
         return (traits :: template typeid_of <vtype, types...> () != -1);
     }
 
-    template <typename... types> template <typename ctype> constexpr bool variant_base <types...> :: constraints :: callback()
+    template <typename... types> template <typename ctype> constexpr bool variant_base <types...> :: constraints :: mutable_case()
     {
-        return (... || (traits :: template callable <ctype, types> ()));
+        return (... || (traits :: template is_callable <ctype, types> ()));
+    }
+
+    template <typename... types> template <typename ctype> constexpr bool variant_base <types...> :: constraints :: const_case()
+    {
+        return (... || (traits :: template is_callable <ctype, const types> ()));
+    }
+
+    template <typename... types> template <typename vtype> constexpr bool variant_base <types...> :: constraints :: mutable_visitor()
+    {
+        return (... && (traits :: template is_callable <vtype, types> ()));
+    }
+
+    template <typename... types> template <typename vtype> constexpr bool variant_base <types...> :: constraints :: const_visitor()
+    {
+        return (... && (traits :: template is_callable <vtype, const types> ()));
     }
 
     // Private constructors
+
+    template <typename... types> variant_base <types...> :: variant_base()
+    {
+    }
 
     template <typename... types> template <typename vtype> variant_base <types...> :: variant_base(const vtype & value) : _typeid(traits :: template typeid_of <vtype, types...> ())
     {
         new (&(this->_value)) vtype(value);
     }
 
-    // Private methods
+    // Methods
 
-    template <typename... types> template <size_t index, typename vtype, typename... vtypes> auto variant_base <types...> :: valueptr()
+    template <typename... types> template <typename lambda, std :: enable_if_t <variant_base <types...> :: constraints :: template mutable_visitor <lambda> ()> *> void variant_base <types...> :: visit(lambda && callback)
     {
-        if constexpr (index == 0)
-            return &(reinterpret_cast <vtype &> (this->_value));
-        else
-            return valueptr <index - 1, vtypes...> ();
+        this->unwrap <types...> (this->_typeid, callback);
     }
 
-    template <typename... types> template <size_t index, typename vtype, typename... vtypes> const auto variant_base <types...> :: valueptr() const
+    template <typename... types> template <typename lambda, std :: enable_if_t <variant_base <types...> :: constraints :: template const_visitor <lambda> ()> *> void variant_base <types...> :: visit(lambda && callback) const
     {
-        if constexpr (index == 0)
-            return &(reinterpret_cast <vtype &> (this->_value));
+        return this->unwrap <types...> (this->_typeid, callback);
+    }
+
+    template <typename... types> template <typename... lambdas, std :: enable_if_t <(... && (variant_base <types...> :: constraints :: template mutable_case <lambdas> ()))> *> void variant_base <types...> :: match(lambdas && ... callbacks)
+    {
+    }
+
+    // Private methods
+
+    template <typename... types> template <typename vtype, typename... vtypes, typename lambda> void variant_base <types...> :: unwrap(const size_t & index, const lambda & callback)
+    {
+        if constexpr (sizeof...(vtypes) == 0)
+            callback(reinterpret_cast <vtype &> (this->_value));
         else
-            return valueptr <index - 1, vtypes...> ();
+        {
+            if(index == 0)
+                callback(reinterpret_cast <vtype &> (this->_value));
+            else
+                this->unwrap <vtypes...> (index - 1, callback);
+        }
+    }
+
+    template <typename... types> template <typename vtype, typename... vtypes, typename lambda> void variant_base <types...> :: unwrap(const size_t & index, const lambda & callback) const
+    {
+        if constexpr (sizeof...(vtypes) == 0)
+            callback(reinterpret_cast <const vtype &> (this->_value));
+        else
+        {
+            if(index == 0)
+                callback(reinterpret_cast <const vtype &> (this->_value));
+            else
+                this->unwrap <vtypes...> (index - 1, callback);
+        }
     }
 
     // variant
@@ -105,6 +150,16 @@ namespace drop
 
     template <typename... types> template <typename vtype, std :: enable_if_t <variant <types...> :: constraints :: template variant <vtype> ()  && std :: is_copy_constructible <vtype> :: value> *> variant <types...> :: variant(const vtype & value) : variant_base <types...> (value)
     {
+    }
+
+    // Static methods
+
+    template <typename... types> template <typename vtype, typename... atypes, std :: enable_if_t <variant <types...> :: constraints :: template variant <vtype> () && std :: is_constructible <vtype, atypes...> :: value> *> variant <types...> variant <types...> :: construct(atypes && ... args)
+    {
+        variant <types...> variant;
+        variant._typeid = traits :: template typeid_of <vtype, types...> ();
+        new (&(variant._value)) vtype(args...);
+        return variant;
     }
 };
 

@@ -51,19 +51,26 @@ namespace drop
 
         // Constraints
 
-        struct constraints // TODO: Find better names for these constraints
+        struct constraints
         {
-            static constexpr bool variants();
+            static constexpr bool valid_types();
+
             template <typename vtype> static constexpr bool variant();
-            template <typename ctype> static constexpr bool callback();
+
+            template <typename ctype> static constexpr bool mutable_case();
+            template <typename ctype> static constexpr bool const_case();
+
+            template <typename vtype> static constexpr bool mutable_visitor();
+            template <typename vtype> static constexpr bool const_visitor();
         };
 
         // Asserts
 
-        static_assert(constraints :: variants(), "A variant must have one or more distinct types.");
+        static_assert(constraints :: valid_types(), "A variant must have one or more distinct types.");
 
         // Private constructors
 
+        variant_base();
         template <typename vtype> variant_base(const vtype &);
 
         // Members
@@ -71,10 +78,21 @@ namespace drop
         uint8_t _typeid;
         std :: aligned_storage_t <max({sizeof(types)...}), max({alignof(types)...})> _value;
 
+    public:
+
+        // Methods
+
+        template <typename lambda, std :: enable_if_t <constraints :: template mutable_visitor <lambda> ()> * = nullptr> void visit(lambda &&);
+        template <typename lambda, std :: enable_if_t <constraints :: template const_visitor <lambda> ()> * = nullptr> void visit(lambda &&) const;
+
+        template <typename... lambdas, std :: enable_if_t <(... && (constraints :: template mutable_case <lambdas> ()))> * = nullptr> void match(lambdas && ...);
+
+    private:
+
         // Private methods
 
-        template <size_t index, typename vtype, typename... vtypes> auto valueptr();
-        template <size_t index, typename vtype, typename... vtypes> const auto valueptr() const;
+        template <typename vtype, typename... vtypes, typename lambda> void unwrap(const size_t &, const lambda &);
+        template <typename vtype, typename... vtypes, typename lambda> void unwrap(const size_t &, const lambda &) const;
     };
 
     template <typename... types> class variant : public variant_base <types...>,
@@ -83,6 +101,10 @@ namespace drop
                                                  public enablers :: copy_assignable <(... && (std :: is_copy_assignable <types> :: value))>,
                                                  public enablers :: move_assignable <(... && (std :: is_move_assignable <types> :: value))>
     {
+        // Traits
+
+        typedef typename variant_base <types...> :: traits traits;
+
     public:
 
         // Constraints
@@ -97,7 +119,13 @@ namespace drop
 
     public:
 
+        // Constructors
+
         template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> () && std :: is_copy_constructible <vtype> :: value> * = nullptr> variant(const vtype &);
+
+        // Static methods
+
+        template <typename vtype, typename... atypes, std :: enable_if_t <constraints :: template variant <vtype> () && std :: is_constructible <vtype, atypes...> :: value> * = nullptr> static variant construct(atypes && ...);
     };
 };
 
