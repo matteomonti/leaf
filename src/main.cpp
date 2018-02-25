@@ -27,17 +27,10 @@ public:
 int main()
 {
     auto x = variant <int, myclass> :: construct <myclass> (1, 4.44, 'q');
-    x.visit([](auto & x)
+
+    x.match([](myclass & x)
     {
-        if constexpr (std :: is_same <decltype(x), myclass &> :: value)
-        {
-            std :: cout << "Got a myclass!" << std :: endl;
-            x.f();
-        }
-        else if constexpr (std :: is_same <decltype(x), int &> :: value)
-        {
-            std :: cout << "Got an int!" << std :: endl;
-            x = 44;
-        }
+        std :: cout << "Got a myclass!" << std :: endl;
+        x.f();
     });
 }

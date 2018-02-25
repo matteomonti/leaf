@@ -57,11 +57,11 @@ namespace drop
 
             template <typename vtype> static constexpr bool variant();
 
-            template <typename ctype> static constexpr bool mutable_case();
-            template <typename ctype> static constexpr bool const_case();
-
             template <typename vtype> static constexpr bool mutable_visitor();
             template <typename vtype> static constexpr bool const_visitor();
+
+            template <typename ctype> static constexpr bool mutable_case();
+            template <typename ctype> static constexpr bool const_case();
         };
 
         // Asserts
@@ -86,13 +86,20 @@ namespace drop
         template <typename lambda, std :: enable_if_t <constraints :: template const_visitor <lambda> ()> * = nullptr> void visit(lambda &&) const;
 
         template <typename... lambdas, std :: enable_if_t <(... && (constraints :: template mutable_case <lambdas> ()))> * = nullptr> void match(lambdas && ...);
+        template <typename... lambdas, std :: enable_if_t <(... && (constraints :: template mutable_case <lambdas> ()))> * = nullptr> void match(lambdas && ...) const;
 
     private:
 
         // Private methods
 
-        template <typename vtype, typename... vtypes, typename lambda> void unwrap(const size_t &, const lambda &);
-        template <typename vtype, typename... vtypes, typename lambda> void unwrap(const size_t &, const lambda &) const;
+        template <typename vtype, typename... vtypes, typename lambda> void unwrap(const size_t &, lambda &&);
+        template <typename vtype, typename... vtypes, typename lambda> void unwrap(const size_t &, lambda &&) const;
+
+        template <typename vtype, typename lambda, typename... lambdas> void direct_dispatch(vtype &, lambda &&, lambdas && ...);
+        template <typename vtype, typename lambda, typename... lambdas> void direct_dispatch(const vtype &, lambda &&, lambdas && ...) const;
+
+        template <typename vtype, typename lambda, typename... lambdas> void dispatch(vtype &, lambda &&, lambdas && ...);
+        template <typename vtype, typename lambda, typename... lambdas> void dispatch(const vtype &, lambda &&, lambdas && ...) const;
     };
 
     template <typename... types> class variant : public variant_base <types...>,
