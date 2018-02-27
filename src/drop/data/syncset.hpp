@@ -142,11 +142,11 @@ namespace drop
         this->relabel();
     }
 
-    template <typename type> syncset <type> :: multiple :: multiple(const multiple & that) : multiple(*(that._left), *(that._right))
+    template <typename type> syncset <type> :: multiple :: multiple(const multiple & that) : _label(that._label), _left(new node(*(that._left))), _right(new node(*(that._right)))
     {
     }
 
-    template <typename type> syncset <type> :: multiple :: multiple(multiple && that) : _left(that._left), _right(that._right)
+    template <typename type> syncset <type> :: multiple :: multiple(multiple && that) : _label(that._label), _left(that._left), _right(that._right)
     {
         that._left = nullptr;
         that._right = nullptr;
@@ -218,6 +218,7 @@ namespace drop
     {
         this->~multiple();
 
+        this->_label = rho._label;
         this->_left = new node(*(rho._left));
         this->_right = new node(*(rho._right));
 
@@ -226,6 +227,7 @@ namespace drop
 
     template <typename type> typename syncset <type> :: multiple & syncset <type> :: multiple :: operator = (multiple && rho)
     {
+        this->_label = rho._label;
         this->_left = rho._left;
         this->_right = rho._right;
 
@@ -340,12 +342,12 @@ namespace drop
 
         while(true)
         {
-            navigator->relabel();
-
             if(navigator.depth() != 0)
                 navigator--;
             else
                 return;
+
+            navigator->relabel();
         }
     }
 
