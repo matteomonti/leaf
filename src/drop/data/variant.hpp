@@ -146,6 +146,11 @@ namespace drop
         return (this->_typeid == 0xff);
     }
 
+    template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template variant <vtype> ()> *> bool variant_base <types...> :: is() const
+    {
+        return (this->_typeid == traits :: template typeid_of <vtype> ());
+    }
+
     // Methods
 
     template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template readable <vtype> ()> *> void variant_base <types...> :: accept(bytewise :: reader <vtype> & visitor) const

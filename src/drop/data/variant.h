@@ -97,6 +97,7 @@ namespace drop
         // Getters
 
         bool empty() const;
+        template <typename vtype, std :: enable_if_t <constraints :: template variant <vtype> ()> * = nullptr> bool is() const;
 
         // Methods
 
