@@ -33,6 +33,7 @@ namespace drop
         // Forward declarations
 
         class prefix;
+        class navigator;
 
         class node;
         class multiple;
@@ -50,10 +51,56 @@ namespace drop
 
         public:
 
+            // Constructors
+
+            prefix(const type &, const size_t & = 0);
+
+            // Getters
+
+            const size_t & bits() const;
+
+            // Setters
+
+            void bits(const size_t &);
+
             // Methods
 
             template <typename vtype> void visit(bytewise :: reader <vtype> &) const;
             template <typename vtype> void visit(bytewise :: writer <vtype> &);
+
+            // Operators
+
+            bool operator [] (const size_t &) const;
+        };
+
+        class navigator
+        {
+            // Members
+
+            prefix _prefix;
+            size_t _depth;
+            node * _trace[8 * hash :: size];
+
+        public:
+
+            // Constructors
+
+            navigator(const prefix &, node &);
+
+            // Getters
+
+            const size_t & depth() const;
+            navigation next() const;
+
+            // Operators
+
+            node * operator -> ();
+
+            navigator & operator ++ ();
+            navigator & operator ++ (int);
+
+            navigator & operator -- ();
+            navigator & operator -- (int);
         };
 
         class multiple

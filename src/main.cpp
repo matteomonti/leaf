@@ -10,5 +10,4 @@ using namespace drop;
 
 int main()
 {
-    syncset <buffer> my_syncset;
 }

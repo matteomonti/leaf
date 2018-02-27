@@ -12,6 +12,27 @@ namespace drop
 {
     // prefix
 
+    // Constructors
+
+    template <typename type> syncset <type> :: prefix :: prefix(const type & element, const size_t & bits) : _bits(bits)
+    {
+        new (this->_value) hash(element);
+    }
+
+    // Getters
+
+    template <typename type> const size_t & syncset <type> :: prefix :: bits() const
+    {
+        return this->_bits;
+    }
+
+    // Setters
+
+    template <typename type> void syncset <type> :: prefix :: bits(const size_t & bits)
+    {
+        this->_bits = bits;
+    }
+
     // Methods
 
     template <typename type> template <typename vtype> void syncset <type> :: prefix :: visit(bytewise :: reader <vtype> & reader) const
@@ -25,6 +46,74 @@ namespace drop
         writer >> (this->_bits);
         size_t bytes = (this->_bits + 7) / 8;
         memcpy(this->_value, writer.pop(bytes), bytes);
+    }
+
+    // Operators
+
+    template <typename type> bool syncset <type> :: prefix :: operator [] (const size_t & index) const
+    {
+        size_t byte = index / 8;
+        size_t bit = index % 8;
+
+        return (this->_value[byte]) & (1 << (7 - bit));
+    }
+
+    // navigator
+
+    // Constructors
+
+    template <typename type> syncset <type> :: navigator :: navigator(const prefix & prefix, node & root) : _prefix(prefix), _depth(0)
+    {
+        this->_trace[this->_depth] = &root;
+    }
+
+    // Getters
+
+    template <typename type> const size_t & syncset <type> :: navigator :: depth() const
+    {
+        return this->_depth;
+    }
+
+    template <typename type> typename syncset <type> :: navigation syncset <type> :: navigator :: next() const
+    {
+        return this->_prefix[this->_depth] ? left : right;
+    }
+
+    // Operators
+
+    template <typename type> typename syncset <type> :: node * syncset <type> :: navigator :: operator -> ()
+    {
+        return this->_trace[this->_depth];
+    }
+
+    template <typename type> typename syncset <type> :: navigator & syncset <type> :: navigator :: operator ++ ()
+    {
+        this->_trace[this->_depth].match([&](const multiple & multiple)
+        {
+            this->_trace[this->_depth + 1] = (this->next() == left) ? (multiple._left) : (multiple._right);
+        }, [&](auto &&)
+        {
+            this->_trace[this->_depth + 1] = nullptr;
+        });
+
+        this->_depth++;
+        return *this;
+    }
+
+    template <typename type> typename syncset <type> :: navigator & syncset <type> :: navigator :: operator ++ (int)
+    {
+        return ++(*this);
+    }
+
+    template <typename type> typename syncset <type> :: navigator & syncset <type> :: navigator :: operator -- ()
+    {
+        this->_depth--;
+        return *this;
+    }
+
+    template <typename type> typename syncset <type> :: navigator & syncset <type> :: navigator :: operator -- (int)
+    {
+        return --(*this);
     }
 
     // multiple
