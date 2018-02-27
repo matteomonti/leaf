@@ -19,8 +19,6 @@ namespace drop
 {
     template <typename type> class syncset
     {
-    public: // REMOVE ME
-
         // Asserts
 
         static_assert(std :: is_copy_constructible <type> :: value, "Syncset type must be copy constructible.");
@@ -199,10 +197,6 @@ namespace drop
             node(const multiple &);
             node(const single &);
             node(const empty &);
-
-            // Methods
-
-            void relabel();
         };
 
         // Members
@@ -218,6 +212,7 @@ namespace drop
         // Methods
 
         void add(const type &);
+        void remove(const type &);
     };
 };
 

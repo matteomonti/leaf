@@ -261,7 +261,7 @@ namespace drop
 
     template <typename type> typename syncset <type> :: empty syncset <type> :: single :: empty()
     {
-        return empty();
+        return (class empty){};
     }
 
     template <typename type> typename syncset <type> :: multiple syncset <type> :: single :: push(const navigation & child)
@@ -301,16 +301,6 @@ namespace drop
     {
     }
 
-    // Methods
-
-    template <typename type> void syncset <type> :: node :: relabel()
-    {
-        this->match([](multiple & multiple)
-        {
-            multiple.relabel();
-        });
-    }
-
     // syncset
 
     // Constructors
@@ -347,7 +337,36 @@ namespace drop
             else
                 return;
 
-            navigator->relabel();
+            navigator->template reinterpret <multiple> ().relabel();
+        }
+    }
+
+    template <typename type> void syncset <type> :: remove(const type & element)
+    {
+        prefix prefix(element);
+        navigator navigator(prefix, this->_root);
+
+        for(; navigator; navigator++)
+        {
+            navigator->match([&](single & single)
+            {
+                (*navigator) = single.empty();
+            });
+        }
+
+        navigator--;
+
+        while(true)
+        {
+            if(navigator.depth() != 0)
+                navigator--;
+            else
+                return;
+
+            if(navigator->template reinterpret <multiple> ().pullable())
+                (*navigator) = navigator->template reinterpret <multiple> ().pull();
+            else
+                navigator->template reinterpret <multiple> ().relabel();
         }
     }
 

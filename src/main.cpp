@@ -11,11 +11,15 @@ int main()
 {
     syncset <uint64_t> my_syncset;
 
-    for(uint64_t i = 0; i < 10000000; i++)
+    for(uint64_t i = 0; i < 1000; i++)
     {
-        if(i % 1000 == 0)
-            std :: cout << "Adding " << i << std :: endl;
-
+        std :: cout << "Adding " << i << std :: endl;
         my_syncset.add(i);
+    }
+
+    for(uint64_t i = 0; i < 1000; i++)
+    {
+        std :: cout << "Removing " << i << std :: endl;
+        my_syncset.remove(i);
     }
 }
