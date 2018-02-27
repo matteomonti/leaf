@@ -14,6 +14,11 @@ namespace drop
 
     // Constructors
 
+    template <typename type> syncset <type> :: prefix :: prefix(const hash & hash, const size_t & bits) : _bits(bits)
+    {
+        new (this->_value) class hash(hash);
+    }
+
     template <typename type> syncset <type> :: prefix :: prefix(const type & element, const size_t & bits) : _bits(bits)
     {
         new (this->_value) hash(element);
@@ -81,6 +86,11 @@ namespace drop
 
     // Operators
 
+    template <typename type> typename syncset <type> :: node & syncset <type> :: navigator :: operator * ()
+    {
+        return *(this->_trace[this->_depth]);
+    }
+
     template <typename type> typename syncset <type> :: node * syncset <type> :: navigator :: operator -> ()
     {
         return this->_trace[this->_depth];
@@ -88,10 +98,10 @@ namespace drop
 
     template <typename type> typename syncset <type> :: navigator & syncset <type> :: navigator :: operator ++ ()
     {
-        this->_trace[this->_depth].match([&](const multiple & multiple)
+        this->_trace[this->_depth]->match([&](const multiple & multiple)
         {
-            this->_trace[this->_depth + 1] = (this->next() == left) ? (multiple._left) : (multiple._right);
-        }, [&](auto &&)
+            this->_trace[this->_depth + 1] = (this->next() == left) ? (multiple.left()) : (multiple.right());
+        }, [&](const auto &)
         {
             this->_trace[this->_depth + 1] = nullptr;
         });
@@ -116,19 +126,58 @@ namespace drop
         return --(*this);
     }
 
+    // Casting
+
+    template <typename type> syncset <type> :: navigator :: operator bool () const
+    {
+        return (this->_trace[this->_depth] != nullptr);
+    }
+
     // multiple
+
+    // Constructors
 
     template <typename type> syncset <type> :: multiple :: multiple(const node & left, const node & right) : _left(new node(left)), _right(new node(right))
     {
         this->relabel();
     }
 
+    template <typename type> syncset <type> :: multiple :: multiple(const multiple & that) : multiple(*(that._left), *(that._right))
+    {
+    }
+
+    template <typename type> syncset <type> :: multiple :: multiple(multiple && that) : _left(that._left), _right(that._right)
+    {
+        that._left = nullptr;
+        that._right = nullptr;
+    }
+
     // Destructor
 
     template <typename type> syncset <type> :: multiple :: ~multiple()
     {
-        delete this->_left;
-        delete this->_right;
+        if(this->_left && this->_right)
+        {
+            delete this->_left;
+            delete this->_right;
+        }
+    }
+
+    // Getters
+
+    template <typename type> const hash & syncset <type> :: multiple :: label() const
+    {
+        return this->_label;
+    }
+
+    template <typename type> typename syncset <type> :: node * syncset <type> :: multiple :: left() const
+    {
+        return this->_left;
+    }
+
+    template <typename type> typename syncset <type> :: node * syncset <type> :: multiple :: right() const
+    {
+        return this->_right;
     }
 
     // Methods
@@ -137,14 +186,14 @@ namespace drop
     {
         hasher hasher;
 
-        this->_left.visit([&](auto & left)
+        this->_left->visit([&](auto & left)
         {
-            hasher(left._label);
+            hasher.update(left.label());
         });
 
-        this->_right.visit([&](auto & right)
+        this->_right->visit([&](auto & right)
         {
-            hasher(right._label);
+            hasher.update(right.label());
         });
 
         this->_label = hasher.finalize();
@@ -163,12 +212,47 @@ namespace drop
             return this->_right->template reinterpret <single> ();
     }
 
+    // Operators
+
+    template <typename type> typename syncset <type> :: multiple & syncset <type> :: multiple :: operator = (const multiple & rho)
+    {
+        this->~multiple();
+
+        this->_left = new node(*(rho._left));
+        this->_right = new node(*(rho._right));
+
+        return (*this);
+    }
+
+    template <typename type> typename syncset <type> :: multiple & syncset <type> :: multiple :: operator = (multiple && rho)
+    {
+        this->_left = rho._left;
+        this->_right = rho._right;
+
+        rho._left = nullptr;
+        rho._right = nullptr;
+
+        return (*this);
+    }
+
     // single
 
     // Constructors
 
     template <typename type> syncset <type> :: single :: single(const type & element) : _label(element), _element(element)
     {
+    }
+
+    // Getters
+
+    template <typename type> const hash & syncset <type> :: single :: label() const
+    {
+        return this->_label;
+    }
+
+    template <typename type> const type & syncset <type> :: single :: element() const
+    {
+        return this->_element;
     }
 
     // Methods
@@ -180,10 +264,17 @@ namespace drop
 
     template <typename type> typename syncset <type> :: multiple syncset <type> :: single :: push(const navigation & child)
     {
-        return (child == left) ? multiple(*this, empty()) : multiple(empty(), *this);
+        return (child == left) ? multiple(*this, (class empty){}) : multiple((class empty){}, *this);
     }
 
     // empty
+
+    // Getters
+
+    template <typename type> const hash & syncset <type> :: empty :: label() const
+    {
+        return this->_label;
+    }
 
     // Methods
 
@@ -224,6 +315,38 @@ namespace drop
 
     template <typename type> syncset <type> :: syncset() : _root(empty())
     {
+    }
+
+    // Methods
+
+    template <typename type> void syncset <type> :: add(const type & element)
+    {
+        prefix prefix(element);
+        navigator navigator(prefix, this->_root);
+
+        for(; navigator; navigator++)
+        {
+            navigator->match([&](empty & empty)
+            {
+                (*navigator) = empty.fill(element);
+            }, [&](single & single)
+            {
+                class prefix singleprefix(single.label());
+                (*navigator) = single.push(singleprefix[navigator.depth()] ? left : right);
+            });
+        }
+
+        navigator--;
+
+        while(true)
+        {
+            navigator->relabel();
+
+            if(navigator.depth() != 0)
+                navigator--;
+            else
+                return;
+        }
     }
 
     // Static declarations

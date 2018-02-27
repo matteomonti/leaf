@@ -53,6 +53,7 @@ namespace drop
 
             // Constructors
 
+            prefix(const hash &, const size_t & = 0);
             prefix(const type &, const size_t & = 0);
 
             // Getters
@@ -94,6 +95,7 @@ namespace drop
 
             // Operators
 
+            node & operator * ();
             node * operator -> ();
 
             navigator & operator ++ ();
@@ -101,6 +103,10 @@ namespace drop
 
             navigator & operator -- ();
             navigator & operator -- (int);
+
+            // Casting
+
+            operator bool () const;
         };
 
         class multiple
@@ -116,10 +122,19 @@ namespace drop
             // Constructors
 
             multiple(const node &, const node &);
+            multiple(const multiple &);
+            multiple(multiple &&);
 
             // Destructor
 
             ~multiple();
+
+            // Getters
+
+            const hash & label() const;
+
+            node * left() const;
+            node * right() const;
 
             // Methods
 
@@ -127,6 +142,11 @@ namespace drop
 
             bool pullable();
             single pull();
+
+            // Operators
+
+            multiple & operator = (const multiple &);
+            multiple & operator = (multiple &&);
         };
 
         class single
@@ -142,6 +162,11 @@ namespace drop
 
             single(const type &);
 
+            // Getters
+
+            const hash & label() const;
+            const type & element() const;
+
             // Methods
 
             empty empty();
@@ -155,6 +180,10 @@ namespace drop
             static hash _label;
 
         public:
+
+            // Getters
+
+            const hash & label() const;
 
             // Methods
 
@@ -185,6 +214,10 @@ namespace drop
         // Constructors
 
         syncset();
+
+        // Methods
+
+        void add(const type &);
     };
 };
 

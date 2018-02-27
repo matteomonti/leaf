@@ -148,7 +148,7 @@ namespace drop
 
     template <typename... types> template <typename vtype, std :: enable_if_t <variant_base <types...> :: constraints :: template variant <vtype> ()> *> bool variant_base <types...> :: is() const
     {
-        return (this->_typeid == traits :: template typeid_of <vtype> ());
+        return (this->_typeid == traits :: template typeid_of <vtype, types...> ());
     }
 
     // Methods
