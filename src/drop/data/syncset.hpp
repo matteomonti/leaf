@@ -139,7 +139,7 @@ namespace drop
 
     template <typename type> syncset <type> :: multiple :: multiple(const node & left, const node & right) : _left(new node(left)), _right(new node(right))
     {
-        this->relabel();
+        this->refresh();
     }
 
     template <typename type> syncset <type> :: multiple :: multiple(const multiple & that) : _label(that._label), _left(new node(*(that._left))), _right(new node(*(that._right)))
@@ -170,6 +170,11 @@ namespace drop
         return this->_label;
     }
 
+    template <typename type> const size_t & syncset <type> :: multiple :: size() const
+    {
+        return this->_size;
+    }
+
     template <typename type> typename syncset <type> :: node * syncset <type> :: multiple :: left() const
     {
         return this->_left;
@@ -182,16 +187,33 @@ namespace drop
 
     // Methods
 
-    template <typename type> void syncset <type> :: multiple :: relabel()
+    template <typename type> void syncset <type> :: multiple :: refresh()
     {
         hasher hasher;
+        this->_size = 0;
 
-        this->_left->visit([&](auto & left)
+        this->_left.match([&](multiple & left)
+        {
+            this->_size += left._size;
+            hasher.update(left.label());
+        }, [&](single & left)
+        {
+            this->_size++;
+            hasher.update(left.label());
+        }, [&](empty & left)
         {
             hasher.update(left.label());
         });
 
-        this->_right->visit([&](auto & right)
+        this->_right.match([&](multiple & right)
+        {
+            this->_size += right._size;
+            hasher.update(right.label());
+        }, [&](single & right)
+        {
+            this->_size++;
+            hasher.update(right.label());
+        }, [&](empty & right)
         {
             hasher.update(right.label());
         });
@@ -210,6 +232,32 @@ namespace drop
             return this->_left->template reinterpret <single> ();
         else
             return this->_right->template reinterpret <single> ();
+    }
+
+    template <typename type> template <typename vtype> void syncset <type> :: multiple :: traverse(vtype && visitor)
+    {
+        this->_left.visit([&](auto & node)
+        {
+            node.traverse(visitor);
+        });
+
+        this->_right.visit([&](auto & node)
+        {
+            node.traverse(visitor);
+        });
+    }
+
+    template <typename type> template <typename vtype> void syncset <type> :: multiple :: traverse(vtype && visitor) const
+    {
+        this->_left.visit([&](const auto & node)
+        {
+            node.traverse(visitor);
+        });
+
+        this->_right.visit([&](const auto & node)
+        {
+            node.traverse(visitor);
+        });
     }
 
     // Operators
@@ -269,6 +317,16 @@ namespace drop
         return (child == left) ? multiple(*this, (class empty){}) : multiple((class empty){}, *this);
     }
 
+    template <typename type> template <typename vtype> void syncset <type> :: single :: traverse(vtype && visitor)
+    {
+        visitor(this->_element);
+    }
+
+    template <typename type> template <typename vtype> void syncset <type> :: single :: traverse(vtype && visitor) const
+    {
+        visitor(this->_element);
+    }
+
     // empty
 
     // Getters
@@ -285,6 +343,14 @@ namespace drop
         return single(element);
     }
 
+    template <typename type> template <typename vtype> void syncset <type> :: empty :: traverse(vtype &&)
+    {
+    }
+
+    template <typename type> template <typename vtype> void syncset <type> :: empty :: traverse(vtype &&) const
+    {
+    }
+
     // node
 
     // Constructors
@@ -299,6 +365,97 @@ namespace drop
 
     template <typename type> syncset <type> :: node :: node(const empty & node) : variant <multiple, single, empty> (node)
     {
+    }
+
+    // labelset
+
+    // Private constructors
+
+    template <typename type> syncset <type> :: labelset :: labelset(const class prefix & prefix, const multiple & node) : _prefix(prefix), _label(node.label())
+    {
+    }
+
+    // Getters
+
+    template <typename type> const typename syncset <type> :: prefix & syncset <type> :: labelset :: prefix() const
+    {
+        return this->_prefix;
+    }
+
+    template <typename type> const hash & syncset <type> :: labelset :: label() const
+    {
+        return this->_label;
+    }
+
+    // Methods
+
+    template <typename type> template <typename vtype> void syncset <type> :: labelset :: accept(bytewise :: reader <vtype> & reader) const
+    {
+        reader >> (this->_prefix);
+        reader >> (this->_label);
+    }
+
+    template <typename type> template <typename vtype> void syncset <type> :: labelset :: accept(bytewise :: writer <vtype> & writer)
+    {
+        writer >> (this->_prefix);
+        writer >> (this->_label);
+    }
+
+    // listset
+
+    // Private constructors
+
+    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const node & subroot) : _prefix(prefix)
+    {
+        this->_size = 0;
+
+        subroot.visit([&](const auto & subroot)
+        {
+            subroot.traverse([&](const type & element)
+            {
+                this->_elements[this->_size] = element;
+                this->_size++;
+            });
+        });
+    }
+
+    // Getters
+
+    template <typename type> const typename syncset <type> :: prefix & syncset <type> :: listset :: prefix() const
+    {
+        return this->_prefix;
+    }
+
+    template <typename type> const size_t & syncset <type> :: listset :: size() const
+    {
+        return this->_size;
+    }
+
+    // Methods
+
+    template <typename type> template <typename vtype> void syncset <type> :: listset :: accept(bytewise :: reader <vtype> & reader) const
+    {
+        reader << (this->_prefix);
+        reader << (this->_size);
+
+        for(size_t i = 0; i < this->_size; i++)
+            reader << this->_elements[i];
+    }
+
+    template <typename type> template <typename vtype> void syncset <type> :: listset :: accept(bytewise :: writer <vtype> & writer)
+    {
+        writer >> (this->_prefix);
+        writer >> (this->_size);
+
+        for(size_t i = 0; i < this->_size; i++)
+            writer >> this->_elements[i];
+    }
+
+    // Operators
+
+    template <typename type> const type & syncset <type> :: listset :: operator [] (const size_t & index) const
+    {
+        return this->_elements[index];
     }
 
     // syncset
@@ -337,7 +494,7 @@ namespace drop
             else
                 return;
 
-            navigator->template reinterpret <multiple> ().relabel();
+            navigator->template reinterpret <multiple> ().refresh();
         }
     }
 
@@ -366,7 +523,7 @@ namespace drop
             if(navigator->template reinterpret <multiple> ().pullable())
                 (*navigator) = navigator->template reinterpret <multiple> ().pull();
             else
-                navigator->template reinterpret <multiple> ().relabel();
+                navigator->template reinterpret <multiple> ().refresh();
         }
     }
 

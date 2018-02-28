@@ -24,6 +24,17 @@ namespace drop
         static_assert(std :: is_copy_constructible <type> :: value, "Syncset type must be copy constructible.");
         static_assert(bytewise :: constraints :: readable <type, hasher> (), "Syncset type must be hashable (i.e., it must be readable from a hasher).");
 
+    public:
+
+        // Settings
+
+        struct settings
+        {
+            static constexpr size_t list_threshold = 8;
+        };
+
+    private:
+
         // Service nested enums
 
         enum navigation {left, right};
@@ -112,6 +123,8 @@ namespace drop
             // Members
 
             hash _label;
+            size_t _size;
+
             node * _left;
             node * _right;
 
@@ -130,16 +143,20 @@ namespace drop
             // Getters
 
             const hash & label() const;
+            const size_t & size() const;
 
             node * left() const;
             node * right() const;
 
             // Methods
 
-            void relabel();
+            void refresh();
 
             bool pullable();
             single pull();
+
+            template <typename vtype> void traverse(vtype &&);
+            template <typename vtype> void traverse(vtype &&) const;
 
             // Operators
 
@@ -169,6 +186,9 @@ namespace drop
 
             empty empty();
             multiple push(const navigation &);
+
+            template <typename vtype> void traverse(vtype &&);
+            template <typename vtype> void traverse(vtype &&) const;
         };
 
         class empty
@@ -186,6 +206,9 @@ namespace drop
             // Methods
 
             single fill(const type &);
+
+            template <typename vtype> void traverse(vtype &&);
+            template <typename vtype> void traverse(vtype &&) const;
         };
 
         class node : public variant <multiple, single, empty>
@@ -198,6 +221,81 @@ namespace drop
             node(const single &);
             node(const empty &);
         };
+
+    public:
+
+        // Nested classes
+
+        class labelset
+        {
+            // Members
+
+            prefix _prefix;
+            hash _label;
+
+        public:
+
+            // Constructors
+
+            labelset() = default;
+
+        private:
+
+            // Private constructors
+
+            labelset(const prefix &, const multiple &);
+
+        public:
+
+            // Getters
+
+            const prefix & prefix() const;
+            const hash & label() const;
+
+            // Methods
+
+            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+            template <typename vtype> void accept(bytewise :: writer <vtype> &);
+        };
+
+        class listset
+        {
+            // Members
+
+            prefix _prefix;
+            type _elements[settings :: list_threshold];
+            varint _size;
+
+        public:
+
+            // Constructors
+
+            listset() = default;
+
+        private:
+
+            // Private constructors
+
+            listset(const prefix &, const node &);
+
+        public:
+
+            // Getters
+
+            const prefix & prefix() const;
+            const size_t & size() const;
+
+            // Methods
+
+            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+            template <typename vtype> void accept(bytewise :: writer <vtype> &);
+
+            // Operators
+
+            const type & operator [] (const size_t &) const;
+        };
+
+    private:
 
         // Members
 
