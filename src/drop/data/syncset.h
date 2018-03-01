@@ -34,6 +34,7 @@ namespace drop
         };
 
     private:
+    public: // REMOVE ME
 
         // Service nested enums
 
@@ -67,7 +68,7 @@ namespace drop
 
             // Getters
 
-            const size_t & bits() const;
+            size_t bits() const;
 
             // Setters
 
@@ -311,6 +312,13 @@ namespace drop
 
         void add(const type &);
         void remove(const type &);
+
+    private:
+    public: // REMOVE ME
+
+        // Private methods
+
+        template <typename vtype> void enumerate(const prefix &, vtype &&);
     };
 };
 

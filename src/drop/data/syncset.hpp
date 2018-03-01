@@ -26,7 +26,7 @@ namespace drop
 
     // Getters
 
-    template <typename type> const size_t & syncset <type> :: prefix :: bits() const
+    template <typename type> size_t syncset <type> :: prefix :: bits() const
     {
         return this->_bits;
     }
@@ -192,7 +192,7 @@ namespace drop
         hasher hasher;
         this->_size = 0;
 
-        this->_left.match([&](multiple & left)
+        this->_left->match([&](multiple & left)
         {
             this->_size += left._size;
             hasher.update(left.label());
@@ -205,7 +205,7 @@ namespace drop
             hasher.update(left.label());
         });
 
-        this->_right.match([&](multiple & right)
+        this->_right->match([&](multiple & right)
         {
             this->_size += right._size;
             hasher.update(right.label());
@@ -249,12 +249,12 @@ namespace drop
 
     template <typename type> template <typename vtype> void syncset <type> :: multiple :: traverse(vtype && visitor) const
     {
-        this->_left.visit([&](const auto & node)
+        this->_left->visit([&](const auto & node)
         {
             node.traverse(visitor);
         });
 
-        this->_right.visit([&](const auto & node)
+        this->_right->visit([&](const auto & node)
         {
             node.traverse(visitor);
         });
@@ -481,7 +481,7 @@ namespace drop
             }, [&](single & single)
             {
                 class prefix singleprefix(single.label());
-                (*navigator) = single.push(singleprefix[navigator.depth()] ? left : right);
+                (*navigator) = single.push(singleprefix[navigator.depth()] ? left : right); // THE PROBLEM IS HERE
             });
         }
 
@@ -525,6 +525,33 @@ namespace drop
             else
                 navigator->template reinterpret <multiple> ().refresh();
         }
+    }
+
+    // Private methods
+
+    template <typename type> template <typename vtype> void syncset <type> :: enumerate(const prefix & prefix, vtype && callback)
+    {
+        navigator navigator(prefix, this->_root);
+
+        for(; navigator && navigator.depth() <= prefix.bits(); navigator++);
+        navigator--;
+
+        std :: cout << "Navigator depth is " << navigator.depth() << std :: endl;
+
+        navigator->match([&](const multiple & multiple)
+        {
+            std :: cout << "Traversing" << std :: endl;
+            multiple.traverse(callback);
+        }, [&](const single & single)
+        {
+            bool match = true;
+
+            for(size_t i = navigator.depth() + 1; i <= prefix.bits(); i++)
+                match &= (prefix[i] == single.label()[i]);
+
+            if(match)
+                callback(single.element());
+        });
     }
 
     // Static declarations
