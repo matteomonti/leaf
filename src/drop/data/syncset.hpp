@@ -369,7 +369,7 @@ namespace drop
 
     // labelset
 
-    // Private constructors
+    // Constructors
 
     template <typename type> syncset <type> :: labelset :: labelset(const class prefix & prefix, const multiple & node) : _prefix(prefix), _label(node.label())
     {
@@ -403,20 +403,25 @@ namespace drop
 
     // listset
 
-    // Private constructors
+    // Constructors
 
-    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const node & subroot) : _prefix(prefix)
+    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const multiple & subroot) : _prefix(prefix)
     {
         this->_size = 0;
 
-        subroot.visit([&](const auto & subroot)
+        subroot.traverse([&](const type & element)
         {
-            subroot.traverse([&](const type & element)
-            {
-                this->_elements[this->_size] = element;
-                this->_size++;
-            });
+            this->_elements[this->_size] = element;
+            this->_size++;
         });
+    }
+
+    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const type & element) : _prefix(prefix), _elements{element}, _size(1)
+    {
+    }
+
+    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix) : _prefix(prefix), _size(0)
+    {
     }
 
     // Getters
@@ -426,7 +431,7 @@ namespace drop
         return this->_prefix;
     }
 
-    template <typename type> const size_t & syncset <type> :: listset :: size() const
+    template <typename type> size_t syncset <type> :: listset :: size() const
     {
         return this->_size;
     }
@@ -529,19 +534,20 @@ namespace drop
 
     // Private methods
 
-    template <typename type> template <typename vtype> void syncset <type> :: enumerate(const prefix & prefix, vtype && callback)
+    template <typename type> variant <typename syncset <type> :: labelset, typename syncset <type> :: listset> syncset <type> :: dump(const prefix & prefix)
     {
+        variant <labelset, listset> response;
         navigator navigator(prefix, this->_root);
 
         for(; navigator && navigator.depth() <= prefix.bits(); navigator++);
         navigator--;
 
-        std :: cout << "Navigator depth is " << navigator.depth() << std :: endl;
-
         navigator->match([&](const multiple & multiple)
         {
-            std :: cout << "Traversing" << std :: endl;
-            multiple.traverse(callback);
+            if(multiple.size() <= settings :: list_threshold)
+                response = listset(prefix, multiple);
+            else
+                response = labelset(prefix, multiple);
         }, [&](const single & single)
         {
             bool match = true;
@@ -550,8 +556,15 @@ namespace drop
                 match &= (prefix[i] == single.label()[i]);
 
             if(match)
-                callback(single.element());
+                response = listset(prefix, single.element());
+            else
+                response = listset(prefix);
+        }, [&](const empty &)
+        {
+            response = listset(prefix);
         });
+
+        return response;
     }
 
     // Static declarations

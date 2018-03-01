@@ -239,11 +239,6 @@ namespace drop
             // Constructors
 
             labelset() = default;
-
-        private:
-
-            // Private constructors
-
             labelset(const prefix &, const multiple &);
 
         public:
@@ -272,19 +267,16 @@ namespace drop
             // Constructors
 
             listset() = default;
-
-        private:
-
-            // Private constructors
-
-            listset(const prefix &, const node &);
+            listset(const prefix &, const multiple &);
+            listset(const prefix &, const type &);
+            listset(const prefix &);
 
         public:
 
             // Getters
 
             const prefix & prefix() const;
-            const size_t & size() const;
+            size_t size() const;
 
             // Methods
 
@@ -318,7 +310,7 @@ namespace drop
 
         // Private methods
 
-        template <typename vtype> void enumerate(const prefix &, vtype &&);
+        variant <labelset, listset> dump(const prefix &);
     };
 };
 
