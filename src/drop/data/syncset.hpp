@@ -81,7 +81,7 @@ namespace drop
 
     template <typename type> typename syncset <type> :: navigation syncset <type> :: navigator :: next() const
     {
-        return this->_prefix[this->_depth] ? left : right;
+        return this->_prefix[this->_depth] ? right : left;
     }
 
     // Operators
@@ -481,7 +481,7 @@ namespace drop
             }, [&](single & single)
             {
                 class prefix singleprefix(single.label());
-                (*navigator) = single.push(singleprefix[navigator.depth()] ? left : right); // THE PROBLEM IS HERE
+                (*navigator) = single.push(singleprefix[navigator.depth()] ? right : left);
             });
         }
 
