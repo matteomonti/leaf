@@ -609,7 +609,7 @@ namespace drop
 
     // Private methods
 
-    template <typename type> variant <typename syncset <type> :: labelset, typename syncset <type> :: listset> syncset <type> :: get(const prefix & prefix)
+    template <typename type> template <bool dump> variant <typename syncset <type> :: labelset, typename syncset <type> :: listset> syncset <type> :: get(const prefix & prefix)
     {
         variant <labelset, listset> response;
         navigator navigator(prefix, this->_root);
@@ -619,7 +619,7 @@ namespace drop
 
         navigator->match([&](const multiple & multiple)
         {
-            if(multiple.size() <= settings :: list_threshold)
+            if(dump || (multiple.size() <= settings :: list_threshold))
                 response = listset(prefix, multiple);
             else
                 response = labelset(prefix, multiple);

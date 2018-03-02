@@ -326,7 +326,7 @@ namespace drop
 
         // Private methods
 
-        variant <labelset, listset> get(const prefix &);
+        template <bool dump> variant <labelset, listset> get(const prefix &);
     };
 };
 
