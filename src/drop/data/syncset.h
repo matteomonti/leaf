@@ -252,6 +252,10 @@ namespace drop
 
             template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
             template <typename vtype> void accept(bytewise :: writer <vtype> &);
+
+            // Operators
+
+            bool operator == (const labelset &) const;
         };
 
         class listset
@@ -259,17 +263,25 @@ namespace drop
             // Members
 
             prefix _prefix;
-            type _elements[settings :: list_threshold];
+            type * _elements;
             varint _size;
 
         public:
 
             // Constructors
 
-            listset() = default;
+            listset();
+
             listset(const prefix &, const multiple &);
             listset(const prefix &, const type &);
             listset(const prefix &);
+
+            listset(const listset &);
+            listset(listset &&);
+
+            // Destructor
+
+            ~listset();
 
         public:
 
@@ -286,6 +298,10 @@ namespace drop
             // Operators
 
             const type & operator [] (const size_t &) const;
+            bool operator == (const listset &) const;
+
+            listset & operator = (const listset &);
+            listset & operator = (listset &&);
         };
 
     private:
@@ -310,7 +326,7 @@ namespace drop
 
         // Private methods
 
-        variant <labelset, listset> dump(const prefix &);
+        variant <labelset, listset> get(const prefix &);
     };
 };
 

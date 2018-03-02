@@ -401,9 +401,20 @@ namespace drop
         writer >> (this->_label);
     }
 
+    // Operators
+
+    template <typename type> bool syncset <type> :: labelset :: operator == (const labelset & rho) const
+    {
+        return this->_label == rho._label;
+    }
+
     // listset
 
     // Constructors
+
+    template <typename type> syncset <type> :: listset :: listset() : _size(0)
+    {
+    }
 
     template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const multiple & subroot) : _prefix(prefix)
     {
@@ -411,17 +422,42 @@ namespace drop
 
         subroot.traverse([&](const type & element)
         {
-            this->_elements[this->_size] = element;
             this->_size++;
+        });
+
+        this->_elements = new type[this->_size];
+        size_t cursor = 0;
+        subroot.traverse([&](const type & element)
+        {
+            this->_elements[cursor++] = element;
         });
     }
 
-    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const type & element) : _prefix(prefix), _elements{element}, _size(1)
+    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const type & element) : _prefix(prefix), _elements(new type[1]{element}), _size(1)
     {
     }
 
     template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix) : _prefix(prefix), _size(0)
     {
+    }
+
+    template <typename type> syncset <type> :: listset :: listset(const listset & that) : _prefix(that._prefix), _elements(new type[that._size]), _size(that._size)
+    {
+        for(size_t i = 0; i < this->_size; i++)
+            this->_elements[i] = that._elements[i];
+    }
+
+    template <typename type> syncset <type> :: listset :: listset(listset && that) : _prefix(that._prefix), _elements(that._elements), _size(that._size)
+    {
+        that._size = 0;
+    }
+
+    // Destructor
+
+    template <typename type> syncset <type> :: listset :: ~listset()
+    {
+        if(this->_size)
+            delete [] this->_elements;
     }
 
     // Getters
@@ -461,6 +497,45 @@ namespace drop
     template <typename type> const type & syncset <type> :: listset :: operator [] (const size_t & index) const
     {
         return this->_elements[index];
+    }
+
+    template <typename type> bool syncset <type> :: listset :: operator == (const listset & rho) const
+    {
+        if(this->_size != rho._size)
+            return false;
+
+        for(size_t i = 0; i < this->_size; i++)
+            if(this->_elements[i] != rho._elements[i])
+                return false;
+
+        return true;
+    }
+
+    template <typename type> typename syncset <type> :: listset & syncset <type> :: listset :: operator = (const listset & rho)
+    {
+        this->~listset();
+
+        this->_prefix = rho._prefix;
+        this->_size = rho._size;
+        this->_elements = new type[this->_size];
+
+        for(size_t i = 0; i < this->_size; i++)
+            this->_elements[i] = rho._elements[i];
+
+        return (*this);
+    }
+
+    template <typename type> typename syncset <type> :: listset & syncset <type> :: listset :: operator = (listset && rho)
+    {
+        this->~listset();
+
+        this->_prefix = rho._prefix;
+        this->_size = rho._size;
+        this->_elements = rho._elements;
+
+        rho._size = 0;
+
+        return (*this);
     }
 
     // syncset
@@ -534,7 +609,7 @@ namespace drop
 
     // Private methods
 
-    template <typename type> variant <typename syncset <type> :: labelset, typename syncset <type> :: listset> syncset <type> :: dump(const prefix & prefix)
+    template <typename type> variant <typename syncset <type> :: labelset, typename syncset <type> :: listset> syncset <type> :: get(const prefix & prefix)
     {
         variant <labelset, listset> response;
         navigator navigator(prefix, this->_root);
