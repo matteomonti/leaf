@@ -416,16 +416,8 @@ namespace drop
     {
     }
 
-    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const multiple & subroot) : _prefix(prefix)
+    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const multiple & subroot) : _prefix(prefix), _size(subroot.size()), _elements(new type[subroot.size()])
     {
-        this->_size = 0;
-
-        subroot.traverse([&](const type & element)
-        {
-            this->_size++;
-        });
-
-        this->_elements = new type[this->_size];
         size_t cursor = 0;
         subroot.traverse([&](const type & element)
         {

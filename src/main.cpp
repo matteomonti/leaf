@@ -14,7 +14,7 @@ int main()
     syncset <uint64_t> :: prefix my_prefix(1255433, 5);
     std :: cout << "Target prefix:" << hash(uint64_t(1255433)) << std :: endl;
 
-    auto set = my_syncset.get <false> (my_prefix);
+    auto set = my_syncset.get <true> (my_prefix);
     set.match([](const syncset <uint64_t> :: listset & listset)
     {
         std :: cout << "Listset with " << listset.size() << " elements." << std :: endl;
