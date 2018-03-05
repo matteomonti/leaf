@@ -4,15 +4,6 @@
 
 using namespace drop;
 
-void print(const syncset <uint64_t> :: prefix & prefix)
-{
-    std :: cout << "(" << prefix._bits <<  ") ";
-    for(size_t i = 0; i < 32; i++)
-        std :: cout << std :: hex << std :: setfill('0') << std :: setw(2) << ((unsigned int) prefix._value[i]);
-
-    std :: cout << std :: endl;
-}
-
 int main()
 {
     syncset <uint64_t> alpha;

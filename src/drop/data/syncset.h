@@ -34,7 +34,6 @@ namespace drop
         };
 
     private:
-    public: // REMOVE ME
 
         // Service nested enums
 
@@ -54,8 +53,6 @@ namespace drop
 
         class prefix
         {
-        public: // REMOVE ME
-
             // Members
 
             uint8_t _value[hash :: size];
@@ -342,7 +339,6 @@ namespace drop
         round sync(const std :: vector <variant <labelset, listset>> &);
 
     private:
-    public: // REMOVE ME
 
         // Private methods
 
