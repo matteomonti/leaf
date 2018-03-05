@@ -54,6 +54,8 @@ namespace drop
 
         class prefix
         {
+        public: // REMOVE ME
+
             // Members
 
             uint8_t _value[hash :: size];
@@ -63,6 +65,7 @@ namespace drop
 
             // Constructors
 
+            prefix();
             prefix(const hash &, const size_t & = 0);
             prefix(const type &, const size_t & = 0);
 
@@ -75,6 +78,9 @@ namespace drop
             void bits(const size_t &);
 
             // Methods
+
+            prefix left() const;
+            prefix right() const;
 
             template <typename vtype> void visit(bytewise :: reader <vtype> &) const;
             template <typename vtype> void visit(bytewise :: writer <vtype> &);
@@ -256,6 +262,7 @@ namespace drop
             // Operators
 
             bool operator == (const labelset &) const;
+            bool operator != (const labelset &) const;
         };
 
         class listset
@@ -265,6 +272,7 @@ namespace drop
             prefix _prefix;
             type * _elements;
             varint _size;
+            bool _dump;
 
         public:
 
@@ -272,9 +280,9 @@ namespace drop
 
             listset();
 
-            listset(const prefix &, const multiple &);
-            listset(const prefix &, const type &);
-            listset(const prefix &);
+            listset(const prefix &, const multiple &, const bool &);
+            listset(const prefix &, const type &, const bool &);
+            listset(const prefix &, const bool &);
 
             listset(const listset &);
             listset(listset &&);
@@ -289,6 +297,7 @@ namespace drop
 
             const prefix & prefix() const;
             size_t size() const;
+            const bool & dump() const;
 
             // Methods
 
@@ -299,9 +308,17 @@ namespace drop
 
             const type & operator [] (const size_t &) const;
             bool operator == (const listset &) const;
+            bool operator != (const listset &) const;
 
             listset & operator = (const listset &);
             listset & operator = (listset &&);
+        };
+
+        struct round
+        {
+            std :: vector <variant <labelset, listset>> view;
+            std :: vector <type> add;
+            std :: vector <type> remove;
         };
 
     private:
@@ -320,6 +337,9 @@ namespace drop
 
         void add(const type &);
         void remove(const type &);
+
+        round sync();
+        round sync(const std :: vector <variant <labelset, listset>> &);
 
     private:
     public: // REMOVE ME

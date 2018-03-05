@@ -32,6 +32,31 @@ namespace drop
         return !(memcmp(this->_bytes, rho._bytes, size));
     }
 
+    template <size_t length> bool tag <length> :: operator != (const tag <length> & rho) const
+    {
+        return !((*this) == rho);
+    }
+
+    template <size_t length> bool tag <length> :: operator < (const tag <length> & rho) const
+    {
+        return (memcmp(this->_bytes, rho._bytes, size) < 0);
+    }
+
+    template <size_t length> bool tag <length> :: operator <= (const tag <length> & rho) const
+    {
+        return (memcmp(this->_bytes, rho._bytes, size) <= 0);
+    }
+
+    template <size_t length> bool tag <length> :: operator > (const tag <length> & rho) const
+    {
+        return (memcmp(this->_bytes, rho._bytes, size) > 0);
+    }
+
+    template <size_t length> bool tag <length> :: operator >= (const tag <length> & rho) const
+    {
+        return (memcmp(this->_bytes, rho._bytes, size) >= 0);
+    }
+
     // Casting
 
     template <size_t length> tag <length> :: operator const uint8_t * () const

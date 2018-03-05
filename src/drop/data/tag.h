@@ -48,6 +48,12 @@ namespace drop
         const uint8_t & operator [] (const size_t &) const;
 
         bool operator == (const tag &) const;
+        bool operator != (const tag &) const;
+
+        bool operator < (const tag &) const;
+        bool operator <= (const tag &) const;
+        bool operator > (const tag &) const;
+        bool operator >= (const tag &) const;
 
         // Casting
 

@@ -14,6 +14,10 @@ namespace drop
 
     // Constructors
 
+    template <typename type> syncset <type> :: prefix :: prefix() : _value{}, _bits(0)
+    {
+    }
+
     template <typename type> syncset <type> :: prefix :: prefix(const hash & hash, const size_t & bits) : _bits(bits)
     {
         new (this->_value) class hash(hash);
@@ -39,6 +43,32 @@ namespace drop
     }
 
     // Methods
+
+    template <typename type> typename syncset <type> :: prefix syncset <type> :: prefix :: left() const
+    {
+        prefix left = (*this);
+
+        size_t byte = this->_bits / 8;
+        size_t bit = this->_bits % 8;
+
+        left._value[byte] &= (~(1 << (7 - bit)));
+        left._bits++;
+
+        return left;
+    }
+
+    template <typename type> typename syncset <type> :: prefix syncset <type> :: prefix :: right() const
+    {
+        prefix right = (*this);
+
+        size_t byte = this->_bits / 8;
+        size_t bit = this->_bits % 8;
+
+        right._value[byte] |= (1 << (7 - bit));
+        right._bits++;
+
+        return right;
+    }
 
     template <typename type> template <typename vtype> void syncset <type> :: prefix :: visit(bytewise :: reader <vtype> & reader) const
     {
@@ -408,6 +438,11 @@ namespace drop
         return this->_label == rho._label;
     }
 
+    template <typename type> bool syncset <type> :: labelset :: operator != (const labelset & rho) const
+    {
+        return !((*this) == rho);
+    }
+
     // listset
 
     // Constructors
@@ -416,7 +451,7 @@ namespace drop
     {
     }
 
-    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const multiple & subroot) : _prefix(prefix), _size(subroot.size()), _elements(new type[subroot.size()])
+    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const multiple & subroot, const bool & dump) : _prefix(prefix), _size(subroot.size()), _elements(new type[subroot.size()]), _dump(dump)
     {
         size_t cursor = 0;
         subroot.traverse([&](const type & element)
@@ -425,21 +460,21 @@ namespace drop
         });
     }
 
-    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const type & element) : _prefix(prefix), _elements(new type[1]{element}), _size(1)
+    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const type & element, const bool & dump) : _prefix(prefix), _elements(new type[1]{element}), _size(1), _dump(dump)
     {
     }
 
-    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix) : _prefix(prefix), _size(0)
+    template <typename type> syncset <type> :: listset :: listset(const class prefix & prefix, const bool & dump) : _prefix(prefix), _size(0), _dump(dump)
     {
     }
 
-    template <typename type> syncset <type> :: listset :: listset(const listset & that) : _prefix(that._prefix), _elements(new type[that._size]), _size(that._size)
+    template <typename type> syncset <type> :: listset :: listset(const listset & that) : _prefix(that._prefix), _elements(new type[that._size]), _size(that._size), _dump(that._dump)
     {
         for(size_t i = 0; i < this->_size; i++)
             this->_elements[i] = that._elements[i];
     }
 
-    template <typename type> syncset <type> :: listset :: listset(listset && that) : _prefix(that._prefix), _elements(that._elements), _size(that._size)
+    template <typename type> syncset <type> :: listset :: listset(listset && that) : _prefix(that._prefix), _elements(that._elements), _size(that._size), _dump(that._dump)
     {
         that._size = 0;
     }
@@ -464,6 +499,11 @@ namespace drop
         return this->_size;
     }
 
+    template <typename type> const bool & syncset <type> :: listset :: dump() const
+    {
+        return this->_dump;
+    }
+
     // Methods
 
     template <typename type> template <typename vtype> void syncset <type> :: listset :: accept(bytewise :: reader <vtype> & reader) const
@@ -473,6 +513,8 @@ namespace drop
 
         for(size_t i = 0; i < this->_size; i++)
             reader << this->_elements[i];
+
+        reader << (this->_dump);
     }
 
     template <typename type> template <typename vtype> void syncset <type> :: listset :: accept(bytewise :: writer <vtype> & writer)
@@ -482,6 +524,8 @@ namespace drop
 
         for(size_t i = 0; i < this->_size; i++)
             writer >> this->_elements[i];
+
+        writer >> (this->_dump);
     }
 
     // Operators
@@ -503,6 +547,11 @@ namespace drop
         return true;
     }
 
+    template <typename type> bool syncset <type> :: listset :: operator != (const listset & rho) const
+    {
+        return !((*this) == rho);
+    }
+
     template <typename type> typename syncset <type> :: listset & syncset <type> :: listset :: operator = (const listset & rho)
     {
         this->~listset();
@@ -514,6 +563,8 @@ namespace drop
         for(size_t i = 0; i < this->_size; i++)
             this->_elements[i] = rho._elements[i];
 
+        this->_dump = rho._dump;
+
         return (*this);
     }
 
@@ -524,6 +575,7 @@ namespace drop
         this->_prefix = rho._prefix;
         this->_size = rho._size;
         this->_elements = rho._elements;
+        this->_dump = rho._dump;
 
         rho._size = 0;
 
@@ -599,6 +651,88 @@ namespace drop
         }
     }
 
+    template <typename type> typename syncset <type> :: round syncset <type> :: sync()
+    {
+        round round;
+        round.view.push_back(this->get <false> (prefix()));
+        return round;
+    }
+
+    template <typename type> typename syncset <type> :: round syncset <type> :: sync(const std :: vector <variant <labelset, listset>> & view)
+    {
+        round round;
+        round.view.reserve(2 * view.size());
+
+        size_t elements = 0;
+        for(size_t i = 0; i < view.size(); i++)
+            view[i].match([&](const listset & listset)
+            {
+                elements += listset.size();
+            });
+
+        round.add.reserve(elements);
+        round.remove.reserve(elements);
+
+        for(size_t i = 0; i < view.size(); i++)
+        {
+            view[i].match([&](const labelset & remote)
+            {
+                this->get <false> (remote.prefix()).match([&](const labelset & local)
+                {
+                    if(remote != local)
+                    {
+                        round.view.push_back(this->get <false> (remote.prefix().left()));
+                        round.view.push_back(this->get <false> (remote.prefix().right()));
+                    }
+                }, [&](const listset & local)
+                {
+                    round.view.push_back(local);
+                });
+            }, [&](const listset & remote)
+            {
+                listset local = this->get <true> (remote.prefix()).template reinterpret <listset> ();
+                if(remote != local)
+                {
+                    hash remotehash = remote.size() ? hash(remote[0]) : hash();
+                    hash localhash = local.size() ? hash(local[0]) : hash();
+
+                    size_t i = 0;
+                    size_t j = 0;
+
+                    while(i < remote.size() && j < local.size())
+                    {
+                        if(remotehash < localhash)
+                        {
+                            round.add.push_back(remote[i++]);
+                            remotehash = hash(remote[i]);
+                        }
+                        else if(localhash < remotehash)
+                        {
+                            round.remove.push_back(local[j++]);
+                            localhash = hash(local[j]);
+                        }
+                        else
+                        {
+                            remotehash = hash(remote[++i]);
+                            localhash = hash(local[++j]);
+                        }
+                    }
+
+                    while(i < remote.size())
+                        round.add.push_back(remote[i++]);
+
+                    while(j < local.size())
+                        round.remove.push_back(local[j++]);
+
+                    if(!(remote.dump()))
+                        round.view.push_back(local);
+                }
+            });
+        }
+
+        return round;
+    }
+
     // Private methods
 
     template <typename type> template <bool dump> variant <typename syncset <type> :: labelset, typename syncset <type> :: listset> syncset <type> :: get(const prefix & prefix)
@@ -612,7 +746,7 @@ namespace drop
         navigator->match([&](const multiple & multiple)
         {
             if(dump || (multiple.size() <= settings :: list_threshold))
-                response = listset(prefix, multiple);
+                response = listset(prefix, multiple, dump);
             else
                 response = labelset(prefix, multiple);
         }, [&](const single & single)
@@ -623,12 +757,12 @@ namespace drop
                 match &= (prefix[i] == single.label()[i]);
 
             if(match)
-                response = listset(prefix, single.element());
+                response = listset(prefix, single.element(), dump);
             else
-                response = listset(prefix);
+                response = listset(prefix, dump);
         }, [&](const empty &)
         {
-            response = listset(prefix);
+            response = listset(prefix, dump);
         });
 
         return response;
