@@ -240,6 +240,12 @@ namespace drop
 
         std :: shared_ptr <arc> _arc;
 
+        struct // TODO: This should not be copied
+        {
+            std :: experimental :: coroutine_handle <> handle;
+            std :: conditional_t <std :: is_same <type, void> :: value, class null, optional <type>> value;
+        } _coroutine;
+
     public:
 
         // Constructors
@@ -254,7 +260,7 @@ namespace drop
 
         bool await_ready();
         void await_suspend(std :: experimental :: coroutine_handle <>);
-        void await_resume();
+        type await_resume();
 
         // Methods
 

@@ -350,19 +350,33 @@ namespace drop
         return this->resolved();
     }
 
-    template <typename type> void promise <type> :: await_suspend(std :: experimental :: coroutine_handle <> coroutine)
+    template <typename type> void promise <type> :: await_suspend(std :: experimental :: coroutine_handle <> handle)
     {
-        std :: experimental :: coroutine_handle <> * coroptr = new std :: experimental :: coroutine_handle <> (coroutine); // TODO: This is ridiculous. Find a decent way of doing this please :P
+        this->_coroutine.handle = handle;
 
-        this->then([=]()
+        if constexpr (std :: is_same <type, void> :: value)
         {
-            coroptr->resume();
-        });
+            this->then([=]()
+            {
+                this->_coroutine.handle.resume();
+            });
+        }
+        else
+        {
+            this->then([=](const type & value)
+            {
+                this->_coroutine.value = value;
+                this->_coroutine.handle.resume();
+            });
+        }
     }
 
-    template <typename type> void promise <type> :: await_resume()
+    template <typename type> type promise <type> :: await_resume()
     {
-        return;
+        if constexpr (std :: is_same <type, void> :: value)
+            return;
+        else
+            return *(this->_coroutine.value);
     }
 
     // Methods
