@@ -216,6 +216,10 @@ namespace drop
 
             ~arc();
 
+            // Getters
+
+            bool resolved() const;
+
             // Methods
 
             template <typename lambda> typename traits :: template chain <lambda> then(const lambda &);
@@ -241,6 +245,16 @@ namespace drop
         // Constructors
 
         promise();
+
+        // Getters
+
+        bool resolved() const;
+
+        // Awaitable interface
+
+        bool await_ready();
+        void await_suspend(std :: experimental :: coroutine_handle <>);
+        void await_resume();
 
         // Methods
 

@@ -201,6 +201,15 @@ namespace drop
         }
     }
 
+    // Getters
+
+    template <typename type> bool promise <type> :: arc :: resolved() const
+    {
+        return this->_value;
+    }
+
+    // Methods
+
     template <typename type> template <typename lambda> typename promise <type> :: traits :: template chain <lambda> promise <type> :: arc :: then(const lambda & callback)
     {
         if(this->_alias)
@@ -325,6 +334,35 @@ namespace drop
 
     template <typename type> promise <type> :: promise() : _arc(new arc)
     {
+    }
+
+    // Getters
+
+    template <typename type> bool promise <type> :: resolved() const
+    {
+        return this->_arc->resolved();
+    }
+
+    // Awaitable interface
+
+    template <typename type> bool promise <type> :: await_ready()
+    {
+        return this->resolved();
+    }
+
+    template <typename type> void promise <type> :: await_suspend(std :: experimental :: coroutine_handle <> coroutine)
+    {
+        std :: experimental :: coroutine_handle <> * coroptr = new std :: experimental :: coroutine_handle <> (coroutine); // TODO: This is ridiculous. Find a decent way of doing this please :P
+
+        this->then([=]()
+        {
+            coroptr->resume();
+        });
+    }
+
+    template <typename type> void promise <type> :: await_resume()
+    {
+        return;
     }
 
     // Methods
