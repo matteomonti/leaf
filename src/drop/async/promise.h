@@ -218,7 +218,7 @@ namespace drop
 
             // Getters
 
-            bool resolved() const;
+            const auto & value() const;
 
             // Methods
 
@@ -239,18 +239,15 @@ namespace drop
         // Members
 
         std :: shared_ptr <arc> _arc;
-
-        struct // TODO: This should not be copied
-        {
-            std :: experimental :: coroutine_handle <> handle;
-            std :: conditional_t <std :: is_same <type, void> :: value, class null, optional <type>> value;
-        } _coroutine;
+        optional <std :: experimental :: coroutine_handle <>> _coroutine;
 
     public:
 
         // Constructors
 
         promise();
+        promise(const promise &);
+        promise(promise &&);
 
         // Getters
 
@@ -260,7 +257,7 @@ namespace drop
 
         bool await_ready();
         void await_suspend(std :: experimental :: coroutine_handle <>);
-        type await_resume();
+        auto await_resume();
 
         // Methods
 
@@ -275,6 +272,13 @@ namespace drop
         // Private methods
 
         void alias(const promise &) const;
+
+    public:
+
+        // Operators
+
+        promise & operator = (const promise &);
+        promise & operator = (promise &&);
     };
 
     // Coroutine interface

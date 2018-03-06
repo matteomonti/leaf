@@ -203,7 +203,7 @@ namespace drop
 
     // Getters
 
-    template <typename type> bool promise <type> :: arc :: resolved() const
+    template <typename type> const auto & promise <type> :: arc :: value() const
     {
         return this->_value;
     }
@@ -336,11 +336,19 @@ namespace drop
     {
     }
 
+    template <typename type> promise <type> :: promise(const promise & that) : _arc(that._arc)
+    {
+    }
+
+    template <typename type> promise <type> :: promise(promise && that) : _arc(std :: move(that._arc))
+    {
+    }
+
     // Getters
 
     template <typename type> bool promise <type> :: resolved() const
     {
-        return this->_arc->resolved();
+        return this->_arc->value();
     }
 
     // Awaitable interface
@@ -352,31 +360,26 @@ namespace drop
 
     template <typename type> void promise <type> :: await_suspend(std :: experimental :: coroutine_handle <> handle)
     {
-        this->_coroutine.handle = handle;
+        this->_coroutine = handle;
 
         if constexpr (std :: is_same <type, void> :: value)
-        {
             this->then([=]()
             {
-                this->_coroutine.handle.resume();
+                this->_coroutine->resume();
             });
-        }
         else
-        {
             this->then([=](const type & value)
             {
-                this->_coroutine.value = value;
-                this->_coroutine.handle.resume();
+                this->_coroutine->resume();
             });
-        }
     }
 
-    template <typename type> type promise <type> :: await_resume()
+    template <typename type> auto promise <type> :: await_resume()
     {
         if constexpr (std :: is_same <type, void> :: value)
             return;
         else
-            return *(this->_coroutine.value);
+            return *(this->_arc->value());
     }
 
     // Methods
@@ -435,6 +438,20 @@ namespace drop
 
         that._arc->unlock();
         this->_arc->unlock();
+    }
+
+    // Operators
+
+    template <typename type> promise <type> & promise <type> :: operator = (const promise & rho)
+    {
+        this->_arc = rho._arc;
+        this->_coroutine = null;
+    }
+
+    template <typename type> promise <type> & promise <type> :: operator = (promise && rho)
+    {
+        this->_arc = std :: move(rho._arc);
+        this->_coroutine = null;
     }
 
     // Coroutine interface
