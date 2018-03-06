@@ -384,6 +384,44 @@ namespace drop
         that._arc->unlock();
         this->_arc->unlock();
     }
+
+    // Coroutine interface
+
+    // promise <void>
+
+    // Object
+
+    auto promise <void> :: promise_type :: get_return_object()
+    {
+        return this->_promise;
+    }
+
+    // Suspends
+
+    auto promise <void> :: promise_type :: initial_suspend()
+    {
+        return std :: experimental :: suspend_never();
+    }
+
+    auto promise <void> :: promise_type :: final_suspend()
+    {
+        return std :: experimental :: suspend_never();
+    }
+
+    // Exceptions
+
+    void promise <void> :: promise_type :: unhandled_exception()
+    {
+        std :: cout << "Exception!" << std :: endl;
+        std :: terminate();
+    }
+
+    // Returns
+
+    void promise <void> :: promise_type :: return_void()
+    {
+        this->_promise.resolve();
+    }
 };
 
 #endif

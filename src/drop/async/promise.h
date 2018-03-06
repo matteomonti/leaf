@@ -13,6 +13,7 @@ namespace drop
 #include <memory>
 #include <exception>
 #include <mutex>
+#include <experimental/coroutine>
 
 // Includes
 
@@ -60,6 +61,10 @@ namespace drop
         };
 
     public:
+
+        // Coroutine interface
+
+        class promise_type;
 
         // Constraints
 
@@ -250,6 +255,34 @@ namespace drop
         // Private methods
 
         void alias(const promise &) const;
+    };
+
+    // Coroutine interface
+
+    template <> class promise <void> :: promise_type
+    {
+        // Members
+
+        promise <void> _promise;
+
+    public:
+
+        // Object
+
+        auto get_return_object();
+
+        // Suspends
+
+        auto initial_suspend();
+        auto final_suspend();
+
+        // Exceptions
+
+        void unhandled_exception();
+
+        // Returns
+
+        void return_void();
     };
 }
 
