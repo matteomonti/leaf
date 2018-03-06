@@ -4,15 +4,15 @@
 
 using namespace drop;
 
-promise <void> f()
+promise <int> f()
 {
-    co_return;
+    co_return 33;
 }
 
 int main()
 {
-    f().then([]()
+    f().then([](const int & value)
     {
-        std :: cout << "Done!" << std :: endl;
+        std :: cout << "Done with value " << value << std :: endl;
     });
 }

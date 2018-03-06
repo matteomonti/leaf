@@ -422,6 +422,42 @@ namespace drop
     {
         this->_promise.resolve();
     }
+
+    // promise <type>
+
+    // Object
+
+    template <typename type> auto promise <type> :: promise_type :: get_return_object()
+    {
+        return this->_promise;
+    }
+
+    // Suspends
+
+    template <typename type> auto promise <type> :: promise_type :: initial_suspend()
+    {
+        return std :: experimental :: suspend_never();
+    }
+
+    template <typename type> auto promise <type> :: promise_type :: final_suspend()
+    {
+        return std :: experimental :: suspend_never();
+    }
+
+    // Exceptions
+
+    template <typename type> void promise <type> :: promise_type :: unhandled_exception()
+    {
+        std :: cout << "Exception!" << std :: endl;
+        std :: terminate();
+    }
+
+    // Returns
+
+    template <typename type> void promise <type> :: promise_type :: return_value(const type & value)
+    {
+        this->_promise.resolve(value);
+    }
 };
 
 #endif

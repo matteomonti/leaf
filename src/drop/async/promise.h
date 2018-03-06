@@ -284,6 +284,32 @@ namespace drop
 
         void return_void();
     };
+
+    template <typename type> class promise <type> :: promise_type
+    {
+        // Members
+
+        promise <type> _promise;
+
+    public:
+
+        // Object
+
+        auto get_return_object();
+
+        // Suspends
+
+        auto initial_suspend();
+        auto final_suspend();
+
+        // Exceptions
+
+        void unhandled_exception();
+
+        // Returns
+
+        void return_value(const type &);
+    };
 }
 
 #endif
