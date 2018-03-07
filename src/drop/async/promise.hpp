@@ -415,16 +415,20 @@ namespace drop
 
     template <typename type> template <typename... vtype, std :: enable_if_t <promise <type> :: constraints :: template value <vtype...> ()> *> void promise <type> :: resolve(const vtype & ... value) const
     {
-        this->_arc->lock();
-        this->_arc->resolve(value...);
-        this->_arc->unlock();
+        auto arc = this->_arc;
+
+        arc->lock();
+        arc->resolve(value...);
+        arc->unlock();
     }
 
     template <typename type> template <typename etype> void promise <type> :: reject(const etype & exception) const
     {
-        this->_arc->lock();
-        this->_arc->reject(exception);
-        this->_arc->unlock();
+        auto arc = this->_arc;
+
+        arc->lock();
+        arc->reject(exception);
+        arc->unlock();
     }
 
     // Private methods
@@ -446,12 +450,16 @@ namespace drop
     {
         this->_arc = rho._arc;
         this->_coroutine = null;
+
+        return (*this);
     }
 
     template <typename type> promise <type> & promise <type> :: operator = (promise && rho)
     {
         this->_arc = std :: move(rho._arc);
         this->_coroutine = null;
+
+        return (*this);
     }
 
     // Coroutine interface

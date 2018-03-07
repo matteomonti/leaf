@@ -4,23 +4,26 @@
 
 using namespace drop;
 
-promise <int> my_promise;
+promise <void> semaphore;
 
-promise <int> f()
+promise <void> f()
 {
-    std :: cout << "Entro in f!" << std :: endl;
-    int x = co_await my_promise;
+    for(uint64_t i = 0;; i++)
+    {
+        if(i % 1000000 == 0)
+            std :: cout << i << std :: endl;
 
-    std :: cout << "Torno in f con valore " << x << std :: endl;
-    co_return 33;
+        semaphore = promise <void> ();
+        co_await semaphore;
+    }
+
+    co_return;
 }
 
 int main()
 {
-    f().then([](const int & value)
-    {
-        std :: cout << "Done with value " << value << std :: endl;
-    });
+    f();
 
-    my_promise.resolve(99);
+    while(true)
+        semaphore.resolve();
 }
