@@ -57,8 +57,6 @@ namespace drop
         template <typename... atypes, std :: enable_if_t <(... && (bytewise :: constraints :: readable <atypes, hasher> ()))> * = nullptr> static hash keyed(const key &, const atypes & ...);
     };
 
-    // Ostream integration
-
     class hasher
     {
         // Members

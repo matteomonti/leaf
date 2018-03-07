@@ -104,30 +104,4 @@ namespace drop
 
         return plaintext;
     }
-
-    // Ostream integration
-
-    std :: ostream & operator << (std :: ostream & out, const class secretbox :: key & key)
-    {
-        out << "<";
-
-        for(size_t i = 0; i < secretbox :: key :: size; i++)
-            out << std :: hex << std :: setw(2) << std :: setfill('0') << (unsigned int)(key[i]);
-
-        out << ">";
-
-        return out;
-    }
-
-    std :: ostream & operator << (std :: ostream & out, const class secretbox :: nonce & nonce)
-    {
-        out << "<";
-
-        for(size_t i = 0; i < secretbox :: nonce :: size; i++)
-            out << std :: hex << std :: setw(2) << std :: setfill('0') << (unsigned int)(nonce[i]);
-
-        out << ">";
-
-        return out;
-    }
 };
