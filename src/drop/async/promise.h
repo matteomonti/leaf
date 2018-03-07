@@ -214,11 +214,12 @@ namespace drop
 
             // Destructor
 
-            ~arc();
+            ~arc() noexcept(false);
 
             // Getters
 
             const auto & value() const;
+            const std :: exception_ptr & exception() const;
 
             // Methods
 

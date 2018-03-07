@@ -175,7 +175,7 @@ namespace drop
 
     // Destructor
 
-    template <typename type> promise <type> :: arc :: ~arc()
+    template <typename type> promise <type> :: arc :: ~arc() noexcept(false)
     {
         if(!(this->_alias))
         {
@@ -183,11 +183,13 @@ namespace drop
             {
                 if(this->_rejector)
                     this->_rejector->reject(this->_exception);
-                else
+                else if(this->_size > 0)
                 {
                     for(size_t i = 0; i < this->_size; i++)
                         this->_resolvers[i]->reject(this->_exception);
                 }
+                else
+                    throw (class exceptions :: unforwardable_reject){};
             }
 
             if(!(this->_value))
@@ -206,6 +208,11 @@ namespace drop
     template <typename type> const auto & promise <type> :: arc :: value() const
     {
         return this->_value;
+    }
+
+    template <typename type> const std :: exception_ptr & promise <type> :: arc :: exception() const
+    {
+        return this->_exception;
     }
 
     // Methods
@@ -366,9 +373,15 @@ namespace drop
             this->then([=]()
             {
                 this->_coroutine->resume();
+            }).except([=](const std :: exception_ptr &)
+            {
+                this->_coroutine->resume();
             });
         else
-            this->then([=](const type & value)
+            this->then([=](const type &)
+            {
+                this->_coroutine->resume();
+            }).except([=](const std :: exception_ptr &)
             {
                 this->_coroutine->resume();
             });
@@ -377,9 +390,19 @@ namespace drop
     template <typename type> auto promise <type> :: await_resume()
     {
         if constexpr (std :: is_same <type, void> :: value)
-            return;
+        {
+            if(this->_arc->value())
+                return;
+            else
+                std :: rethrow_exception(this->_arc->exception());
+        }
         else
-            return *(this->_arc->value());
+        {
+            if(this->_arc->value())
+                return *(this->_arc->value());
+            else
+                std :: rethrow_exception(this->_arc->exception());
+        }
     }
 
     // Methods
@@ -489,8 +512,7 @@ namespace drop
 
     void promise <void> :: promise_type :: unhandled_exception()
     {
-        std :: cout << "Exception!" << std :: endl;
-        std :: terminate();
+        this->_promise.reject(std :: current_exception());
     }
 
     // Returns
@@ -525,8 +547,7 @@ namespace drop
 
     template <typename type> void promise <type> :: promise_type :: unhandled_exception()
     {
-        std :: cout << "Exception!" << std :: endl;
-        std :: terminate();
+        this->_promise.reject(std :: current_exception());
     }
 
     // Returns
