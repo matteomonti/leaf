@@ -2,29 +2,50 @@
 #include <thread>
 
 #include "drop/thread/semaphore.h"
+#include "drop/thread/channel.hpp"
+#include "drop/chrono/time.hpp"
 
 using namespace drop;
 
-semaphore my_semaphore;
+channel <uint64_t> my_channel;
+semaphore my_semaphore(100);
 
 void f()
 {
-    std :: cout << "Waiting for the semaphore.." << std :: endl;
+    uint64_t expected = 0;
 
-    if(my_semaphore.wait(timestamp(now) + 3_s))
-        std :: cout << "Done (true)!" << std :: endl;
-    else
-        std :: cout << "Done (false)!" << std :: endl;
+    while(true)
+    {
+        optional <uint64_t> value = my_channel.pop();
+
+        if(value)
+        {
+            if((*value) != expected)
+            {
+                std :: cout << "Unexpected value: " << (*value) << " vs " << expected << std :: endl;
+                std :: terminate();
+            }
+
+            if((*value) % 1000000 == 0)
+            {
+                std :: cout << (*value) << std :: endl;
+                my_semaphore.post();
+            }
+
+            expected++;
+        }
+    }
 }
 
 int main()
 {
-    std :: cout << "Launching thread..." << std :: endl;
     std :: thread my_thread(f);
 
-    sleep(5_s);
-    my_semaphore.post();
+    for(uint64_t i = 0;; i++)
+    {
+        if(i % 1000000 == 0)
+            my_semaphore.wait();
 
-    my_thread.join();
-    std :: cout << "Good night" << std :: endl;
+        my_channel.push(i);
+    }
 }
