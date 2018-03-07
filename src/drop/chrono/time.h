@@ -17,6 +17,10 @@ namespace drop
 #include <iostream>
 #include <iomanip>
 
+// Includes
+
+#include "drop/bytewise/bytewise.h"
+
 namespace drop
 {
     class timestamp
@@ -31,6 +35,11 @@ namespace drop
 
         timestamp();
         timestamp(now);
+
+        // Methods
+
+        template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+        template <typename vtype> void accept(bytewise :: writer <vtype> &);
 
         // Operators
 
@@ -56,6 +65,11 @@ namespace drop
         // Constexpr constructors
 
         constexpr interval(const uint64_t &);
+
+        // Methods
+
+        template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+        template <typename vtype> void accept(bytewise :: writer <vtype> &);
 
         // Casting
 

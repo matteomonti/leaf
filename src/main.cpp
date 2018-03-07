@@ -4,8 +4,7 @@
 
 using namespace drop;
 
-constexpr interval y = 44.5_s;
-
 int main()
 {
+    std :: cout << bytewise :: serialize(44.32_s) << std :: endl;
 }
