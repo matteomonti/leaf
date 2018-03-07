@@ -1,11 +1,11 @@
 #include <iostream>
 
-#include "drop/chrono/time.h"
+#include "drop/chrono/time.hpp"
 
 using namespace drop;
 
+constexpr interval y = 44.5_s;
+
 int main()
 {
-    std :: cout << 33.4_ms << std :: endl;
-    std :: cout << 1.44_h << std :: endl;
 }

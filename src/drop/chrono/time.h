@@ -4,7 +4,6 @@ namespace drop
 {
     class timestamp;
     class interval;
-    class frequency;
     class now;
 };
 
@@ -53,7 +52,10 @@ namespace drop
         // Constructors
 
         interval();
-        interval(const uint64_t &);
+
+        // Constexpr constructors
+
+        constexpr interval(const uint64_t &);
 
         // Casting
 
@@ -62,19 +64,19 @@ namespace drop
 
     // Literals
 
-    interval operator "" _us(uint64_t);
+    constexpr interval operator "" _us(uint64_t);
 
-    interval operator "" _ms(uint64_t);
-    interval operator "" _ms(long double);
+    constexpr interval operator "" _ms(uint64_t);
+    constexpr interval operator "" _ms(long double);
 
-    interval operator "" _s(uint64_t);
-    interval operator "" _s(long double);
+    constexpr interval operator "" _s(uint64_t);
+    constexpr interval operator "" _s(long double);
 
-    interval operator "" _m(uint64_t);
-    interval operator "" _m(long double);
+    constexpr interval operator "" _m(uint64_t);
+    constexpr interval operator "" _m(long double);
 
-    interval operator "" _h(uint64_t);
-    interval operator "" _h(long double);
+    constexpr interval operator "" _h(uint64_t);
+    constexpr interval operator "" _h(long double);
 
     class now
     {

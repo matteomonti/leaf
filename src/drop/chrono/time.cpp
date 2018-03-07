@@ -1,6 +1,6 @@
 // Includes
 
-#include "time.h"
+#include "time.hpp"
 
 namespace drop
 {
@@ -39,10 +39,6 @@ namespace drop
     {
     }
 
-    interval :: interval(const uint64_t & value) : _value(value)
-    {
-    }
-
     // Casting
 
     interval :: operator const uint64_t & () const
@@ -78,61 +74,6 @@ namespace drop
         else
             out << "(" << (microseconds / 3600000000ull) << "h " << ((microseconds / 60000000ull) % 60) << "m " << std :: setprecision(4) << (((double) (microseconds % 60000000ull)) / 1000000ull) << "s)";
         return out;
-    }
-
-    // Literals
-
-    interval operator "" _us(uint64_t value)
-    {
-        return interval(value);
-    }
-
-    interval operator "" _ms(uint64_t value)
-    {
-        value *= 1000ull;
-        return interval(value);
-    }
-
-    interval operator "" _ms(long double value)
-    {
-        value *= 1000ull;
-        return interval(value);
-    }
-
-    interval operator "" _s(uint64_t value)
-    {
-        value *= 1000000ull;
-        return interval(value);
-    }
-
-    interval operator "" _s(long double value)
-    {
-        value *= 1000000ull;
-        return interval(value);
-    }
-
-    interval operator "" _m(uint64_t value)
-    {
-        value *= 60000000ull;
-        return interval(value);
-    }
-
-    interval operator "" _m(long double value)
-    {
-        value *= 60000000ull;
-        return interval(value);
-    }
-
-    interval operator "" _h(uint64_t value)
-    {
-        value *= 3600000000ull;
-        return interval(value);
-    }
-
-    interval operator "" _h(long double value)
-    {
-        value *= 3600000000ull;
-        return interval(value);
     }
 
     // Static declarations
