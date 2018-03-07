@@ -21,9 +21,53 @@ namespace drop
 
     // Operators
 
+    timestamp timestamp :: operator + (const interval & rho) const
+    {
+        timestamp timestamp = (*this);
+        timestamp._value += ((const uint64_t &) rho);
+        return timestamp;
+    }
+
+    timestamp timestamp :: operator - (const interval & rho) const
+    {
+        timestamp timestamp = (*this);
+        timestamp._value -= ((const uint64_t &) rho);
+        return timestamp;
+    }
+
     interval timestamp :: operator - (const timestamp & rho) const
     {
         return interval(this->_value - rho._value);
+    }
+
+    bool timestamp :: operator < (const timestamp & rho) const
+    {
+        return (this->_value < rho._value);
+    }
+
+    bool timestamp :: operator <= (const timestamp & rho) const
+    {
+        return (this->_value <= rho._value);
+    }
+
+    bool timestamp :: operator > (const timestamp & rho) const
+    {
+        return (this->_value > rho._value);
+    }
+
+    bool timestamp :: operator >= (const timestamp & rho) const
+    {
+        return (this->_value >= rho._value);
+    }
+
+    bool timestamp :: operator == (const timestamp & rho) const
+    {
+        return (this->_value == rho._value);
+    }
+
+    bool timestamp :: operator != (const timestamp & rho) const
+    {
+        return (this->_value != rho._value);
     }
 
     // Casting

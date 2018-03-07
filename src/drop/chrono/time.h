@@ -43,7 +43,19 @@ namespace drop
 
         // Operators
 
+        timestamp operator + (const interval &) const;
+        timestamp operator - (const interval &) const;
+
         interval operator - (const timestamp &) const;
+
+        bool operator < (const timestamp &) const;
+        bool operator <= (const timestamp &) const;
+
+        bool operator > (const timestamp &) const;
+        bool operator >= (const timestamp &) const;
+
+        bool operator == (const timestamp &) const;
+        bool operator != (const timestamp &) const;
 
         // Casting
 

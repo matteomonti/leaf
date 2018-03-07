@@ -6,5 +6,9 @@ using namespace drop;
 
 int main()
 {
-    std :: cout << bytewise :: serialize(44.32_s) << std :: endl;
+    timestamp x = now;
+    std :: cout << x << std :: endl;
+
+    std :: cout << (x + 3_m) << std :: endl;
+    std :: cout << (x - 44_s) << std :: endl;
 }
