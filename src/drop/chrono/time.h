@@ -16,6 +16,7 @@ namespace drop
 #include <stdint.h>
 #include <sys/time.h>
 #include <iostream>
+#include <iomanip>
 
 namespace drop
 {
@@ -32,6 +33,28 @@ namespace drop
         timestamp();
         timestamp(now);
 
+        // Operators
+
+        interval operator - (const timestamp &) const;
+
+        // Casting
+
+        operator const uint64_t & () const;
+    };
+
+    class interval
+    {
+        // Members
+
+        uint64_t _value;
+
+    public:
+
+        // Constructors
+
+        interval();
+        interval(const uint64_t &);
+
         // Casting
 
         operator const uint64_t & () const;
@@ -44,6 +67,7 @@ namespace drop
     // Ostream integration
 
     std :: ostream & operator << (std :: ostream &, const timestamp &);
+    std :: ostream & operator << (std :: ostream &, const interval &);
 
     extern now now;
 };
