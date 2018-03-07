@@ -1,16 +1,30 @@
 #include <iostream>
+#include <thread>
 
-#include "drop/chrono/time.hpp"
+#include "drop/thread/semaphore.h"
 
 using namespace drop;
 
+semaphore my_semaphore;
+
+void f()
+{
+    std :: cout << "Waiting for the semaphore.." << std :: endl;
+
+    if(my_semaphore.wait(timestamp(now) + 3_s))
+        std :: cout << "Done (true)!" << std :: endl;
+    else
+        std :: cout << "Done (false)!" << std :: endl;
+}
+
 int main()
 {
-    std :: cout << "Hello..." << std :: endl;
-    sleep(3_s);
-    std :: cout << "... world! :)" << std :: endl;
+    std :: cout << "Launching thread..." << std :: endl;
+    std :: thread my_thread(f);
 
-    std :: cout << "I'll wait until..." << std :: endl;
-    sleep(timestamp(now) + 4_s);
-    std :: cout << "... the time is over! :D" << std :: endl;
+    sleep(5_s);
+    my_semaphore.post();
+
+    my_thread.join();
+    std :: cout << "Good night" << std :: endl;
 }
