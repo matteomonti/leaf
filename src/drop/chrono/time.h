@@ -60,6 +60,22 @@ namespace drop
         operator const uint64_t & () const;
     };
 
+    // Literals
+
+    interval operator "" _us(uint64_t);
+
+    interval operator "" _ms(uint64_t);
+    interval operator "" _ms(long double);
+
+    interval operator "" _s(uint64_t);
+    interval operator "" _s(long double);
+
+    interval operator "" _m(uint64_t);
+    interval operator "" _m(long double);
+
+    interval operator "" _h(uint64_t);
+    interval operator "" _h(long double);
+
     class now
     {
     };

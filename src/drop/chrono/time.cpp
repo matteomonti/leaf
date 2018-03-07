@@ -80,6 +80,61 @@ namespace drop
         return out;
     }
 
+    // Literals
+
+    interval operator "" _us(uint64_t value)
+    {
+        return interval(value);
+    }
+
+    interval operator "" _ms(uint64_t value)
+    {
+        value *= 1000ull;
+        return interval(value);
+    }
+
+    interval operator "" _ms(long double value)
+    {
+        value *= 1000ull;
+        return interval(value);
+    }
+
+    interval operator "" _s(uint64_t value)
+    {
+        value *= 1000000ull;
+        return interval(value);
+    }
+
+    interval operator "" _s(long double value)
+    {
+        value *= 1000000ull;
+        return interval(value);
+    }
+
+    interval operator "" _m(uint64_t value)
+    {
+        value *= 60000000ull;
+        return interval(value);
+    }
+
+    interval operator "" _m(long double value)
+    {
+        value *= 60000000ull;
+        return interval(value);
+    }
+
+    interval operator "" _h(uint64_t value)
+    {
+        value *= 3600000000ull;
+        return interval(value);
+    }
+
+    interval operator "" _h(long double value)
+    {
+        value *= 3600000000ull;
+        return interval(value);
+    }
+
     // Static declarations
 
     class now now;
