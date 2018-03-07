@@ -4,17 +4,17 @@
 
 using namespace drop;
 
-promise <void> my_promise;
+promise <void> semaphore;
 
 promise <void> f()
 {
-    try
+    for(uint64_t i = 0;; i++)
     {
-        co_await my_promise;
-    }
-    catch(const char * message)
-    {
-        std :: cout << "Exception: " << message << std :: endl;
+        if(i % 1000000 == 0)
+            std :: cout << i << std :: endl;
+
+        semaphore = promise <void> ();
+        co_await semaphore;
     }
 
     co_return;
@@ -22,17 +22,8 @@ promise <void> f()
 
 int main()
 {
-    f().except([](const std :: exception_ptr & exception)
-    {
-        try
-        {
-            std :: rethrow_exception(exception);
-        }
-        catch(const int & number)
-        {
-            std :: cout << "Exception: " << number << std :: endl;
-        }
-    });
+    f();
 
-    my_promise.reject(44); //.reject("Something went wrong!!");
+    while(true)
+        semaphore.resolve();
 }
