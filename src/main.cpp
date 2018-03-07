@@ -6,9 +6,11 @@ using namespace drop;
 
 int main()
 {
-    timestamp x = now;
-    std :: cout << x << std :: endl;
+    std :: cout << "Hello..." << std :: endl;
+    sleep(3_s);
+    std :: cout << "... world! :)" << std :: endl;
 
-    std :: cout << (x + 3_m) << std :: endl;
-    std :: cout << (x - 44_s) << std :: endl;
+    std :: cout << "I'll wait until..." << std :: endl;
+    sleep(timestamp(now) + 4_s);
+    std :: cout << "... the time is over! :D" << std :: endl;
 }

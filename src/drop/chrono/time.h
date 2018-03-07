@@ -16,6 +16,7 @@ namespace drop
 #include <sys/time.h>
 #include <iostream>
 #include <iomanip>
+#include <unistd.h>
 
 // Includes
 
@@ -107,6 +108,11 @@ namespace drop
     class now
     {
     };
+
+    // Functions
+
+    void sleep(const timestamp &);
+    void sleep(const interval &);
 
     // Ostream integration
 

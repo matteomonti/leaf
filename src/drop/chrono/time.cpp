@@ -90,6 +90,18 @@ namespace drop
         return this->_value;
     }
 
+    // Functions
+
+    void sleep(const timestamp & timestamp)
+    {
+        usleep(timestamp - now);
+    }
+
+    void sleep(const interval & interval)
+    {
+        usleep(interval);
+    }
+
     // Ostream integration
 
     std :: ostream & operator << (std :: ostream & out, const timestamp & timestamp)
