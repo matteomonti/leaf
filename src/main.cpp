@@ -1,24 +1,18 @@
 #include <iostream>
 
-#include "drop/network/sockets/tcp.h"
+#include "drop/network/sockets/udp.h"
 
 using namespace drop;
 
 int main()
 {
-    sockets :: tcp my_acceptor;
+    sockets :: udp my_socket;
 
-    my_acceptor.bind(1234);
-    my_acceptor.listen();
+    my_socket.bind(1234);
 
-    sockets :: tcp my_connection = my_acceptor.accept();
+    auto packet = my_socket.receive();
 
-    std :: cout << my_connection.remote() << std :: endl;
-
-    char buffer[1024];
-    size_t received = my_connection.receive(buffer, 1024);
-
-    buffer[received] = '\0';
-
-    std :: cout << buffer << std :: endl;
+    std :: cout << packet.remote() << std :: endl;
+    std :: cout << packet.size() << std :: endl;
+    std :: cout << packet.message() << std :: endl;
 }
