@@ -32,6 +32,8 @@ namespace drop
                 static constexpr interval size = 0.1_s;
                 static constexpr size_t count = 3600;
             };
+
+            static constexpr interval min_wait = 1_ms;
         };
 
         // Service nested classes

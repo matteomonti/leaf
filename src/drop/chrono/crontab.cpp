@@ -148,7 +148,10 @@ namespace drop
                     this->_cursor++;
             }
 
-            this->_semaphore.wait(next);
+            if(next - target > settings :: min_wait)
+                this->_semaphore.wait(next);
+            else
+                this->_semaphore.wait(next + settings :: min_wait);
         }
     }
 };
