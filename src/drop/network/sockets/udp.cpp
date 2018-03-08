@@ -17,7 +17,7 @@ namespace drop :: sockets
         return this->_remote;
     }
 
-    const char * udp :: packet :: message() const
+    const uint8_t * udp :: packet :: message() const
     {
         return this->_message;
     }
@@ -66,7 +66,7 @@ namespace drop :: sockets
         timeval.tv_sec = ((const uint64_t &) timeout) / 1000000;
         timeval.tv_usec = ((const uint64_t &) timeout) % 1000000;
 
-        if(:: setsockopt(this->_descriptor, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeval, sizeof(struct timeval)))
+        if(:: setsockopt(this->_descriptor, SOL_SOCKET, SO_SNDTIMEO, (uint8_t *)&timeval, sizeof(struct timeval)))
             throw exceptions :: setsockopt_failed();
     }
 
@@ -80,7 +80,7 @@ namespace drop :: sockets
         timeval.tv_sec = ((const uint64_t &) timeout) / 1000000;
         timeval.tv_usec = ((const uint64_t &) timeout) % 1000000;
 
-        if(:: setsockopt(this->_descriptor, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeval, sizeof(struct timeval)))
+        if(:: setsockopt(this->_descriptor, SOL_SOCKET, SO_RCVTIMEO, (uint8_t *)&timeval, sizeof(struct timeval)))
             throw exceptions :: setsockopt_failed();
     }
 
@@ -111,7 +111,7 @@ namespace drop :: sockets
         this->_port = port;
     }
 
-    bool udp :: send(const address & remote, const char * message, const size_t & size)
+    bool udp :: send(const address & remote, const uint8_t * message, const size_t & size)
     {
         if(this->_descriptor < 0)
             throw exceptions :: socket_closed();

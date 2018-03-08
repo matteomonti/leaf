@@ -87,8 +87,8 @@ namespace drop :: sockets
         void listen();
         tcp accept();
 
-        size_t send(const char *, const size_t &);
-        size_t receive(char *, const size_t &);
+        size_t send(const uint8_t *, const size_t &);
+        size_t receive(uint8_t *, const size_t &);
 
         void close();
     };

@@ -50,7 +50,7 @@ namespace drop :: sockets
             // Members
 
             address _remote;
-            char _message[settings :: mtu + 1];
+            uint8_t _message[settings :: mtu + 1];
             size_t _size;
 
         public:
@@ -58,7 +58,7 @@ namespace drop :: sockets
             // Getters
 
             const address & remote() const;
-            const char * message() const;
+            const uint8_t * message() const;
             const size_t & size() const;
 
             // Casting
@@ -95,7 +95,7 @@ namespace drop :: sockets
 
         void bind(const class address :: port &);
 
-        bool send(const address &, const char *, const size_t &);
+        bool send(const address &, const uint8_t *, const size_t &);
         packet receive();
 
         void close();
