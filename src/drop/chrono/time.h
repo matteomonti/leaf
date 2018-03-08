@@ -35,6 +35,7 @@ namespace drop
         // Constructors
 
         timestamp();
+        timestamp(const uint64_t &);
         timestamp(now);
 
         // Methods
@@ -46,6 +47,8 @@ namespace drop
 
         timestamp operator + (const interval &) const;
         timestamp operator - (const interval &) const;
+
+        uint64_t operator / (const interval &) const;
 
         interval operator - (const timestamp &) const;
 

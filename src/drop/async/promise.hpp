@@ -491,33 +491,33 @@ namespace drop
 
     // Object
 
-    auto promise <void> :: promise_type :: get_return_object()
+    inline auto promise <void> :: promise_type :: get_return_object()
     {
         return this->_promise;
     }
 
     // Suspends
 
-    auto promise <void> :: promise_type :: initial_suspend()
+    inline auto promise <void> :: promise_type :: initial_suspend()
     {
         return std :: experimental :: suspend_never();
     }
 
-    auto promise <void> :: promise_type :: final_suspend()
+    inline auto promise <void> :: promise_type :: final_suspend()
     {
         return std :: experimental :: suspend_never();
     }
 
     // Exceptions
 
-    void promise <void> :: promise_type :: unhandled_exception()
+    inline void promise <void> :: promise_type :: unhandled_exception()
     {
         this->_promise.reject(std :: current_exception());
     }
 
     // Returns
 
-    void promise <void> :: promise_type :: return_void()
+    inline void promise <void> :: promise_type :: return_void()
     {
         this->_promise.resolve();
     }
@@ -526,33 +526,33 @@ namespace drop
 
     // Object
 
-    template <typename type> auto promise <type> :: promise_type :: get_return_object()
+    template <typename type> inline auto promise <type> :: promise_type :: get_return_object()
     {
         return this->_promise;
     }
 
     // Suspends
 
-    template <typename type> auto promise <type> :: promise_type :: initial_suspend()
+    template <typename type> inline auto promise <type> :: promise_type :: initial_suspend()
     {
         return std :: experimental :: suspend_never();
     }
 
-    template <typename type> auto promise <type> :: promise_type :: final_suspend()
+    template <typename type> inline auto promise <type> :: promise_type :: final_suspend()
     {
         return std :: experimental :: suspend_never();
     }
 
     // Exceptions
 
-    template <typename type> void promise <type> :: promise_type :: unhandled_exception()
+    template <typename type> inline void promise <type> :: promise_type :: unhandled_exception()
     {
         this->_promise.reject(std :: current_exception());
     }
 
     // Returns
 
-    template <typename type> void promise <type> :: promise_type :: return_value(const type & value)
+    template <typename type> inline void promise <type> :: promise_type :: return_value(const type & value)
     {
         this->_promise.resolve(value);
     }

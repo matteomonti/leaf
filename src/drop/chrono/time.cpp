@@ -12,6 +12,10 @@ namespace drop
     {
     }
 
+    timestamp :: timestamp(const uint64_t & value) : _value(value)
+    {
+    }
+
     timestamp :: timestamp(class now)
     {
         struct timeval time;
@@ -33,6 +37,11 @@ namespace drop
         timestamp timestamp = (*this);
         timestamp._value -= ((const uint64_t &) rho);
         return timestamp;
+    }
+
+    uint64_t timestamp :: operator / (const interval & rho) const
+    {
+        return this->_value / ((const uint64_t &) rho);
     }
 
     interval timestamp :: operator - (const timestamp & rho) const

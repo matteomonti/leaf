@@ -294,20 +294,20 @@ namespace drop
 
         // Object
 
-        auto get_return_object();
+        inline auto get_return_object();
 
         // Suspends
 
-        auto initial_suspend();
-        auto final_suspend();
+        inline auto initial_suspend();
+        inline auto final_suspend();
 
         // Exceptions
 
-        void unhandled_exception();
+        inline void unhandled_exception();
 
         // Returns
 
-        void return_void();
+        inline void return_void();
     };
 
     template <typename type> class promise <type> :: promise_type
@@ -320,20 +320,20 @@ namespace drop
 
         // Object
 
-        auto get_return_object();
+        inline auto get_return_object();
 
         // Suspends
 
-        auto initial_suspend();
-        auto final_suspend();
+        inline auto initial_suspend();
+        inline auto final_suspend();
 
         // Exceptions
 
-        void unhandled_exception();
+        inline void unhandled_exception();
 
         // Returns
 
-        void return_value(const type &);
+        inline void return_value(const type &);
     };
 }
 
