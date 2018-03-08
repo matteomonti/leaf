@@ -83,6 +83,11 @@ namespace drop :: sockets
         {
             const char * what() const noexcept;
         };
+
+        class ioctl_failed : public std :: exception
+        {
+            const char * what() const noexcept;
+        };
     };
 }
 

@@ -70,4 +70,9 @@ namespace drop :: sockets
     {
         return "Connection closed by remote endpoint.";
     }
+
+    const char * exceptions :: ioctl_failed :: what() const noexcept
+    {
+        return "Call to ioctl failed.";
+    }
 };

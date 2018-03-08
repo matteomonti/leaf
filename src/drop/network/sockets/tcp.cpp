@@ -134,6 +134,19 @@ namespace drop :: sockets
         return tcp(descriptor, this->_port, remote);
     }
 
+    size_t tcp :: available()
+    {
+        if(this->_descriptor < 0)
+            throw exceptions :: socket_closed();
+
+        int value;
+
+        if(ioctl(this->_descriptor, FIONREAD, &value))
+            throw exceptions :: ioctl_failed();
+
+        return value;
+    }
+
     size_t tcp :: send(const uint8_t * message, const size_t & size)
     {
         if(this->_descriptor < 0)

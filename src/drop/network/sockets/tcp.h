@@ -19,6 +19,7 @@ namespace drop
 #include <assert.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/ioctl.h>
 
 // Includes
 
@@ -86,6 +87,8 @@ namespace drop :: sockets
 
         void listen();
         tcp accept();
+
+        size_t available();
 
         size_t send(const uint8_t *, const size_t &);
         size_t receive(uint8_t *, const size_t &);

@@ -1,18 +1,17 @@
 #include <iostream>
 
-#include "drop/network/sockets/udp.h"
+#include "drop/network/sockets/tcp.h"
 
 using namespace drop;
 
 int main()
 {
-    sockets :: udp my_socket;
+    sockets :: tcp my_socket;
+    my_socket.connect({"127.0.0.1", 1234});
 
-    my_socket.bind(1234);
-
-    auto packet = my_socket.receive();
-
-    std :: cout << packet.remote() << std :: endl;
-    std :: cout << packet.size() << std :: endl;
-    std :: cout << packet.message() << std :: endl;
+    while(true)
+    {
+        std :: cout << my_socket.available() << ", " << my_socket.space() << std :: endl;
+        sleep(1_s);
+    }
 }
