@@ -125,6 +125,33 @@ namespace drop
         return (const char *)(this->_bytes);
     }
 
+    // streamer
+
+    // Constructors
+
+    buffer :: streamer :: streamer(const size_t & size) : _cursor(0)
+    {
+        this->_buffer.alloc(size);
+    }
+
+    // Methods
+
+    void buffer :: streamer :: update(const uint8_t * bytes, const size_t & size)
+    {
+        memcpy(((uint8_t *) (this->_buffer)) + this->_cursor, bytes, size);
+        this->_cursor += size;
+    }
+
+    size_t buffer :: streamer :: pending()
+    {
+        return (this->_buffer.size() - this->_cursor);
+    }
+
+    buffer && buffer :: streamer :: yield()
+    {
+        return std :: move(this->_buffer);
+    }
+
     // Ostream integration
 
     std :: ostream & operator << (std :: ostream & out, const buffer & buffer)

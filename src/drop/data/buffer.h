@@ -29,6 +29,8 @@ namespace drop
 
         // Nested classes
 
+        class streamer;
+
         class reference
         {
         };
@@ -89,6 +91,27 @@ namespace drop
         // Static members
 
         static reference reference;
+    };
+
+    class buffer :: streamer
+    {
+        // Members
+
+        buffer _buffer;
+        size_t _cursor;
+
+    public:
+
+        // Constructors
+
+        streamer(const size_t &);
+
+        // Methods
+
+        void update(const uint8_t *, const size_t &);
+        size_t pending();
+
+        buffer && yield();
     };
 
     // Ostream integration
