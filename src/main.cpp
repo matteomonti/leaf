@@ -1,42 +1,29 @@
 #include <iostream>
 
-#include "drop/data/buffer.hpp"
+#include "drop/data/varint.hpp"
 
 using namespace drop;
 
 int main()
 {
-    buffer :: streamer my_streamer(41);
-
-    std :: cout << my_streamer.pending() << std :: endl;
-    my_streamer.update((uint8_t *) "hello", 5);
-
-    std :: cout << my_streamer.pending() << std :: endl;
-    my_streamer.update((uint8_t *) "world", 5);
-
-    std :: cout << my_streamer.pending() << std :: endl;
-    my_streamer.update((uint8_t *) "how", 3);
-
-    std :: cout << my_streamer.pending() << std :: endl;
-    my_streamer.update((uint8_t *) "is", 2);
-
-    std :: cout << my_streamer.pending() << std :: endl;
-    my_streamer.update((uint8_t *) "life?", 5);
-
-    std :: cout << my_streamer.pending() << std :: endl;
-    my_streamer.update((uint8_t *) "amazing", 7);
-
-    std :: cout << my_streamer.pending() << std :: endl;
-    my_streamer.update((uint8_t *) "day", 3);
-
-    std :: cout << my_streamer.pending() << std :: endl;
-    my_streamer.update((uint8_t *) "today", 5);
-
-    std :: cout << my_streamer.pending() << std :: endl;
-    my_streamer.update((uint8_t *) "right?", 6);
+    varint :: streamer my_streamer;
 
     std :: cout << my_streamer.pending() << std :: endl;
 
-    buffer result = my_streamer.yield();
-    std :: cout << result << std :: endl;
+    uint8_t byte = 0xc1;
+    my_streamer.update(&byte, 1);
+
+    std :: cout << my_streamer.pending() << std :: endl;
+
+    byte = 0x63;
+    my_streamer.update(&byte, 1);
+
+    std :: cout << my_streamer.pending() << std :: endl;
+
+    uint8_t bytes[2] = {0x49, 0x7a};
+    my_streamer.update(bytes, 2);
+
+    std :: cout << my_streamer.pending() << std :: endl;
+
+    std :: cout << my_streamer.yield() << std :: endl;
 }

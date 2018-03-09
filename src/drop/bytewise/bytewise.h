@@ -194,6 +194,9 @@ namespace drop
 
         template <typename atype, std :: enable_if_t <constraints :: deserializable <atype> ()> * = nullptr> static inline atype deserialize(const buffer &);
         template <typename... atypes, std :: enable_if_t <(sizeof...(atypes) > 1) && (... && (constraints :: deserializable <atypes> ()))> * = nullptr> static inline std :: tuple <atypes...> deserialize(const buffer &);
+
+        template <typename atype, std :: enable_if_t <constraints :: deserializable <atype> ()> * = nullptr> static inline atype deserialize(const uint8_t *, const size_t &);
+        template <typename... atypes, std :: enable_if_t <(sizeof...(atypes) > 1) && (... && (constraints :: deserializable <atypes> ()))> * = nullptr> static inline std :: tuple <atypes...> deserialize(const uint8_t *, const size_t &);
     };
 };
 

@@ -265,6 +265,16 @@ namespace drop
 
         return acceptors;
     }
+
+    template <typename atype, std :: enable_if_t <bytewise :: constraints :: deserializable <atype> ()> *> inline atype bytewise :: deserialize(const uint8_t * bytes, const size_t & size)
+    {
+        return deserialize <atype> (buffer(buffer :: reference, const_cast <uint8_t *> (bytes), size));
+    }
+
+    template <typename... atypes, std :: enable_if_t <(sizeof...(atypes) > 1) && (... && (bytewise :: constraints :: deserializable <atypes> ()))> *> inline std :: tuple <atypes...> bytewise :: deserialize(const uint8_t * bytes, const size_t & size)
+    {
+        return deserialize <atypes...> (buffer(buffer :: reference, const_cast <uint8_t *> (bytes), size));
+    }
 };
 
 #endif

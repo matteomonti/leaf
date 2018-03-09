@@ -4,6 +4,8 @@
 
 namespace drop
 {
+    // buffer
+
     // Constructors
 
     buffer :: buffer() : _size(0), _alloc(0)

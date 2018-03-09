@@ -20,6 +20,14 @@ namespace drop
 {
     class varint
     {
+    public:
+
+        // Nested classes
+
+        class streamer;
+
+    private:
+
         // Members
 
         uint32_t _value;
@@ -44,6 +52,27 @@ namespace drop
 
         operator uint32_t & ();
         operator const uint32_t & () const;
+    };
+
+    class varint :: streamer
+    {
+        // Members
+
+        uint8_t _bytes[sizeof(uint32_t)];
+        uint8_t _cursor;
+
+    public:
+
+        // Constructors
+
+        streamer();
+
+        // Methods
+
+        void update(const uint8_t *, const size_t &);
+        size_t pending();
+
+        varint yield();
     };
 };
 
