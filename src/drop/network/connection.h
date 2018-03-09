@@ -11,6 +11,7 @@ namespace drop
 // Libraries
 
 #include <mutex>
+#include <memory>
 
 // Includes
 
@@ -23,7 +24,16 @@ namespace drop
 {
     class connection
     {
-    public: // REMOVE ME
+    public:
+
+        // Constraints
+
+        struct constraints
+        {
+            template <typename stype> static constexpr bool socket();
+        };
+
+    private:
 
         // Service nested classes
 
@@ -81,6 +91,21 @@ namespace drop
             bool receive_step();
             buffer && receive_yield();
         };
+
+        // Members
+
+        std :: shared_ptr <arc> _arc;
+
+    public:
+
+        // Constructors
+
+        template <typename stype, std :: enable_if_t <constraints :: socket <stype> ()> * = nullptr> connection(const stype &);
+
+        // Methods
+
+        void send(const buffer &);
+        buffer && receive();
     };
 };
 

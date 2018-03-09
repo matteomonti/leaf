@@ -150,4 +150,18 @@ namespace drop
     {
         return std :: move(this->_read.reinterpret <buffer :: streamer> ().yield());
     }
+
+    // connection
+
+    // Methods
+
+    void connection :: send(const buffer & message)
+    {
+        this->_arc->send(message);
+    }
+
+    buffer && connection :: receive()
+    {
+        return std :: move(this->_arc->receive());
+    }
 };
