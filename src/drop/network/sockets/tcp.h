@@ -45,7 +45,7 @@ namespace drop :: sockets
 
             struct streamer
             {
-                static constexpr size_t buffer = 128;    
+                static constexpr size_t buffer = 128;
             };
         };
 

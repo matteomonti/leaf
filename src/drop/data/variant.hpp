@@ -231,7 +231,7 @@ namespace drop
 
     template <typename... types> template <typename lambda, std :: enable_if_t <variant_base <types...> :: constraints :: template const_visitor <lambda> ()> *> void variant_base <types...> :: visit(lambda && callback) const
     {
-        return this->unwrap <types...> (this->_typeid, callback);
+        this->unwrap <types...> (this->_typeid, callback);
     }
 
     template <typename... types> template <typename... lambdas, std :: enable_if_t <(... && (variant_base <types...> :: constraints :: template mutable_case <lambdas> ()))> *> void variant_base <types...> :: match(lambdas && ... callbacks)
@@ -271,13 +271,11 @@ namespace drop
 
     template <typename... types> template <typename vtype, typename... vtypes, typename lambda> void variant_base <types...> :: unwrap(const size_t & index, lambda && callback) const
     {
-        if constexpr (sizeof...(vtypes) == 0)
+        if(index == 0)
             callback(reinterpret_cast <const vtype &> (this->_value));
         else
         {
-            if(index == 0)
-                callback(reinterpret_cast <const vtype &> (this->_value));
-            else
+            if constexpr (sizeof...(vtypes) > 0)
                 this->unwrap <vtypes...> (index - 1, callback);
         }
     }

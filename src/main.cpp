@@ -1,32 +1,41 @@
 #include <iostream>
 
-#include "drop/network/sockets/tcp.hpp"
-
-#include "drop/data/buffer.hpp"
-#include "drop/data/varint.hpp"
+#include "drop/network/connection.hpp"
 
 using namespace drop;
 
-int main()
+void server()
 {
-    buffer :: streamer my_streamer(99);
-
     sockets :: tcp my_acceptor;
+
     my_acceptor.bind(1234);
     my_acceptor.listen();
 
-    sockets :: tcp my_connection = my_acceptor.accept();
-    std :: cout << "Connection established" << std :: endl;
+    connection :: arc my_connection = my_acceptor.accept();
+    std :: cout << "Connection established!" << std :: endl;
 
-    while(my_streamer.pending())
+    while(true)
+        std :: cout << my_connection.receive() << std :: endl;
+}
+
+void client()
+{
+    sockets :: tcp my_socket;
+    my_socket.connect({"127.0.0.1", 1234});
+
+    connection :: arc my_connection = my_socket;
+    std :: cout << "Connection established!" << std :: endl;
+
+    while(true)
     {
-        my_connection.receive(my_streamer);
-        std :: cout << "Received chunk, still " << my_streamer.pending() << " pending." << std :: endl;
+        char buffer[1024];
+        std :: cin.getline(buffer, 1024);
+
+        my_connection.send(buffer);
     }
+}
 
-    buffer my_buffer = my_streamer.yield();
-    std :: cout << my_buffer << std :: endl;
-
-    my_connection.close();
-    my_acceptor.close();
+int main()
+{
+    server();
 }
