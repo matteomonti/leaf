@@ -16,9 +16,12 @@ namespace drop
 // Includes
 
 #include "drop/network/sockets/tcp.hpp"
+#include "drop/data/optional.hpp"
 #include "drop/data/buffer.hpp"
 #include "drop/data/varint.hpp"
 #include "drop/data/variant.hpp"
+#include "drop/crypto/secretbox.hpp"
+#include "drop/crypto/keyexchanger.h"
 
 namespace drop
 {
@@ -57,6 +60,12 @@ namespace drop
                 std :: mutex receive;
             } _mutex;
 
+            struct
+            {
+                optional <secretbox> transmit;
+                optional <secretbox> receive;
+            } _secretchannel;
+
         public:
 
             // Constructors
@@ -80,8 +89,10 @@ namespace drop
             void send(const buffer &);
             template <typename... types> void send(const types & ...);
 
-            buffer && receive();
+            buffer receive();
             template <typename... types> auto receive();
+
+            void authenticate(const keyexchanger &, const class keyexchanger :: publickey &);
 
         private:
 
@@ -92,7 +103,7 @@ namespace drop
 
             void receive_init();
             bool receive_step();
-            buffer && receive_yield();
+            buffer receive_yield();
         };
 
         // Members
@@ -110,8 +121,10 @@ namespace drop
         void send(const buffer &);
         template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <types> ()))> * = nullptr> void send(const types & ...);
 
-        buffer && receive();
+        buffer receive();
         template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <types> ()))> * = nullptr> auto receive();
+
+        void authenticate(const keyexchanger &, const class keyexchanger :: publickey &);
     };
 };
 

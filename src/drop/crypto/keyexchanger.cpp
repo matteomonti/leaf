@@ -73,7 +73,7 @@ namespace drop
 
     // Methods
 
-    keyexchanger :: sessionkey keyexchanger :: exchange(const class publickey & remote)
+    keyexchanger :: sessionkey keyexchanger :: exchange(const class publickey & remote) const
     {
         sessionkey sessionkey;
 

@@ -45,6 +45,16 @@ namespace drop
             (reinterpret_cast <type &> (this->_value)).~type();
     }
 
+    // Methods
+
+    template <typename type> template <typename... types, std :: enable_if_t <std :: is_constructible <type, types...> :: value> *> void optional_base <type> :: emplace(types && ... args)
+    {
+        this->~optional_base();
+
+        this->_set = true;
+        new (&(this->_value)) type(args...);
+    }
+
     // Operators
 
     template <typename type> type & optional_base <type> :: operator * ()

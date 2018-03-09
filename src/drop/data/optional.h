@@ -42,6 +42,10 @@ namespace drop
 
         ~optional_base();
 
+        // Methods
+
+        template <typename... types, std :: enable_if_t <std :: is_constructible <type, types...> :: value> * = nullptr> void emplace(types && ...);
+
         // Operators
 
         type & operator * ();

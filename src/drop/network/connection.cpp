@@ -62,7 +62,7 @@ namespace drop
         }
     }
 
-    buffer && connection :: arc :: receive()
+    buffer connection :: arc :: receive()
     {
         try
         {
@@ -79,14 +79,34 @@ namespace drop
             std :: rethrow_exception(std :: current_exception());
         }
 
-        return std :: move(this->receive_yield());
+        return this->receive_yield();
+    }
+
+    void connection :: arc :: authenticate(const keyexchanger & exchanger, const class keyexchanger :: publickey & remote)
+    {
+        class secretbox :: nonce txnonce = secretbox :: nonce :: random();
+        this->send(txnonce);
+
+        class secretbox :: nonce rxnonce = this->receive <class secretbox :: nonce> ();
+
+        keyexchanger :: sessionkey session = exchanger.exchange(remote);
+
+        this->_secretchannel.transmit.emplace(session.transmit(), txnonce);
+        this->_secretchannel.receive.emplace(session.receive(), rxnonce);
     }
 
     // Private methods
 
     void connection :: arc :: send_init(const buffer & message)
     {
-        this->_write.buffer = bytewise :: serialize(message);
+        if(this->_secretchannel.transmit)
+        {
+            buffer ciphertext = this->_secretchannel.transmit->encrypt(message);
+            this->_write.buffer = bytewise :: serialize(ciphertext);
+        }
+        else
+            this->_write.buffer = bytewise :: serialize(message);
+
         this->_write.cursor = 0;
     }
 
@@ -146,9 +166,15 @@ namespace drop
         return completed;
     }
 
-    buffer && connection :: arc :: receive_yield()
+    buffer connection :: arc :: receive_yield()
     {
-        return std :: move(this->_read.reinterpret <buffer :: streamer> ().yield());
+        if(this->_secretchannel.receive)
+        {
+            buffer ciphertext = this->_read.reinterpret <buffer :: streamer> ().yield();
+            return this->_secretchannel.receive->decrypt(ciphertext);
+        }
+        else
+            return this->_read.reinterpret <buffer :: streamer> ().yield();
     }
 
     // connection
@@ -160,8 +186,13 @@ namespace drop
         this->_arc->send(message);
     }
 
-    buffer && connection :: receive()
+    buffer connection :: receive()
     {
-        return std :: move(this->_arc->receive());
+        return this->_arc->receive();
+    }
+
+    void connection :: authenticate(const keyexchanger & exchanger, const class keyexchanger :: publickey & remote)
+    {
+        this->_arc->authenticate(exchanger, remote);
     }
 };

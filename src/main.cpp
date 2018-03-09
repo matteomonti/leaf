@@ -6,6 +6,11 @@
 
 using namespace drop;
 
+std :: mutex cmtx;
+
+keyexchanger server_kx;
+keyexchanger client_kx;
+
 void server()
 {
     sockets :: tcp my_acceptor;
@@ -14,7 +19,16 @@ void server()
     my_acceptor.listen();
 
     connection my_connection = my_acceptor.accept();
-    std :: cout << "Connection established!" << std :: endl;
+
+    cmtx.lock();
+    std :: cout << "Server: connection established!" << std :: endl;
+    cmtx.unlock();
+
+    my_connection.authenticate(server_kx, client_kx.publickey());
+
+    cmtx.lock();
+    std :: cout << "Server: connection authenticated!" << std :: endl;
+    cmtx.unlock();
 
     while(true)
         std :: cout << my_connection.receive <uint64_t> () << std :: endl;
@@ -26,7 +40,16 @@ void client()
     my_socket.connect({"127.0.0.1", 1234});
 
     connection my_connection = my_socket;
-    std :: cout << "Connection established!" << std :: endl;
+
+    cmtx.lock();
+    std :: cout << "Client: connection established!" << std :: endl;
+    cmtx.unlock();
+
+    my_connection.authenticate(client_kx, server_kx.publickey());
+
+    cmtx.lock();
+    std :: cout << "Client: connection authenticated!" << std :: endl;
+    cmtx.unlock();
 
     while(true)
     {

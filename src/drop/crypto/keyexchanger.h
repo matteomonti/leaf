@@ -97,7 +97,7 @@ namespace drop
 
         // Methods
 
-        sessionkey exchange(const class publickey &);
+        sessionkey exchange(const class publickey &) const;
     };
 };
 
