@@ -78,7 +78,10 @@ namespace drop
             // Methods
 
             void send(const buffer &);
+            template <typename... types> void send(const types & ...);
+
             buffer && receive();
+            template <typename... types> auto receive();
 
         private:
 
@@ -105,7 +108,10 @@ namespace drop
         // Methods
 
         void send(const buffer &);
+        template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <types> ()))> * = nullptr> void send(const types & ...);
+
         buffer && receive();
+        template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <types> ()))> * = nullptr> auto receive();
     };
 };
 

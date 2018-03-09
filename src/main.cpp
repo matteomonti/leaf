@@ -17,7 +17,7 @@ void server()
     std :: cout << "Connection established!" << std :: endl;
 
     while(true)
-        std :: cout << my_connection.receive() << std :: endl;
+        std :: cout << my_connection.receive <uint64_t> () << std :: endl;
 }
 
 void client()
@@ -30,10 +30,9 @@ void client()
 
     while(true)
     {
-        char buffer[1024];
-        std :: cin.getline(buffer, 1024);
-
-        my_connection.send(buffer);
+        uint64_t n;
+        std :: cin >> n;
+        my_connection.send(n);
     }
 }
 

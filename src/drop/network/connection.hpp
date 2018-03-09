@@ -22,12 +22,37 @@ namespace drop
     {
     }
 
+    // Methods
+
+    template <typename... types> void connection :: arc :: send(const types & ... messages)
+    {
+        this->send(bytewise :: serialize(messages...));
+    }
+
+    template <typename... types> auto connection :: arc :: receive()
+    {
+        buffer message = this->receive();
+        return bytewise :: deserialize <types...> (message);
+    }
+
     // connection
 
     // Constructors
 
     template <typename stype, std :: enable_if_t <connection :: constraints :: socket <stype> ()> *> connection :: connection(const stype & socket) : _arc(new arc(socket))
     {
+    }
+
+    // Methods
+
+    template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <types> ()))> *> void connection :: send(const types & ... messages)
+    {
+        this->_arc->send(messages...);
+    }
+
+    template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <types> ()))> *> auto connection :: receive()
+    {
+        return this->_arc->receive <types...> ();
     }
 };
 
