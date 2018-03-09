@@ -26,6 +26,7 @@ namespace drop
 #include "exceptions.h"
 #include "drop/network/address.h"
 #include "drop/chrono/time.hpp"
+#include "drop/utils/sfinae.h"
 
 namespace drop :: sockets
 {
@@ -41,6 +42,30 @@ namespace drop :: sockets
             {
                 static constexpr size_t slots = 128;
             };
+
+            struct streamer
+            {
+                static constexpr size_t buffer = 128;    
+            };
+        };
+
+    private:
+
+        // Traits
+
+        struct traits
+        {
+            template <typename stype> static constexpr bool has_update_method();
+            template <typename stype> static constexpr bool has_pending_method();
+        };
+
+    public:
+
+        // Constraints
+
+        struct constraints
+        {
+            template <typename stype> static constexpr bool streamer();
         };
 
     private:
@@ -91,7 +116,9 @@ namespace drop :: sockets
         size_t available();
 
         size_t send(const uint8_t *, const size_t &);
+
         size_t receive(uint8_t *, const size_t &);
+        template <typename stype, std :: enable_if_t <constraints :: streamer <stype> ()> * = nullptr> bool receive(stype &);
 
         void close();
     };
