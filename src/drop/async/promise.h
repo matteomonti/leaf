@@ -240,7 +240,12 @@ namespace drop
         // Members
 
         std :: shared_ptr <arc> _arc;
-        optional <std :: experimental :: coroutine_handle <>> _coroutine;
+
+        struct
+        {
+            optional <std :: experimental :: coroutine_handle <>> handle;
+            arc * arc;
+        } _coroutine;
 
     public:
 

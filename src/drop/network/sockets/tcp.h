@@ -120,6 +120,8 @@ namespace drop :: sockets
         size_t receive(uint8_t *, const size_t &);
         template <typename stype, std :: enable_if_t <constraints :: streamer <stype> ()> * = nullptr> bool receive(stype &);
 
+        void rethrow();
+
         void close();
     };
 };

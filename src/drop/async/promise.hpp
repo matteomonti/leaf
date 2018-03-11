@@ -367,41 +367,44 @@ namespace drop
 
     template <typename type> void promise <type> :: await_suspend(std :: experimental :: coroutine_handle <> handle)
     {
-        this->_coroutine = handle;
+        this->_coroutine.handle = handle;
 
         if constexpr (std :: is_same <type, void> :: value)
             this->then([=]()
             {
-                this->_coroutine->resume();
+                this->_coroutine.handle->resume();
             }).except([=](const std :: exception_ptr &)
             {
-                this->_coroutine->resume();
+                this->_coroutine.handle->resume();
             });
         else
             this->then([=](const type &)
             {
-                this->_coroutine->resume();
+                this->_coroutine.handle->resume();
             }).except([=](const std :: exception_ptr &)
             {
-                this->_coroutine->resume();
+                this->_coroutine.handle->resume();
             });
+
+        this->_coroutine.arc = this->_arc.get();
+        this->_arc = nullptr;
     }
 
     template <typename type> auto promise <type> :: await_resume()
     {
         if constexpr (std :: is_same <type, void> :: value)
         {
-            if(this->_arc->value())
+            if(this->_coroutine.arc->value())
                 return;
             else
                 std :: rethrow_exception(this->_arc->exception());
         }
         else
         {
-            if(this->_arc->value())
-                return *(this->_arc->value());
+            if(this->_coroutine.arc->value())
+                return *(this->_coroutine.arc->value());
             else
-                std :: rethrow_exception(this->_arc->exception());
+                std :: rethrow_exception(this->_coroutine.arc->exception());
         }
     }
 
@@ -472,15 +475,15 @@ namespace drop
     template <typename type> promise <type> & promise <type> :: operator = (const promise & rho)
     {
         this->_arc = rho._arc;
-        this->_coroutine = null;
-
+        this->_coroutine.handle = null;
+        
         return (*this);
     }
 
     template <typename type> promise <type> & promise <type> :: operator = (promise && rho)
     {
         this->_arc = std :: move(rho._arc);
-        this->_coroutine = null;
+        this->_coroutine.handle = null;
 
         return (*this);
     }

@@ -188,6 +188,18 @@ namespace drop :: sockets
         return (size_t) res;
     }
 
+    void tcp :: rethrow()
+    {
+        int error;
+        socklen_t len = sizeof(int);
+
+        if(:: getsockopt(this->_descriptor, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
+            throw exceptions :: getsockopt_failed();
+
+        if(error)
+            throw exceptions :: connect_failed();
+    }
+
     void tcp :: close()
     {
         :: close(this->_descriptor);
