@@ -45,12 +45,12 @@ namespace drop
 
     // Methods
 
-    template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <types> ()))> *> void connection :: send(const types & ... messages)
+    template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <types> ()))> *> void connection :: send(const types & ... messages) const
     {
         this->_arc->send(messages...);
     }
 
-    template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <types> ()))> *> auto connection :: receive()
+    template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <types> ()))> *> auto connection :: receive() const
     {
         return this->_arc->receive <types...> ();
     }

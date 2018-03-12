@@ -96,6 +96,7 @@ namespace drop :: sockets
         // Getters
 
         const int & descriptor() const;
+        const class address :: port & port() const;
         const address & remote() const;
 
         // Setters

@@ -118,13 +118,13 @@ namespace drop
 
         // Methods
 
-        void send(const buffer &);
-        template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <types> ()))> * = nullptr> void send(const types & ...);
+        void send(const buffer &) const;
+        template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <types> ()))> * = nullptr> void send(const types & ...) const;
 
-        buffer receive();
-        template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <types> ()))> * = nullptr> auto receive();
+        buffer receive() const;
+        template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <types> ()))> * = nullptr> auto receive() const;
 
-        void authenticate(const keyexchanger &, const class keyexchanger :: publickey &);
+        void authenticate(const keyexchanger &, const class keyexchanger :: publickey &) const;
     };
 };
 

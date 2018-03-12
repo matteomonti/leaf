@@ -181,17 +181,17 @@ namespace drop
 
     // Methods
 
-    void connection :: send(const buffer & message)
+    void connection :: send(const buffer & message) const
     {
         this->_arc->send(message);
     }
 
-    buffer connection :: receive()
+    buffer connection :: receive() const
     {
         return this->_arc->receive();
     }
 
-    void connection :: authenticate(const keyexchanger & exchanger, const class keyexchanger :: publickey & remote)
+    void connection :: authenticate(const keyexchanger & exchanger, const class keyexchanger :: publickey & remote) const
     {
         this->_arc->authenticate(exchanger, remote);
     }

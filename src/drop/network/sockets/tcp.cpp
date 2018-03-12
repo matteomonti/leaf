@@ -32,6 +32,11 @@ namespace drop :: sockets
         return this->_descriptor;
     }
 
+    const class address :: port & tcp :: port() const
+    {
+        return this->_port;
+    }
+
     const address & tcp :: remote() const
     {
         assert(this->_remote);
