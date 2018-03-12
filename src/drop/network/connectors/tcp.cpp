@@ -32,6 +32,7 @@ namespace drop :: connectors
         this->_wake.read = wake[0];
         this->_wake.write = wake[1];
 
+        fcntl(this->_wake.read, F_SETFL, O_NONBLOCK);
         this->_queue.add <queue :: read> (this->_wake.read);
 
         this->_thread = std :: thread(&async :: run, this);
@@ -90,7 +91,7 @@ namespace drop :: connectors
                 if(this->_queue[i].type() == queue :: read)
                 {
                     char buffer;
-                    read(this->_wake.read, &buffer, 1);
+                    while(read(this->_wake.read, &buffer, 1) >= 0);
                 }
                 else
                 {

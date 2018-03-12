@@ -1,22 +1,26 @@
 #include <iostream>
 #include <thread>
 
-#include "drop/network/acceptors/tcp.hpp"
+#include "drop/network/connectors/tcp.h"
+#include "drop/network/pool.hpp"
 
 using namespace drop;
 
 int main()
 {
-    acceptors :: tcp :: async my_acceptor(1234);
-    my_acceptor.on <connection> ([](const connection & connection)
+    pool my_pool;
+
+    connection my_connection = connectors :: tcp :: sync :: connect({"127.0.0.1", 1234});
+
+    pool :: connection my_pool_connection = my_pool.bind(my_connection);
+    my_pool_connection.send("Hello World!").then([&]()
     {
-        std :: cout << "Connection incoming!" << std :: endl;
-        connection.send(buffer("Hello! How's life?"));
+        std :: cout << "Message sent!" << std :: endl;
+        return my_pool_connection.receive();
+    }).then([](const buffer & message)
+    {
+        std :: cout << "Message received: " << message << std :: endl;
     });
-
-    sleep(15_s);
-
-    my_acceptor.reset();
 
     sleep(1_h);
 }

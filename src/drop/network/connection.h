@@ -13,6 +13,12 @@ namespace drop
 #include <mutex>
 #include <memory>
 
+// Forward includes
+
+#define __forward__
+#include "pool.h"
+#undef __forward__
+
 // Includes
 
 #include "drop/network/sockets/tcp.hpp"
@@ -27,6 +33,10 @@ namespace drop
 {
     class connection
     {
+        // Friends
+
+        friend class pool;
+
     public:
 
         // Constraints
@@ -42,6 +52,10 @@ namespace drop
 
         class arc
         {
+            // Friends
+
+            friend class pool;
+            
             // Members
 
             variant <sockets :: tcp> _socket;
