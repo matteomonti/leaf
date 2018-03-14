@@ -4,9 +4,10 @@
 // Includes
 
 #include "pool.h"
+#include "drop/async/promise.hpp"
 
 namespace drop
-{    
+{
 };
 
 #endif

@@ -20,6 +20,7 @@ namespace drop
 
 #include "connection.hpp"
 #include "queue.h"
+#include "drop/async/promise.h"
 
 namespace drop
 {
@@ -43,6 +44,10 @@ namespace drop
             // Private constructors
 
             connection(pool &, const :: drop :: connection &);
+
+        public:
+
+            promise <void> send(const buffer &) const;
         };
 
     public:
@@ -50,6 +55,12 @@ namespace drop
         // Methods
 
         connection bind(const :: drop :: connection &);
+
+    private:
+
+        // Private methods
+
+        promise <void> send(const std :: shared_ptr <:: drop :: connection :: arc> &, const buffer &);
     };
 };
 
