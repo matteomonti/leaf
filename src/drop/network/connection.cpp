@@ -128,16 +128,16 @@ namespace drop
     {
         try
         {
-            this->_semaphores.send.wait();
+            this->send_lock();
 
             this->send_init(message);
             while(!(this->send_step()));
 
-            this->_semaphores.send.post();
+            this->receive_unlock();
         }
         catch(...)
         {
-            this->_semaphores.send.post();
+            this->receive_unlock();
             std :: rethrow_exception(std :: current_exception());
         }
     }
@@ -146,16 +146,16 @@ namespace drop
     {
         try
         {
-            this->_semaphores.receive.wait();
+            this->receive_lock();
 
             this->receive_init();
             while(!(this->receive_step()));
 
-            this->_semaphores.receive.post();
+            this->receive_unlock();
         }
         catch(...)
         {
-            this->_semaphores.receive.post();
+            this->receive_unlock();
             std :: rethrow_exception(std :: current_exception());
         }
 
@@ -173,6 +173,26 @@ namespace drop
 
         this->_secretchannel.transmit.emplace(session.transmit(), txnonce);
         this->_secretchannel.receive.emplace(session.receive(), rxnonce);
+    }
+
+    void connection :: arc :: send_lock()
+    {
+        this->_semaphores.send.wait();
+    }
+
+    void connection :: arc :: send_unlock()
+    {
+        this->_semaphores.send.post();
+    }
+
+    void connection :: arc :: receive_lock()
+    {
+        this->_semaphores.receive.wait();
+    }
+
+    void connection :: arc :: receive_unlock()
+    {
+        this->_semaphores.receive.post();
     }
 
     // connection

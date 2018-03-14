@@ -110,6 +110,11 @@ namespace drop
             template <typename... types> auto receive();
 
             void authenticate(const keyexchanger &, const class keyexchanger :: publickey &);
+
+            void send_lock();
+            void send_unlock();
+            void receive_lock();
+            void receive_unlock();
         };
 
         // Members
