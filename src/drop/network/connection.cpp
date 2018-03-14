@@ -48,16 +48,16 @@ namespace drop
     {
         try
         {
-            this->_mutex.send.lock();
+            this->_semaphores.send.wait();
 
             this->send_init(message);
             while(!(this->send_step()));
 
-            this->_mutex.send.unlock();
+            this->_semaphores.send.post();
         }
         catch(...)
         {
-            this->_mutex.send.unlock();
+            this->_semaphores.send.post();
             std :: rethrow_exception(std :: current_exception());
         }
     }
@@ -66,16 +66,16 @@ namespace drop
     {
         try
         {
-            this->_mutex.receive.lock();
+            this->_semaphores.receive.wait();
 
             this->receive_init();
             while(!(this->receive_step()));
 
-            this->_mutex.receive.unlock();
+            this->_semaphores.receive.post();
         }
         catch(...)
         {
-            this->_mutex.receive.unlock();
+            this->_semaphores.receive.post();
             std :: rethrow_exception(std :: current_exception());
         }
 

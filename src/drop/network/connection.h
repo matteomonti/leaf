@@ -10,7 +10,6 @@ namespace drop
 
 // Libraries
 
-#include <mutex>
 #include <memory>
 
 // Forward includes
@@ -28,6 +27,7 @@ namespace drop
 #include "drop/data/variant.hpp"
 #include "drop/crypto/secretbox.hpp"
 #include "drop/crypto/keyexchanger.h"
+#include "drop/thread/semaphore.h"
 
 namespace drop
 {
@@ -55,7 +55,7 @@ namespace drop
             // Friends
 
             friend class pool;
-            
+
             // Members
 
             variant <sockets :: tcp> _socket;
@@ -70,9 +70,9 @@ namespace drop
 
             struct
             {
-                std :: mutex send;
-                std :: mutex receive;
-            } _mutex;
+                semaphore send;
+                semaphore receive;
+            } _semaphores;
 
             struct
             {

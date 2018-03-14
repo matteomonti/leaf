@@ -20,6 +20,8 @@ namespace drop
 
     template <typename stype> connection :: arc :: arc(const stype & socket) : _socket(socket)
     {
+        this->_semaphores.send.post();
+        this->_semaphores.receive.post();
     }
 
     // Methods
