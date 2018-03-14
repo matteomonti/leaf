@@ -22,6 +22,7 @@ namespace drop
 #include "drop/network/sockets/tcp.hpp"
 #include "drop/network/connection.hpp"
 #include "drop/thread/channel.hpp"
+#include "drop/thread/wakepipe.h"
 #include "drop/async/promise.hpp"
 #include "drop/network/queue.h"
 #include "drop/chrono/time.hpp"
@@ -86,11 +87,7 @@ namespace drop :: connectors
 
             std :: deque <timeout> _timeouts;
 
-            struct
-            {
-                int read;
-                int write;
-            } _wake;
+            wakepipe _wakepipe;
 
             std :: mutex _mutex;
             std :: thread _thread;
@@ -114,7 +111,6 @@ namespace drop :: connectors
             // Private methods
 
             void run();
-            void wake();
         };
     };
 };

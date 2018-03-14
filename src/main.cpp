@@ -3,33 +3,18 @@
 
 // Includes
 
-#include "drop/network/queue.h"
-#include "drop/thread/wakepipe.h"
+#include "drop/network/connectors/tcp.h"
 
 using namespace drop;
 
-wakepipe my_wakepipe;
-queue my_queue;
-
-void thread()
-{
-    my_queue.add <queue :: read> (my_wakepipe);
-    while(true)
-    {
-        my_queue.select();
-        my_wakepipe.flush();
-
-        std :: cout << "Here I am!" << std :: endl;
-    }
-}
-
 int main()
 {
-    std :: thread my_thread(thread);
-
-    while(true)
+    connectors :: tcp :: async my_connector;
+    
+    my_connector.connect({"127.0.0.1", 1234}).then([](const connection &)
     {
-        sleep(1_s);
-        my_wakepipe.wake();
-    }
+        std :: cout << "Connected!" << std :: endl;
+    });
+
+    sleep(3_s);
 }

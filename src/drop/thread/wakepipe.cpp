@@ -17,6 +17,14 @@ namespace drop
         fcntl(this->_read, F_SETFL, O_NONBLOCK);
     }
 
+    // Destructor
+
+    wakepipe :: ~wakepipe()
+    {
+        close(this->_read);
+        close(this->_write);
+    }
+
     // Methods
 
     void wakepipe :: wake()

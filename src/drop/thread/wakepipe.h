@@ -28,6 +28,10 @@ namespace drop
 
         wakepipe();
 
+        // Destructor
+
+        ~wakepipe();
+
         // Methods
 
         void wake();

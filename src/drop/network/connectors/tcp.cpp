@@ -26,15 +26,7 @@ namespace drop :: connectors
 
     tcp :: async :: async() : _alive(true)
     {
-        int wake[2];
-        pipe(wake);
-
-        this->_wake.read = wake[0];
-        this->_wake.write = wake[1];
-
-        fcntl(this->_wake.read, F_SETFL, O_NONBLOCK);
-        this->_queue.add <queue :: read> (this->_wake.read);
-
+        this->_queue.add <queue :: read> (this->_wakepipe);
         this->_thread = std :: thread(&async :: run, this);
     }
 
@@ -43,11 +35,8 @@ namespace drop :: connectors
     tcp :: async :: ~async()
     {
         this->_alive = false;
-        this->wake();
+        this->_wakepipe.wake();
         this->_thread.join();
-
-        close(this->_wake.read);
-        close(this->_wake.write);
     }
 
     // Methods
@@ -63,7 +52,7 @@ namespace drop :: connectors
         {
             request.socket.connect(remote);
             this->_new.push(request);
-            this->wake();
+            this->_wakepipe.wake();
         }
         catch(...)
         {
@@ -89,10 +78,7 @@ namespace drop :: connectors
             for(size_t i = 0; i < count; i++)
             {
                 if(this->_queue[i].type() == queue :: read)
-                {
-                    char buffer;
-                    while(read(this->_wake.read, &buffer, 1) >= 0);
-                }
+                    this->_wakepipe.flush();
                 else
                 {
                     request request = this->_pending[this->_queue[i].descriptor()];
@@ -144,11 +130,5 @@ namespace drop :: connectors
                 this->_timeouts.push_back({.descriptor = request->socket.descriptor(), .timeout = timestamp(now) + settings :: timeout, .version = request->version});
             }
         }
-    }
-
-    void tcp :: async :: wake()
-    {
-        char buffer = '\0';
-        write(this->_wake.write, &buffer, 1);
     }
 };
