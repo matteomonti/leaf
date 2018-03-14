@@ -32,6 +32,20 @@ namespace drop
 
     promise <void> pool :: send(const std :: shared_ptr <:: drop :: connection :: arc> & arc, const buffer & message)
     {
-        return promise <void> ();
+        arc->send_lock();
+        arc->send_init(message);
+
+        if(arc->send_step())
+        {
+            arc->send_unlock();
+
+            promise <void> promise;
+            promise.resolve();
+            return promise;
+        }
+        else
+        {
+            return promise <void> (); // TODO: Make request and push it through the channel.
+        }
     }
 };
