@@ -21,6 +21,36 @@ namespace drop
 
     // pool
 
+    // Settings
+
+    constexpr interval pool :: settings :: timeout;
+    constexpr interval pool :: settings :: interval;
+
+    // Constructors
+
+    pool :: pool() : _alive(true)
+    {
+        int wake[2];
+        pipe(wake);
+
+        this->_wake.read = wake[0];
+        this->_wake.write = wake[1];
+
+        fcntl(this->_wake.read, F_SETFL, O_NONBLOCK);
+        this->_queue.add <queue :: read> (this->_wake.read);
+
+        this->_thread = std :: thread(&pool :: run, this);
+    }
+
+    // Destructor
+
+    pool :: ~pool()
+    {
+        this->_alive = false;
+        this->wake();
+        this->_thread.join();
+    }
+
     // Methods
 
     pool :: connection pool :: bind(const :: drop :: connection & connection)
@@ -47,5 +77,22 @@ namespace drop
         {
             return promise <void> (); // TODO: Make request and push it through the channel.
         }
+    }
+
+    void pool :: run()
+    {
+        while(true)
+        {
+            size_t count = this->_queue.select(settings :: interval);
+
+            if(!(this->_alive))
+                break;
+        }
+    }
+
+    void pool :: wake()
+    {
+        char buffer = '\0';
+        write(this->_wake.write, &buffer, 1);
     }
 };

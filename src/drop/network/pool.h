@@ -21,11 +21,20 @@ namespace drop
 #include "connection.hpp"
 #include "queue.h"
 #include "drop/async/promise.h"
+#include "drop/chrono/time.hpp"
 
 namespace drop
 {
     class pool
     {
+        // Settings
+
+        struct settings
+        {
+            static constexpr interval timeout = 30_s;
+            static constexpr interval interval = 1_s;
+        };
+
     public:
 
         // Nested classes
@@ -50,7 +59,31 @@ namespace drop
             promise <void> send(const buffer &) const;
         };
 
+    private:
+
+        // Members
+
+        queue _queue;
+
+        volatile bool _alive;
+
+        struct
+        {
+            int read;
+            int write;
+        } _wake;
+
+        std :: thread _thread;
+
     public:
+
+        // Constructors
+
+        pool();
+
+        // Destructor
+
+        ~pool();
 
         // Methods
 
@@ -61,6 +94,9 @@ namespace drop
         // Private methods
 
         promise <void> send(const std :: shared_ptr <:: drop :: connection :: arc> &, const buffer &);
+
+        void run();
+        void wake();
     };
 };
 
