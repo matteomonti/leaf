@@ -80,14 +80,13 @@ namespace drop :: connectors
             queue _queue;
 
             volatile bool _alive;
-            size_t _version;
+            wakepipe _wakepipe;
 
             channel <request> _new;
             std :: unordered_map <int, request> _pending;
 
+            size_t _version;
             std :: deque <timeout> _timeouts;
-
-            wakepipe _wakepipe;
 
             std :: mutex _mutex;
             std :: thread _thread;

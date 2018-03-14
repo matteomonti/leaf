@@ -30,15 +30,7 @@ namespace drop
 
     pool :: pool() : _alive(true)
     {
-        int wake[2];
-        pipe(wake);
-
-        this->_wake.read = wake[0];
-        this->_wake.write = wake[1];
-
-        fcntl(this->_wake.read, F_SETFL, O_NONBLOCK);
-        this->_queue.add <queue :: read> (this->_wake.read);
-
+        this->_queue.add <queue :: read> (this->_wakepipe);
         this->_thread = std :: thread(&pool :: run, this);
     }
 
@@ -47,7 +39,7 @@ namespace drop
     pool :: ~pool()
     {
         this->_alive = false;
-        this->wake();
+        this->_wakepipe.wake();
         this->_thread.join();
     }
 
@@ -88,11 +80,5 @@ namespace drop
             if(!(this->_alive))
                 break;
         }
-    }
-
-    void pool :: wake()
-    {
-        char buffer = '\0';
-        write(this->_wake.write, &buffer, 1);
     }
 };

@@ -20,6 +20,7 @@ namespace drop
 
 #include "connection.hpp"
 #include "queue.h"
+#include "drop/thread/wakepipe.h"
 #include "drop/async/promise.h"
 #include "drop/chrono/time.hpp"
 
@@ -66,12 +67,7 @@ namespace drop
         queue _queue;
 
         volatile bool _alive;
-
-        struct
-        {
-            int read;
-            int write;
-        } _wake;
+        wakepipe _wakepipe;
 
         std :: thread _thread;
 
@@ -96,7 +92,6 @@ namespace drop
         promise <void> send(const std :: shared_ptr <:: drop :: connection :: arc> &, const buffer &);
 
         void run();
-        void wake();
     };
 };
 
