@@ -14,6 +14,7 @@ namespace drop
 #include <exception>
 #include <unordered_map>
 #include <deque>
+#include <memory>
 
 // Includes
 
@@ -24,6 +25,31 @@ namespace drop
 {
     class pool
     {
+    public:
+
+        // Nested classes
+
+        class connection
+        {
+            // Friends
+
+            friend class pool;
+
+            // Members
+
+            pool & _pool;
+            std :: shared_ptr <:: drop :: connection :: arc> _arc;
+
+            // Private constructors
+
+            connection(pool &, const :: drop :: connection &);
+        };
+
+    public:
+
+        // Methods
+
+        connection bind(const :: drop :: connection &);
     };
 };
 

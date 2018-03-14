@@ -52,10 +52,6 @@ namespace drop
 
         class arc
         {
-            // Friends
-
-            friend class pool;
-
             // Members
 
             variant <sockets :: tcp> _socket;
