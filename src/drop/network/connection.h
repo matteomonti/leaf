@@ -100,6 +100,13 @@ namespace drop
 
             // Methods
 
+            void send_init(const buffer &);
+            bool send_step();
+
+            void receive_init();
+            bool receive_step();
+            buffer receive_yield();
+
             void send(const buffer &);
             template <typename... types> void send(const types & ...);
 
@@ -107,17 +114,6 @@ namespace drop
             template <typename... types> auto receive();
 
             void authenticate(const keyexchanger &, const class keyexchanger :: publickey &);
-
-        private:
-
-            // Private methods
-
-            void send_init(const buffer &);
-            bool send_step();
-
-            void receive_init();
-            bool receive_step();
-            buffer receive_yield();
         };
 
         // Members

@@ -44,59 +44,6 @@ namespace drop
 
     // Methods
 
-    void connection :: arc :: send(const buffer & message)
-    {
-        try
-        {
-            this->_semaphores.send.wait();
-
-            this->send_init(message);
-            while(!(this->send_step()));
-
-            this->_semaphores.send.post();
-        }
-        catch(...)
-        {
-            this->_semaphores.send.post();
-            std :: rethrow_exception(std :: current_exception());
-        }
-    }
-
-    buffer connection :: arc :: receive()
-    {
-        try
-        {
-            this->_semaphores.receive.wait();
-
-            this->receive_init();
-            while(!(this->receive_step()));
-
-            this->_semaphores.receive.post();
-        }
-        catch(...)
-        {
-            this->_semaphores.receive.post();
-            std :: rethrow_exception(std :: current_exception());
-        }
-
-        return this->receive_yield();
-    }
-
-    void connection :: arc :: authenticate(const keyexchanger & exchanger, const class keyexchanger :: publickey & remote)
-    {
-        class secretbox :: nonce txnonce = secretbox :: nonce :: random();
-        this->send(txnonce);
-
-        class secretbox :: nonce rxnonce = this->receive <class secretbox :: nonce> ();
-
-        keyexchanger :: sessionkey session = exchanger.exchange(remote);
-
-        this->_secretchannel.transmit.emplace(session.transmit(), txnonce);
-        this->_secretchannel.receive.emplace(session.receive(), rxnonce);
-    }
-
-    // Private methods
-
     void connection :: arc :: send_init(const buffer & message)
     {
         if(this->_secretchannel.transmit)
@@ -175,6 +122,57 @@ namespace drop
         }
         else
             return this->_read.reinterpret <buffer :: streamer> ().yield();
+    }
+
+    void connection :: arc :: send(const buffer & message)
+    {
+        try
+        {
+            this->_semaphores.send.wait();
+
+            this->send_init(message);
+            while(!(this->send_step()));
+
+            this->_semaphores.send.post();
+        }
+        catch(...)
+        {
+            this->_semaphores.send.post();
+            std :: rethrow_exception(std :: current_exception());
+        }
+    }
+
+    buffer connection :: arc :: receive()
+    {
+        try
+        {
+            this->_semaphores.receive.wait();
+
+            this->receive_init();
+            while(!(this->receive_step()));
+
+            this->_semaphores.receive.post();
+        }
+        catch(...)
+        {
+            this->_semaphores.receive.post();
+            std :: rethrow_exception(std :: current_exception());
+        }
+
+        return this->receive_yield();
+    }
+
+    void connection :: arc :: authenticate(const keyexchanger & exchanger, const class keyexchanger :: publickey & remote)
+    {
+        class secretbox :: nonce txnonce = secretbox :: nonce :: random();
+        this->send(txnonce);
+
+        class secretbox :: nonce rxnonce = this->receive <class secretbox :: nonce> ();
+
+        keyexchanger :: sessionkey session = exchanger.exchange(remote);
+
+        this->_secretchannel.transmit.emplace(session.transmit(), txnonce);
+        this->_secretchannel.receive.emplace(session.receive(), rxnonce);
     }
 
     // connection
