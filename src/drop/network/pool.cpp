@@ -19,6 +19,11 @@ namespace drop
         return this->_pool.send(this->_arc, message);
     }
 
+    promise <buffer> pool :: connection :: receive() const
+    {
+        return this->_pool.receive(this->_arc);
+    }
+
     // pool
 
     // Settings
@@ -74,6 +79,37 @@ namespace drop
                 arc->send_unlock();
                 return promise <void> :: resolved();
             });
+        }
+    }
+
+    promise <buffer> pool :: receive(const std :: shared_ptr <:: drop :: connection :: arc> & arc)
+    {
+        arc->receive_lock();
+        arc->receive_init();
+
+        if(arc->receive_step())
+        {
+            promise <buffer> promise = :: drop :: promise <buffer> :: resolved(arc->receive_yield());
+            arc->receive_unlock();
+            return promise;
+        }
+        else
+        {
+            request request{.arc = arc, .type = queue :: read};
+
+            this->_new.push(request);
+            this->_wakepipe.wake();
+
+            promise <buffer> promise;
+
+            request.promise.then([=]()
+            {
+                buffer message = arc->receive_yield();
+                arc->receive_unlock();
+                promise.resolve(message);
+            });
+
+            return promise;
         }
     }
 

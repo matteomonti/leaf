@@ -60,6 +60,7 @@ namespace drop
         public:
 
             promise <void> send(const buffer &) const;
+            promise <buffer> receive() const;
         };
 
     private:
@@ -120,7 +121,8 @@ namespace drop
         // Private methods
 
         promise <void> send(const std :: shared_ptr <:: drop :: connection :: arc> &, const buffer &);
-
+        promise <buffer> receive(const std :: shared_ptr <:: drop :: connection :: arc> &);
+        
         void run();
     };
 };

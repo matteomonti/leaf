@@ -12,11 +12,11 @@ promise <void> run(connectors :: tcp :: async & my_connector, pool & my_pool)
     connection my_connection = co_await my_connector.connect({"127.0.0.1", 1234});
     pool :: connection my_pool_connection = my_pool.bind(my_connection);
 
-    for(size_t i = 0; i < 100; i++)
-    {
-        co_await my_pool_connection.send(buffer("Hello World!"));
-        std :: cout << "Send successful" << std :: endl;
-    }
+    co_await my_pool_connection.send(buffer("Hello World!"));
+    std :: cout << "Send successful" << std :: endl;
+
+    buffer response = co_await my_pool_connection.receive();
+    std :: cout << "Response was: " << response << std :: endl;
 
     std :: cout << "Quitting" << std :: endl;
 }
