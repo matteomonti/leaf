@@ -15,6 +15,7 @@ namespace drop
 #include <unordered_map>
 #include <deque>
 #include <memory>
+#include <errno.h>
 
 // Includes
 

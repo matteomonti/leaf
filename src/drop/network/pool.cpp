@@ -85,23 +85,21 @@ namespace drop
 
             for(size_t i = 0; i < count; i++)
             {
-                std :: cout << "Processing event " << i << std :: endl;
-
                 if(this->_queue[i].descriptor() == this->_wakepipe)
                 {
-                    std :: cout << "(Wakepipe)" << std :: endl;
                     this->_wakepipe.flush();
                     continue;
                 }
 
                 auto & table = ((this->_queue[i].type() == queue :: write) ? this->_write : this->_read);
-                request request = table[this->_queue[i].descriptor()];
+                request & request = table[this->_queue[i].descriptor()];
 
                 try
                 {
                     if(!(request.type == queue :: write ? request.arc->send_step() : request.arc->receive_step()))
                         continue;
 
+                    request.arc->send_unlock();
                     request.promise.resolve();
                 }
                 catch(...)
@@ -109,11 +107,35 @@ namespace drop
                     request.promise.reject(std :: current_exception());
                 }
 
-                table.erase(this->_queue[i].descriptor());
                 this->_queue.remove(this->_queue[i].descriptor(), this->_queue[i].type());
+                table.erase(this->_queue[i].descriptor());
             }
 
-            // TODO: Manage timeouts
+            timestamp threshold = now;
+            while(this->_timeouts.size() && this->_timeouts.front().timeout < threshold)
+            {
+                timeout & timeout = this->_timeouts.front();
+                auto & table = (timeout.type == queue :: write ? this->_write : this->_read);
+
+                try
+                {
+                    request & request = table.at(timeout.descriptor);
+
+                    if(request.version == timeout.version)
+                    {
+                        if(timeout.type == queue :: write)
+                            request.promise.reject(sockets :: exceptions :: send_timeout());
+                        else
+                            request.promise.reject(sockets :: exceptions :: receive_timeout());
+
+                        table.erase(timeout.descriptor);
+                        this->_queue.remove(timeout.descriptor, timeout.type);
+                    }
+                }
+                catch(...)
+                {
+                }
+            }
 
             while(optional <request> request = this->_new.pop())
             {
