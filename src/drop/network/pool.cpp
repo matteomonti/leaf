@@ -68,9 +68,18 @@ namespace drop
         else
         {
             request request{.arc = arc, .type = queue :: write};
+
             this->_new.push(request);
             this->_wakepipe.wake();
-            return request.promise;
+
+            return request.promise.then([=]()
+            {
+                arc->send_unlock();
+
+                promise <void> promise;
+                promise.resolve();
+                return promise;
+            });
         }
     }
 
@@ -99,7 +108,6 @@ namespace drop
                     if(!(request.type == queue :: write ? request.arc->send_step() : request.arc->receive_step()))
                         continue;
 
-                    request.arc->send_unlock();
                     request.promise.resolve();
                 }
                 catch(...)
