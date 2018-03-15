@@ -207,12 +207,18 @@ namespace drop
 
     template <typename type> const auto & promise <type> :: arc :: value() const
     {
-        return this->_value;
+        if(this->_alias)
+            return this->_alias->_value;
+        else
+            return this->_value;
     }
 
     template <typename type> const std :: exception_ptr & promise <type> :: arc :: exception() const
     {
-        return this->_exception;
+        if(this->_alias)
+            return this->_alias->exception();
+        else
+            return this->_exception;
     }
 
     // Methods
@@ -296,6 +302,8 @@ namespace drop
         if(this->_exception) // TODO: Check if I need this check.
             throw (class exceptions :: already_rejected){};
 
+        this->_alias = that;
+
         if(that->_value)
         {
             for(size_t i = 0; i < this->_size; i++)
@@ -321,8 +329,6 @@ namespace drop
                 for(size_t i = 0; i < this->_size; i++)
                     that->_resolvers[(that->_size)++] = this->_resolvers[i];
         }
-
-        this->_alias = that;
     }
 
     template <typename type> void promise <type> :: arc :: lock()

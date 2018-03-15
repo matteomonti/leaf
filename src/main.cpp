@@ -2,47 +2,39 @@
 
 // Includes
 
-#include "drop/network/connectors/tcp.h"
-#include "drop/network/acceptors/tcp.hpp"
-#include "drop/network/pool.hpp"
+#include "drop/async/promise.hpp"
+#include "drop/chrono/time.hpp"
 
 using namespace drop;
 
-promise <void> server(pool :: connection connection)
+promise <void> my_promise;
+promise <void> my_other_promise;
+
+promise <void> f()
 {
-    while(true)
+    return my_promise.then([]()
     {
-        buffer message = co_await connection.receive();
-        std :: cout << "Server received " << message << std :: endl;
-        co_await connection.send(buffer("hallo"));
-    }
+        return my_other_promise;
+    });
 }
 
-promise <void> client(pool :: connection connection)
+promise <void> run()
 {
-    while(true)
-    {
-        co_await connection.send(buffer("hello"));
-        buffer message = co_await connection.receive();
-        std :: cout << "Client received " << message << std :: endl;
-    }
+    co_await f();
+    std :: cout << "Done!" << std :: endl;
 }
 
 int main()
 {
-    pool pool;
-    acceptors :: tcp :: async acceptor(1234);
-    connectors :: tcp :: async connector;
+    run();
 
-    acceptor.on <connection> ([&](const connection & connection)
-    {
-        server(pool.bind(connection));
-    });
+    sleep(1_s);
+    std :: cout << "Solving my_promise" << std :: endl;
+    my_promise.resolve();
 
-    connector.connect({"127.0.0.1", 1234}).then([&](const connection & connection)
-    {
-        client(pool.bind(connection));
-    });
+    sleep(1_s);
+    std :: cout << "Solving my_other_promise" << std :: endl;
+    my_other_promise.resolve();
 
     sleep(1_h);
 }
