@@ -26,7 +26,7 @@ namespace drop :: connectors
 
     tcp :: async :: async() : _alive(true)
     {
-        this->_queue.add <queue :: read> (this->_wakepipe);
+        this->_queue.add(this->_wakepipe, queue :: read);
         this->_thread = std :: thread(&async :: run, this);
     }
 
@@ -84,7 +84,7 @@ namespace drop :: connectors
                     request request = this->_pending[this->_queue[i].descriptor()];
                     this->_pending.erase(this->_queue[i].descriptor());
 
-                    this->_queue.remove <queue :: write> (this->_queue[i].descriptor());
+                    this->_queue.remove(this->_queue[i].descriptor(), queue :: write);
 
                     try
                     {
@@ -108,7 +108,7 @@ namespace drop :: connectors
                     if(request.version == this->_timeouts.front().version)
                     {
                         this->_pending.erase(this->_timeouts.front().descriptor);
-                        this->_queue.remove <queue :: write> (this->_timeouts.front().descriptor);
+                        this->_queue.remove(this->_timeouts.front().descriptor, queue :: write);
 
                         request.socket.close();
                         request.promise.reject(sockets :: exceptions :: connect_timeout());
@@ -123,7 +123,7 @@ namespace drop :: connectors
 
             while(optional <request> request = this->_new.pop())
             {
-                this->_queue.add <queue :: write> (request->socket.descriptor());
+                this->_queue.add(request->socket.descriptor(), queue :: write);
 
                 request->version = this->_version++;
                 this->_pending[request->socket.descriptor()] = *request;

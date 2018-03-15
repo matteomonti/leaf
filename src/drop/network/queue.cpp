@@ -76,120 +76,124 @@ namespace drop
 
     // Methods
 
-    template <> void queue :: add <queue :: write> (const int & descriptor)
+    void queue :: add(const int & descriptor, const type & filter)
     {
-        #ifdef __APPLE__
-        struct kevent event
+        if(filter == write)
         {
-            .ident = (uintptr_t) descriptor,
-            .flags = (uint16_t) EV_ADD,
-            .filter = EVFILT_WRITE,
-            .fflags = 0,
-            .data = 0,
-            .udata = nullptr
-        };
+            #ifdef __APPLE__
+            struct kevent event
+            {
+                .ident = (uintptr_t) descriptor,
+                .flags = (uint16_t) EV_ADD,
+                .filter = EVFILT_WRITE,
+                .fflags = 0,
+                .data = 0,
+                .udata = nullptr
+            };
 
-        if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
-            throw kevent_failed();
-        #endif
+            if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
+                throw kevent_failed();
+            #endif
 
-        #ifdef __linux__
-        struct epoll_event event
+            #ifdef __linux__
+            struct epoll_event event
+            {
+                .data.fd = descriptor,
+                .events = EPOLLOUT
+            };
+
+            if(epoll_ctl(this->_descriptor, EPOLL_CTL_ADD, descriptor, &event) < 0)
+                throw epoll_ctl_failed();
+            #endif
+        }
+        else
         {
-            .data.fd = descriptor,
-            .events = EPOLLOUT
-        };
+            #ifdef __APPLE__
+            struct kevent event
+            {
+                .ident = (uintptr_t) descriptor,
+                .flags = (uint16_t) EV_ADD,
+                .filter = EVFILT_READ,
+                .fflags = 0,
+                .data = 0,
+                .udata = nullptr
+            };
 
-        if(epoll_ctl(this->_descriptor, EPOLL_CTL_ADD, descriptor, &event) < 0)
-            throw epoll_ctl_failed();
-        #endif
+            if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
+                throw kevent_failed();
+            #endif
+
+            #ifdef __linux__
+            struct epoll_event event
+            {
+                .data.fd = descriptor,
+                .events = EPOLLIN
+            };
+
+            if(epoll_ctl(this->_descriptor, EPOLL_CTL_ADD, descriptor, &event) < 0)
+                throw epoll_ctl_failed();
+            #endif
+        }
     }
 
-    template <> void queue :: add <queue :: read> (const int & descriptor)
+    void queue :: remove(const int & descriptor, const type & filter)
     {
-        #ifdef __APPLE__
-        struct kevent event
+        if(filter == write)
         {
-            .ident = (uintptr_t) descriptor,
-            .flags = (uint16_t) EV_ADD,
-            .filter = EVFILT_READ,
-            .fflags = 0,
-            .data = 0,
-            .udata = nullptr
-        };
+            #ifdef __APPLE__
+            struct kevent event
+            {
+                .ident = (uintptr_t) descriptor,
+                .flags = (uint16_t) EV_DELETE,
+                .filter = EVFILT_WRITE,
+                .fflags = 0,
+                .data = 0,
+                .udata = nullptr
+            };
 
-        if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
-            throw kevent_failed();
-        #endif
+            if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
+                throw kevent_failed();
+            #endif
 
-        #ifdef __linux__
-        struct epoll_event event
+            #ifdef __linux__
+            struct epoll_event event
+            {
+                .data.fd = descriptor,
+                .events = EPOLLOUT
+            };
+
+            if(epoll_ctl(this->_descriptor, EPOLL_CTL_DEL, descriptor, &event) < 0)
+                throw epoll_ctl_failed();
+            #endif
+        }
+        else
         {
-            .data.fd = descriptor,
-            .events = EPOLLIN
-        };
+            #ifdef __APPLE__
+            struct kevent event
+            {
+                .ident = (uintptr_t) descriptor,
+                .flags = (uint16_t) EV_DELETE,
+                .filter = EVFILT_READ,
+                .fflags = 0,
+                .data = 0,
+                .udata = nullptr
+            };
 
-        if(epoll_ctl(this->_descriptor, EPOLL_CTL_ADD, descriptor, &event) < 0)
-            throw epoll_ctl_failed();
-        #endif
-    }
+            if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
+                throw kevent_failed();
+            #endif
 
-    template <> void queue :: remove <queue :: write> (const int & descriptor)
-    {
-        #ifdef __APPLE__
-        struct kevent event
-        {
-            .ident = (uintptr_t) descriptor,
-            .flags = (uint16_t) EV_DELETE,
-            .filter = EVFILT_WRITE,
-            .fflags = 0,
-            .data = 0,
-            .udata = nullptr
-        };
+            #ifdef __linux__
+            struct epoll_event event
+            {
+                .data.fd = descriptor,
+                .events = EPOLLIN
+            };
 
-        if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
-            throw kevent_failed();
-        #endif
-
-        #ifdef __linux__
-        struct epoll_event event
-        {
-            .data.fd = descriptor,
-            .events = EPOLLOUT
-        };
-
-        if(epoll_ctl(this->_descriptor, EPOLL_CTL_DEL, descriptor, &event) < 0)
-            throw epoll_ctl_failed();
-        #endif
-    }
-
-    template <> void queue :: remove <queue :: read> (const int & descriptor)
-    {
-        #ifdef __APPLE__
-        struct kevent event
-        {
-            .ident = (uintptr_t) descriptor,
-            .flags = (uint16_t) EV_DELETE,
-            .filter = EVFILT_READ,
-            .fflags = 0,
-            .data = 0,
-            .udata = nullptr
-        };
-
-        if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
-            throw kevent_failed();
-        #endif
-
-        #ifdef __linux__
-        struct epoll_event event
-        {
-            .data.fd = descriptor,
-            .events = EPOLLIN
-        };
-
-        if(epoll_ctl(this->_descriptor, EPOLL_CTL_DEL, descriptor, &event) < 0)
-            throw epoll_ctl_failed();
-        #endif
+            if(epoll_ctl(this->_descriptor, EPOLL_CTL_DEL, descriptor, &event) < 0)
+                throw epoll_ctl_failed();
+            #endif
+        }
     }
 
     size_t queue :: select()

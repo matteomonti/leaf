@@ -11,11 +11,14 @@ using namespace drop;
 int main()
 {
     pool my_pool;
+    connectors :: tcp :: async my_connector;
 
-    connection my_connection = connectors :: tcp :: sync :: connect({"127.0.0.1", 1234});
-    pool :: connection my_pool_connection = my_pool.bind(my_connection);
-
-    my_pool_connection.send(buffer("Hello World!")).then([&]()
+    my_connector.connect({"127.0.0.1", 1234}).then([&](const connection & my_connection)
+    {
+        std :: cout << "Connect successful" << std :: endl;
+        pool :: connection my_pool_connection = my_pool.bind(my_connection);
+        return my_pool_connection.send(buffer("Hello World!"));
+    }).then([&]()
     {
         std :: cout << "Send successful." << std :: endl;
     });

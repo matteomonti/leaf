@@ -30,7 +30,7 @@ namespace drop
 
     pool :: pool() : _alive(true)
     {
-        this->_queue.add <queue :: read> (this->_wakepipe);
+        this->_queue.add(this->_wakepipe, queue :: read);
         this->_thread = std :: thread(&pool :: run, this);
     }
 
@@ -110,11 +110,7 @@ namespace drop
                 }
 
                 table.erase(this->_queue[i].descriptor());
-
-                if(request.type == queue :: write)
-                    this->_queue.remove <queue :: write> (this->_queue[i].descriptor());
-                else
-                    this->_queue.remove <queue :: read> (this->_queue[i].descriptor());
+                this->_queue.remove(this->_queue[i].descriptor(), this->_queue[i].type());
             }
 
             // TODO: Manage timeouts
@@ -126,10 +122,7 @@ namespace drop
                 (request->type == queue :: write ? this->_write : this->_read)[request->arc->descriptor()] = (*request);
                 this->_timeouts.push_back({.descriptor = request->arc->descriptor(), .type = request->type, .timeout = timestamp(now) + settings :: timeout, .version = request->version});
 
-                if(request->type == queue :: write)
-                    this->_queue.add <queue :: write> (request->arc->descriptor());
-                else
-                    this->_queue.add <queue :: read> (request->arc->descriptor());
+                this->_queue.add(request->arc->descriptor(), request->type);
             }
         }
     }

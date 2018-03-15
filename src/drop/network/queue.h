@@ -95,8 +95,8 @@ namespace drop
 
         // Methods
 
-        template <type filter> void add(const int &);
-        template <type filter> void remove(const int &);
+        void add(const int &, const type &);
+        void remove(const int &, const type &);
 
         size_t select();
         size_t select(const interval &);
