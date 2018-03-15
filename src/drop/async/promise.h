@@ -281,6 +281,10 @@ namespace drop
 
     public:
 
+        // Static methods
+
+        template <typename... vtype, std :: enable_if_t <constraints :: template value <vtype...> ()> * = nullptr> static promise resolved(const vtype & ...);
+
         // Operators
 
         promise & operator = (const promise &);

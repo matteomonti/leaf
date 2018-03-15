@@ -476,6 +476,15 @@ namespace drop
         this->_arc->unlock();
     }
 
+    // Static methods
+
+    template <typename type> template <typename... vtype, std :: enable_if_t <promise <type> :: constraints :: template value <vtype...> ()> *> promise <type> promise <type> :: resolved(const vtype & ... value)
+    {
+        promise promise;
+        promise.resolve(value...);
+        return promise;
+    }
+
     // Operators
 
     template <typename type> promise <type> & promise <type> :: operator = (const promise & rho)

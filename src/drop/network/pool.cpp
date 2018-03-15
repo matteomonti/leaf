@@ -60,10 +60,7 @@ namespace drop
         if(arc->send_step())
         {
             arc->send_unlock();
-
-            promise <void> promise;
-            promise.resolve();
-            return promise;
+            return promise <void> :: resolved();
         }
         else
         {
@@ -75,10 +72,7 @@ namespace drop
             return request.promise.then([=]()
             {
                 arc->send_unlock();
-
-                promise <void> promise;
-                promise.resolve();
-                return promise;
+                return promise <void> :: resolved();
             });
         }
     }
