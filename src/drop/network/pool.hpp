@@ -5,6 +5,7 @@
 
 #include "pool.h"
 #include "drop/async/promise.hpp"
+#include "drop/thread/channel.hpp"
 
 namespace drop
 {

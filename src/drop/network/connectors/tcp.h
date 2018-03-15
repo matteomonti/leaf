@@ -68,8 +68,6 @@ namespace drop :: connectors
 
             struct timeout
             {
-                // Public members
-
                 int descriptor;
                 timestamp timeout;
                 size_t version;

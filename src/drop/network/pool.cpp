@@ -57,7 +57,7 @@ namespace drop
         arc->send_lock();
         arc->send_init(message);
 
-        if(arc->send_step())
+        if(false && arc->send_step()) // REMOVE ME
         {
             arc->send_unlock();
 
@@ -67,7 +67,10 @@ namespace drop
         }
         else
         {
-            return promise <void> (); // TODO: Make request and push it through the channel.
+            request request{.arc = arc, .type = queue :: write};
+            this->_new.push(request);
+            this->_wakepipe.wake();
+            return request.promise;
         }
     }
 
@@ -79,6 +82,55 @@ namespace drop
 
             if(!(this->_alive))
                 break;
+
+            for(size_t i = 0; i < count; i++)
+            {
+                std :: cout << "Processing event " << i << std :: endl;
+
+                if(this->_queue[i].descriptor() == this->_wakepipe)
+                {
+                    std :: cout << "(Wakepipe)" << std :: endl;
+                    this->_wakepipe.flush();
+                    continue;
+                }
+
+                auto & table = ((this->_queue[i].type() == queue :: write) ? this->_write : this->_read);
+                request request = table[this->_queue[i].descriptor()];
+
+                try
+                {
+                    if(!(request.type == queue :: write ? request.arc->send_step() : request.arc->receive_step()))
+                        continue;
+
+                    request.promise.resolve();
+                }
+                catch(...)
+                {
+                    request.promise.reject(std :: current_exception());
+                }
+
+                table.erase(this->_queue[i].descriptor());
+
+                if(request.type == queue :: write)
+                    this->_queue.remove <queue :: write> (this->_queue[i].descriptor());
+                else
+                    this->_queue.remove <queue :: read> (this->_queue[i].descriptor());
+            }
+
+            // TODO: Manage timeouts
+
+            while(optional <request> request = this->_new.pop())
+            {
+                request->version = this->_version++;
+
+                (request->type == queue :: write ? this->_write : this->_read)[request->arc->descriptor()] = (*request);
+                this->_timeouts.push_back({.descriptor = request->arc->descriptor(), .type = request->type, .timeout = timestamp(now) + settings :: timeout, .version = request->version});
+
+                if(request->type == queue :: write)
+                    this->_queue.add <queue :: write> (request->arc->descriptor());
+                else
+                    this->_queue.add <queue :: read> (request->arc->descriptor());
+            }
         }
     }
 };
