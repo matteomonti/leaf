@@ -353,16 +353,22 @@ namespace drop
 
     // Getters
 
-    template <typename type> bool promise <type> :: resolved() const
+    template <typename type> bool promise <type> :: ready() const
     {
-        return this->_arc->value();
+        return this->_arc->value() || this->_arc->exception();
     }
 
     // Awaitable interface
 
     template <typename type> bool promise <type> :: await_ready()
     {
-        return this->resolved();
+        if(this->ready())
+        {
+            this->_coroutine.arc = this->_arc.get();
+            return true;
+        }
+        else
+            return false;
     }
 
     template <typename type> void promise <type> :: await_suspend(std :: experimental :: coroutine_handle <> handle)
@@ -476,7 +482,7 @@ namespace drop
     {
         this->_arc = rho._arc;
         this->_coroutine.handle = null;
-        
+
         return (*this);
     }
 

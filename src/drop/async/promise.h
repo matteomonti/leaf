@@ -257,7 +257,7 @@ namespace drop
 
         // Getters
 
-        bool resolved() const;
+        bool ready() const;
 
         // Awaitable interface
 

@@ -57,7 +57,7 @@ namespace drop
         arc->send_lock();
         arc->send_init(message);
 
-        if(false && arc->send_step()) // REMOVE ME
+        if(arc->send_step())
         {
             arc->send_unlock();
 
