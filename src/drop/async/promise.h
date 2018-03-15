@@ -243,8 +243,10 @@ namespace drop
 
         struct
         {
+            const type * value = nullptr;
+            std :: exception_ptr exception = nullptr;
+
             optional <std :: experimental :: coroutine_handle <>> handle;
-            arc * arc;
         } _coroutine;
 
     public:

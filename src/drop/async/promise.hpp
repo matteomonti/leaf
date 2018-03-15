@@ -368,9 +368,16 @@ namespace drop
 
     template <typename type> bool promise <type> :: await_ready()
     {
-        if(this->ready())
+        if(this->_arc->value())
         {
-            this->_coroutine.arc = this->_arc.get();
+            if constexpr (!(std :: is_same <type, void> :: value))
+                this->_coroutine.value = &(*(this->_arc->value()));
+
+            return true;
+        }
+        else if(this->_arc->exception())
+        {
+            this->_coroutine.exception = this->_arc->exception();
             return true;
         }
         else
@@ -390,15 +397,16 @@ namespace drop
                 this->_coroutine.handle->resume();
             });
         else
-            this->then([=](const type &)
+            this->then([=](const type & value)
             {
+                this->_coroutine.value = &value;
                 this->_coroutine.handle->resume();
-            }).except([=](const std :: exception_ptr &)
+            }).except([=](const std :: exception_ptr & exception)
             {
+                this->_coroutine.exception = exception;
                 this->_coroutine.handle->resume();
             });
 
-        this->_coroutine.arc = this->_arc.get();
         this->_arc = nullptr;
     }
 
@@ -406,17 +414,15 @@ namespace drop
     {
         if constexpr (std :: is_same <type, void> :: value)
         {
-            if(this->_coroutine.arc->value())
-                return;
-            else
+            if(this->_coroutine.exception)
                 std :: rethrow_exception(this->_arc->exception());
         }
         else
         {
-            if(this->_coroutine.arc->value())
-                return *(this->_coroutine.arc->value());
+            if(this->_coroutine.value)
+                return *(this->_coroutine.value);
             else
-                std :: rethrow_exception(this->_coroutine.arc->exception());
+                std :: rethrow_exception(this->_coroutine.exception);
         }
     }
 
