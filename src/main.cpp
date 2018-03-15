@@ -3,32 +3,45 @@
 // Includes
 
 #include "drop/network/connectors/tcp.h"
+#include "drop/network/acceptors/tcp.hpp"
 #include "drop/network/pool.hpp"
 
 using namespace drop;
 
-promise <void> run(connectors :: tcp :: async & my_connector, pool & my_pool)
+promise <void> server(pool :: connection connection)
 {
-    connection my_connection = co_await my_connector.connect({"127.0.0.1", 1234});
-    pool :: connection my_pool_connection = my_pool.bind(my_connection);
+    while(true)
+    {
+        buffer message = co_await connection.receive();
+        std :: cout << "Server received " << message << std :: endl;
+        co_await connection.send(buffer("hallo"));
+    }
+}
 
-    co_await my_pool_connection.send(buffer("Hello World!"));
-    std :: cout << "Send successful" << std :: endl;
-
-    buffer response = co_await my_pool_connection.receive();
-    std :: cout << "Response was: " << response << std :: endl;
-
-    std :: cout << "Quitting" << std :: endl;
+promise <void> client(pool :: connection connection)
+{
+    while(true)
+    {
+        co_await connection.send(buffer("hello"));
+        buffer message = co_await connection.receive();
+        std :: cout << "Client received " << message << std :: endl;
+    }
 }
 
 int main()
 {
-    pool my_pool;
-    connectors :: tcp :: async my_connector;
+    pool pool;
+    acceptors :: tcp :: async acceptor(1234);
+    connectors :: tcp :: async connector;
 
-    run(my_connector, my_pool).then([]()
+    acceptor.on <connection> ([&](const connection & connection)
     {
-        std :: cout << "Quitted" << std :: endl;
+        server(pool.bind(connection));
+    });
+
+    connector.connect({"127.0.0.1", 1234}).then([&](const connection & connection)
+    {
+        client(pool.bind(connection));
     });
 
     sleep(1_h);
