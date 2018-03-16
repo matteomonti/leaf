@@ -93,6 +93,7 @@ namespace drop
             // Setters
 
             void block(const bool &);
+            void secretkeys(const class secretbox :: key &, const class secretbox :: nonce &, const class secretbox :: key &, const class secretbox :: nonce &);
 
             // Methods
 

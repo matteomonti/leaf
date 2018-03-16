@@ -42,6 +42,12 @@ namespace drop
         });
     }
 
+    void connection :: arc :: secretkeys(const class secretbox :: key & txkey, const class secretbox :: nonce & txnonce, const class secretbox :: key & rxkey, const class secretbox :: nonce & rxnonce)
+    {
+        this->_secretchannel.transmit.emplace(txkey, txnonce);
+        this->_secretchannel.receive.emplace(rxkey, rxnonce);
+    }
+
     // Methods
 
     void connection :: arc :: send_init(const buffer & message)
@@ -170,9 +176,7 @@ namespace drop
         class secretbox :: nonce rxnonce = this->receive <class secretbox :: nonce> ();
 
         keyexchanger :: sessionkey session = exchanger.exchange(remote);
-
-        this->_secretchannel.transmit.emplace(session.transmit(), txnonce);
-        this->_secretchannel.receive.emplace(session.receive(), rxnonce);
+        this->secretkeys(session.transmit(), txnonce, session.receive(), rxnonce);
     }
 
     void connection :: arc :: send_lock()

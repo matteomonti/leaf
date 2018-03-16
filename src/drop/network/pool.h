@@ -64,6 +64,8 @@ namespace drop
 
             promise <buffer> receive() const;
             template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <types> ()))> * = nullptr> auto receive() const;
+
+            promise <void> authenticate(keyexchanger, class keyexchanger :: publickey) const;
         };
 
     private:
