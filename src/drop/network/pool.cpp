@@ -60,10 +60,12 @@ namespace drop
     promise <void> pool :: send(const std :: shared_ptr <:: drop :: connection :: arc> & arc, const buffer & message)
     {
         arc->send_lock();
+        arc->block(false);
         arc->send_init(message);
 
         if(arc->send_step())
         {
+            arc->block(true);
             arc->send_unlock();
             return promise <void> :: resolved();
         }
@@ -76,6 +78,7 @@ namespace drop
 
             return request.promise.then([=]()
             {
+                arc->block(true);
                 arc->send_unlock();
                 return promise <void> :: resolved();
             });
@@ -85,11 +88,13 @@ namespace drop
     promise <buffer> pool :: receive(const std :: shared_ptr <:: drop :: connection :: arc> & arc)
     {
         arc->receive_lock();
+        arc->block(false);
         arc->receive_init();
 
         if(arc->receive_step())
         {
             promise <buffer> promise = :: drop :: promise <buffer> :: resolved(arc->receive_yield());
+            arc->block(true);
             arc->receive_unlock();
             return promise;
         }
@@ -105,6 +110,7 @@ namespace drop
             request.promise.then([=]()
             {
                 buffer message = arc->receive_yield();
+                arc->block(true);
                 arc->receive_unlock();
                 promise.resolve(message);
             }).except([=](const std :: exception_ptr & exception)
