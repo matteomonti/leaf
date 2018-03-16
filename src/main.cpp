@@ -9,34 +9,28 @@ using namespace drop;
 
 crontab global_crontab;
 
-promise <void> server(const pool :: connection & connection)
+promise <void> server(pool :: connection connection)
 {
     while(true)
     {
         uint64_t message = co_await connection.receive <uint64_t> ();
         std :: cout << "[server] Received " << message << std :: endl;
 
+        co_await global_crontab.wait(0.1_s);
         co_await connection.send(message + 1);
-        std :: cout << "[server] Sent" << std :: endl;
     }
 }
 
-promise <void> client(const pool :: connection & connection)
+promise <void> client(pool :: connection connection)
 {
     co_await connection.send <uint64_t> (0);
-    std :: cout << "[client] Sent" << std :: endl;
 
     while(true)
     {
-        std :: cout << "[client] Receiving" << std :: endl;
-        promise <uint64_t> receive_promise = connection.receive <uint64_t> ();
-        std :: cout << "[client] Promise obtained" << std :: endl;
-
-        std :: cout << "[client] Waiting on receive" << std :: endl;
-        uint64_t message = co_await receive_promise;
-
+        uint64_t message = co_await connection.receive <uint64_t> ();
         std :: cout << "[client] Received " << message << std :: endl;
 
+        co_await global_crontab.wait(0.1_s);
         co_await connection.send(message + 1);
     }
 }
