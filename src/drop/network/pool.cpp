@@ -107,6 +107,9 @@ namespace drop
                 buffer message = arc->receive_yield();
                 arc->receive_unlock();
                 promise.resolve(message);
+            }).except([=](const std :: exception_ptr & exception)
+            {
+                promise.reject(exception);
             });
 
             return promise;
@@ -166,13 +169,15 @@ namespace drop
                         else
                             request.promise.reject(sockets :: exceptions :: receive_timeout());
 
-                        table.erase(timeout.descriptor);
                         this->_queue.remove(timeout.descriptor, timeout.type);
+                        table.erase(timeout.descriptor);
                     }
                 }
                 catch(...)
                 {
                 }
+
+                this->_timeouts.pop_front();
             }
 
             while(optional <request> request = this->_new.pop())

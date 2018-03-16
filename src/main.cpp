@@ -2,39 +2,61 @@
 
 // Includes
 
-#include "drop/async/promise.hpp"
-#include "drop/chrono/time.hpp"
+#include "drop/network/connectors/tcp.h"
+#include "drop/network/acceptors/tcp.hpp"
+#include "drop/network/pool.hpp"
+#include "drop/chrono/crontab.h"
 
 using namespace drop;
 
-promise <void> my_promise;
-promise <void> my_other_promise;
+crontab server_crontab;
+crontab client_crontab;
 
-promise <void> f()
+promise <void> server(pool :: connection connection)
 {
-    return my_promise.then([]()
+    for(uint64_t i = 1;; i+=2)
     {
-        return my_other_promise;
-    });
+        std :: cout << "[server] Into the receive" << std :: endl;
+        uint64_t message = co_await connection.receive <uint64_t> ();
+        std :: cout << "[server] Received " << message << std :: endl;
+        co_await server_crontab.wait(0.1_s);
+        std :: cout << "[server] Into the send" << std :: endl;
+        co_await connection.send(i);
+        std :: cout << "[server] Out of the send" << std :: endl;
+    }
 }
 
-promise <void> run()
+promise <void> client(pool :: connection connection)
 {
-    co_await f();
-    std :: cout << "Done!" << std :: endl;
+    for(uint64_t i = 0;; i+=2)
+    {
+        std :: cout << "[client] Into the wait" << std :: endl;
+        co_await client_crontab.wait(0.1_s);
+        std :: cout << "[client] Into the send" << std :: endl;
+        co_await connection.send(i);
+        std :: cout << "[client] Out of the send" << std :: endl;
+        uint64_t message = co_await connection.receive <uint64_t> ();
+        std :: cout << "[client] Received " << message << std :: endl;
+    }
 }
 
 int main()
 {
-    run();
+    pool server_pool;
+    pool client_pool;
 
-    sleep(1_s);
-    std :: cout << "Solving my_promise" << std :: endl;
-    my_promise.resolve();
+    acceptors :: tcp :: async acceptor(1234);
+    connectors :: tcp :: async connector;
 
-    sleep(1_s);
-    std :: cout << "Solving my_other_promise" << std :: endl;
-    my_other_promise.resolve();
+    acceptor.on <connection> ([&](const connection & connection)
+    {
+        server(server_pool.bind(connection));
+    });
+
+    connector.connect({"127.0.0.1", 1234}).then([&](const connection & connection)
+    {
+        client(client_pool.bind(connection));
+    });
 
     sleep(1_h);
 }

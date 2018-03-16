@@ -130,8 +130,9 @@ namespace drop
                 bucket.lock();
                 while(!(bucket.empty()) && bucket.top().time() < target)
                 {
-                    bucket.top().promise().resolve();
+                    promise promise = bucket.top().promise();
                     bucket.pop();
+                    promise.resolve();
                 }
                 bucket.unlock();
 

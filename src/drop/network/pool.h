@@ -60,7 +60,10 @@ namespace drop
         public:
 
             promise <void> send(const buffer &) const;
+            template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <types> ()))> * = nullptr> promise <void> send(const types & ...) const;
+
             promise <buffer> receive() const;
+            template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <types> ()))> * = nullptr> auto receive() const;
         };
 
     private:
@@ -122,7 +125,7 @@ namespace drop
 
         promise <void> send(const std :: shared_ptr <:: drop :: connection :: arc> &, const buffer &);
         promise <buffer> receive(const std :: shared_ptr <:: drop :: connection :: arc> &);
-        
+
         void run();
     };
 };
