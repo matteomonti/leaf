@@ -12,6 +12,13 @@ namespace drop
     {
     }
 
+    // Getters
+
+    address pool :: connection :: remote() const
+    {
+        return this->_arc->remote();
+    }
+
     // Methods
 
     promise <void> pool :: connection :: send(const buffer & message) const

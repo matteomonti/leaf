@@ -59,6 +59,12 @@ namespace drop
 
         public:
 
+            // Getters
+
+            address remote() const;
+
+            // Methods
+
             promise <void> send(const buffer &) const;
             template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: serializable <types> ()))> * = nullptr> promise <void> send(const types & ...) const;
 

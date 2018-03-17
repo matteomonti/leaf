@@ -31,6 +31,18 @@ namespace drop
         return descriptor;
     }
 
+    address connection :: arc :: remote() const
+    {
+        address remote;
+
+        this->_socket.visit([&](auto & socket)
+        {
+            remote = socket.remote();
+        });
+
+        return remote;
+    }
+
     // Setters
 
     void connection :: arc :: block(const bool & value)
@@ -200,6 +212,13 @@ namespace drop
     }
 
     // connection
+
+    // Getters
+
+    address connection :: remote() const
+    {
+        return this->_arc->remote();
+    }
 
     // Methods
 

@@ -89,7 +89,8 @@ namespace drop
             // Getters
 
             int descriptor() const;
-
+            address remote() const;
+            
             // Setters
 
             void block(const bool &);
@@ -127,6 +128,10 @@ namespace drop
         // Constructors
 
         template <typename stype, std :: enable_if_t <constraints :: socket <stype> ()> * = nullptr> connection(const stype &);
+
+        // Getters
+
+        address remote() const;
 
         // Methods
 

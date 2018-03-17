@@ -15,6 +15,8 @@ namespace drop
 // Includes
 
 #include "drop/bytewise/bytewise.h"
+#include "drop/data/buffer.h"
+#include "drop/data/tag.h"
 
 namespace drop
 {
@@ -31,6 +33,9 @@ namespace drop
         shorthash();
 
         // Operators
+
+        size_t operator () (const buffer &) const noexcept;
+        template <size_t length> size_t operator () (const tag <length> &) const noexcept;
 
         template <typename type, std :: enable_if_t <bytewise :: constraints :: serializable <type> ()> * = nullptr> size_t operator () (const type &) const noexcept;
     };
