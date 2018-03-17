@@ -83,6 +83,14 @@ namespace drop
         return this->_bytes[index];
     }
 
+    bool buffer :: operator == (const buffer & rho) const
+    {
+        if(this->_size != rho._size)
+            return false;
+
+        return (memcmp(this->_bytes, rho._bytes, this->_size) == 0);
+    }
+
     buffer & buffer :: operator = (const buffer & that)
     {
         this->alloc(that._size);
