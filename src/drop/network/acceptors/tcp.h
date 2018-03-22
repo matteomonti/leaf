@@ -43,6 +43,7 @@ namespace drop :: acceptors
 
             // Constructors
 
+            sync();
             sync(const uint16_t &);
 
             // Getters
@@ -125,6 +126,7 @@ namespace drop :: acceptors
 
             // Constructors
 
+            async();
             async(const uint16_t &);
 
             // Destructor
@@ -140,7 +142,7 @@ namespace drop :: acceptors
             template <typename event, typename lambda, std :: enable_if_t <(std :: is_same <event, connection> :: value) && (constraints :: callback <lambda> ())> * = nullptr> void on(const lambda &);
 
             void reset();
-            
+
         private:
 
             // Private methods

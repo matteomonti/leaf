@@ -8,6 +8,11 @@ namespace drop :: acceptors
 
     // Constructors
 
+    tcp :: sync :: sync()
+    {
+        this->_socket.listen();
+    }
+
     tcp :: sync :: sync(const uint16_t & port)
     {
         this->_socket.bind(port);
@@ -39,6 +44,10 @@ namespace drop :: acceptors
     // async
 
     // Constructors
+
+    tcp :: async :: async() : _acceptor(), _callbacks{}, _alive(true), _thread(&async :: run, this)
+    {
+    }
 
     tcp :: async :: async(const uint16_t & port) : _acceptor(port), _callbacks{}, _alive(true), _thread(&async :: run, this)
     {

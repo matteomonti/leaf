@@ -120,6 +120,17 @@ namespace drop :: sockets
 
         if(:: listen(this->_descriptor, settings :: listen :: slots))
             throw exceptions :: listen_failed();
+
+        if(!(this->_port))
+        {
+            struct sockaddr_in address;
+            socklen_t socklen = sizeof(address);
+
+            if (getsockname(this->_descriptor, (struct sockaddr *)(&address), &socklen) == -1)
+                throw exceptions :: listen_failed();
+            else
+                this->_port = ntohs(address.sin_port);
+        }
     }
 
     tcp tcp :: accept()
@@ -128,7 +139,7 @@ namespace drop :: sockets
             throw exceptions :: socket_closed();
 
         address remote;
-        socklen_t socklen;
+        socklen_t socklen = sizeof(address);
 
         int descriptor = :: accept(this->_descriptor, (struct sockaddr *) &(sockaddr_in &)(remote), &socklen);
 

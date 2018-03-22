@@ -33,7 +33,7 @@ namespace drop
 
     template <typename vtype> void address :: port :: accept(bytewise :: writer <vtype> & writer)
     {
-        writer > (reinterpret_cast <uint8_t (&)[sizeof(in_port_t)]> (this->_value));
+        writer >> (reinterpret_cast <uint8_t (&)[sizeof(in_port_t)]> (this->_value));
     }
 
     // address

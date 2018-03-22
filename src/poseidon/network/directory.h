@@ -22,6 +22,7 @@ namespace poseidon
 #include "drop/crypto/signature.hpp"
 #include "drop/crypto/shorthash.hpp"
 #include "drop/chrono/time.hpp"
+#include "drop/chrono/crontab.h"
 
 namespace poseidon
 {
@@ -46,7 +47,6 @@ namespace poseidon
 
             struct settings
             {
-                static constexpr uint16_t port = 7777;
                 static constexpr interval timeout = 30_m;
             };
 
@@ -73,7 +73,7 @@ namespace poseidon
 
             // Constructors
 
-            server();
+            server(const uint16_t &);
 
         private:
 
@@ -84,6 +84,57 @@ namespace poseidon
 
         class client
         {
+            // Settings
+
+            struct settings
+            {
+                static constexpr interval recache = 30_m;
+                static constexpr interval refresh = 15_m;
+            };
+
+            // Service nested classes
+
+            struct entry
+            {
+                address address;
+                class keyexchanger :: publickey publickey;
+                timestamp time;
+            };
+
+            // Members
+
+            std :: unordered_map <signature :: publickey, entry, shorthash> _cache;
+
+            address _server;
+
+            signer _signer;
+            keyexchanger _keyexchanger;
+
+            acceptors :: tcp :: async _acceptor;
+
+            connectors :: tcp :: async & _connector;
+            pool & _pool;
+            crontab & _crontab;
+
+        public:
+
+            // Constructors
+
+            client(const address &, connectors :: tcp :: async &, pool &, crontab &);
+            client(const address &, const signer &, connectors :: tcp :: async &, pool &, crontab &);
+            client(const address &, const signer &, const keyexchanger &, connectors :: tcp :: async &, pool &, crontab &);
+
+            // Getters
+
+            const signature :: publickey & identifier() const;
+            signer & signer();
+            keyexchanger & keyexchanger();
+
+        private:
+
+            // Private methods
+
+            promise <void> refresh();
         };
     };
 };
