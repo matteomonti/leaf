@@ -15,9 +15,14 @@ int main()
     crontab crontab;
 
     directory :: client alice({"127.0.0.1", 7777}, connector, pool, crontab);
-    alice.on <directory :: connection> ([](const directory :: connection & connection)
+    alice.on <directory :: connection> ([&](const directory :: connection & connection)
     {
         std :: cout << "[alice] Connection incoming from " << connection.identifier() << std :: endl;
+
+        pool.bind(connection).receive <uint32_t> ().then([](const uint32_t & value)
+        {
+            std :: cout << "[alice] Received " << value << std :: endl;
+        });
     });
 
     directory :: client bob({"127.0.0.1", 7777}, connector, pool, crontab);
@@ -30,9 +35,14 @@ int main()
 
     sleep(1_s);
 
-    bob.connect(alice.identifier()).then([](const directory :: connection & connection)
+    bob.connect(alice.identifier()).then([&](const directory :: connection & connection)
     {
         std :: cout << "[bob] Connection established with " << connection.identifier() << std :: endl;
+
+        pool.bind(connection).send <uint32_t> (99).then([]()
+        {
+            std :: cout << "[bob] Value sent" << std :: endl;
+        });
     });
 
     sleep(10_h);
