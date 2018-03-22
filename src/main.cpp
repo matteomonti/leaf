@@ -30,14 +30,9 @@ int main()
 
     sleep(1_s);
 
-    bob.lookup(alice.identifier()).then([](const auto & entry)
+    bob.connect(alice.identifier()).then([](const connection & connection)
     {
-        std :: cout << entry.time << std :: endl;
-        std :: cout << entry.address << std :: endl;
-        std :: cout << entry.publickey << std :: endl;
-    }).except([](const std :: exception_ptr &)
-    {
-        std :: cout << "Exception!" << std :: endl;
+        std :: cout << "[bob] Connection established" << std :: endl;
     });
 
     sleep(10_h);

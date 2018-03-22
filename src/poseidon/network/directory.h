@@ -146,10 +146,10 @@ namespace poseidon
 
             // Methods
 
+            promise <connection> connect(signature :: publickey);
             template <typename event, typename lambda, std :: enable_if_t <(std :: is_same <event, connection> :: value) && (acceptors :: tcp :: async :: constraints :: callback <lambda> ())> * = nullptr> void on(const lambda &);
 
         private:
-        public: // REMOVE ME
 
             // Private methods
 

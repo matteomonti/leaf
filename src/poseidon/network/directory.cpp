@@ -130,6 +130,26 @@ namespace poseidon
         return this->_keyexchanger;
     }
 
+    // Methods
+
+    promise <connection> directory :: client :: connect(signature :: publickey identifier)
+    {
+        entry entry = co_await this->lookup(identifier);
+
+        try
+        {
+            entry = this->_cache.at(identifier);
+        }
+        catch(...)
+        {
+            entry = co_await this->lookup(identifier);
+            this->_cache[identifier] = entry;
+        }
+
+        connection connection = co_await this->_connector.connect(entry.address);
+        co_return connection;
+    }
+
     // Private methods
 
     promise <directory :: client :: entry> directory :: client :: lookup(signature :: publickey identifier)
