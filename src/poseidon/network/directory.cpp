@@ -42,6 +42,8 @@ namespace poseidon
                 entry.signature = co_await connection.receive <signature> ();
 
                 verifier verifier(identifier);
+                verifier.verify(entry.signature, signatures :: entry, entry.publickey);
+
                 this->_front[identifier] = entry;
             }
             else
@@ -122,6 +124,37 @@ namespace poseidon
     }
 
     // Private methods
+
+    promise <optional <directory :: client :: entry>> directory :: client :: lookup(signature :: publickey identifier)
+    {
+        try
+        {
+            pool :: connection connection = this->_pool.bind(co_await this->_connector.connect(this->_server));
+
+            co_await connection.send(false);
+            co_await connection.send(identifier);
+
+            if(!(co_await connection.receive <bool> ()))
+                co_return optional <entry> ();
+
+            optional <entry> entry = def;
+
+            entry->address = co_await connection.receive <address> ();
+            entry->publickey = co_await connection.receive <class keyexchanger :: publickey> ();
+
+            signature signature = co_await connection.receive <class signature> ();
+
+            verifier verifier(identifier);
+            verifier.verify(signature, signatures :: entry, entry->publickey);
+
+            entry->time = now;
+            co_return entry;
+        }
+        catch(...)
+        {
+            co_return optional <entry> ();
+        }
+    }
 
     promise <void> directory :: client :: refresh()
     {

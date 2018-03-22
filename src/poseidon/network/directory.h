@@ -135,9 +135,11 @@ namespace poseidon
             template <typename event, typename lambda, std :: enable_if_t <(std :: is_same <event, connection> :: value) && (acceptors :: tcp :: async :: constraints :: callback <lambda> ())> * = nullptr> void on(const lambda &);
 
         private:
-
+        public: // REMOVE ME
+        
             // Private methods
 
+            promise <optional <entry>> lookup(signature :: publickey);
             promise <void> refresh();
         };
     };

@@ -28,5 +28,15 @@ int main()
 
     std :: cout << "Event listeners added" << std :: endl;
 
+    sleep(1_s);
+
+    bob.lookup(alice.identifier()).then([](const auto & entry)
+    {
+        std :: cout << "Entry is " << ((bool) entry) << std :: endl;
+        std :: cout << entry->time << std :: endl;
+        std :: cout << entry->address << std :: endl;
+        std :: cout << entry->publickey << std :: endl;
+    });
+
     sleep(10_h);
 }
