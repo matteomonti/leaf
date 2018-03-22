@@ -90,7 +90,8 @@ namespace drop
 
             int descriptor() const;
             address remote() const;
-            
+            bool authenticated() const;
+
             // Setters
 
             void block(const bool &);
@@ -132,7 +133,8 @@ namespace drop
         // Getters
 
         address remote() const;
-
+        bool authenticated() const;
+        
         // Methods
 
         void send(const buffer &) const;

@@ -18,6 +18,7 @@ int main()
     alice.on <directory :: connection> ([&](const directory :: connection & connection)
     {
         std :: cout << "[alice] Connection incoming from " << connection.identifier() << std :: endl;
+        std :: cout << "[alice] " << (connection.authenticated() ? "Connection is authenticated" : "Connection is not authenticated") << std :: endl;
 
         pool.bind(connection).receive <uint32_t> ().then([](const uint32_t & value)
         {
@@ -38,6 +39,7 @@ int main()
     bob.connect(alice.identifier()).then([&](const directory :: connection & connection)
     {
         std :: cout << "[bob] Connection established with " << connection.identifier() << std :: endl;
+        std :: cout << "[bob] " << (connection.authenticated() ? "Connection is authenticated" : "Connection is not authenticated") << std :: endl;
 
         pool.bind(connection).send <uint32_t> (99).then([]()
         {

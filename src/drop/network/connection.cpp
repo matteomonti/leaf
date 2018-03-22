@@ -43,6 +43,11 @@ namespace drop
         return remote;
     }
 
+    bool connection :: arc :: authenticated() const
+    {
+        return this->_secretchannel.transmit && this->_secretchannel.receive;
+    }
+
     // Setters
 
     void connection :: arc :: block(const bool & value)
@@ -218,6 +223,11 @@ namespace drop
     address connection :: remote() const
     {
         return this->_arc->remote();
+    }
+
+    bool connection :: authenticated() const
+    {
+        return this->_arc->authenticated();
     }
 
     // Methods

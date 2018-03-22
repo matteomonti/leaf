@@ -62,6 +62,7 @@ namespace drop
             // Getters
 
             address remote() const;
+            bool authenticated() const;
 
             // Methods
 

@@ -19,6 +19,11 @@ namespace drop
         return this->_arc->remote();
     }
 
+    bool pool :: connection :: authenticated() const
+    {
+        return this->_arc->authenticated();
+    }
+
     // Methods
 
     promise <void> pool :: connection :: send(const buffer & message) const
