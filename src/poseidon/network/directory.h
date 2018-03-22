@@ -23,6 +23,7 @@ namespace poseidon
 #include "drop/crypto/shorthash.hpp"
 #include "drop/chrono/time.hpp"
 #include "drop/chrono/crontab.h"
+#include "drop/utils/sfinae.hpp"
 
 namespace poseidon
 {
@@ -40,6 +41,23 @@ namespace poseidon
     public:
 
         // Nested classes
+
+        class connection : public :: drop :: connection
+        {
+            // Members
+
+            signature :: publickey _identifier;
+
+        public:
+
+            // Constructors
+
+            connection(const :: drop :: connection &, const signature :: publickey &);
+
+            // Getters
+
+            const signature :: publickey & identifier() const;
+        };
 
         class server
         {
@@ -106,6 +124,24 @@ namespace poseidon
 
         private:
 
+            // Traits
+
+            struct traits
+            {
+                template <typename ctype> static constexpr bool is_connection_callable();
+            };
+
+        public:
+
+            // Constraints
+
+            struct constraints
+            {
+                template <typename ctype> static constexpr bool callback();
+            };
+
+        private:
+
             // Service nested classes
 
             struct entry
@@ -147,7 +183,7 @@ namespace poseidon
             // Methods
 
             promise <connection> connect(signature :: publickey);
-            template <typename event, typename lambda, std :: enable_if_t <(std :: is_same <event, connection> :: value) && (acceptors :: tcp :: async :: constraints :: callback <lambda> ())> * = nullptr> void on(const lambda &);
+            template <typename event, typename lambda, std :: enable_if_t <(std :: is_same <event, connection> :: value) && (constraints :: callback <lambda> ())> * = nullptr> void on(const lambda &);
 
         private:
 

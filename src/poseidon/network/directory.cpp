@@ -8,6 +8,21 @@ namespace poseidon
 
     const buffer directory :: signatures :: entry = "directory :: signatures :: entry";
 
+    // connection
+
+    // Constructors
+
+    directory :: connection :: connection(const :: drop :: connection & connection, const signature :: publickey & identifier) : :: drop :: connection(connection), _identifier(identifier)
+    {
+    }
+
+    // Getters
+
+    const signature :: publickey & directory :: connection :: identifier() const
+    {
+        return this->_identifier;
+    }
+
     // server
 
     // Settings
@@ -18,7 +33,7 @@ namespace poseidon
 
     directory :: server :: server(const uint16_t & port) : _last_swap(now), _acceptor(port)
     {
-        this->_acceptor.on <connection> ([=](const connection & connection)
+        this->_acceptor.on <:: drop :: connection> ([=](const :: drop :: connection & connection)
         {
             this->serve(this->_pool.bind(connection));
         });
@@ -132,7 +147,7 @@ namespace poseidon
 
     // Methods
 
-    promise <connection> directory :: client :: connect(signature :: publickey identifier)
+    promise <directory :: connection> directory :: client :: connect(signature :: publickey identifier)
     {
         entry entry = co_await this->lookup(identifier);
 
@@ -146,8 +161,17 @@ namespace poseidon
             this->_cache[identifier] = entry;
         }
 
-        connection connection = co_await this->_connector.connect(entry.address);
-        co_return connection;
+        :: drop :: connection sync_connection = co_await this->_connector.connect(entry.address);
+
+        pool :: connection connection = this->_pool.bind(sync_connection);
+
+        co_await connection.send(this->_signer.publickey());
+        co_await connection.send(this->_keyexchanger.publickey());
+        co_await connection.send(this->_signer.sign(signatures :: entry, this->_keyexchanger.publickey()));
+
+        co_await connection.authenticate(this->_keyexchanger, entry.publickey);
+
+        co_return (class connection){sync_connection, identifier};
     }
 
     // Private methods

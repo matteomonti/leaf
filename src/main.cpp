@@ -15,24 +15,24 @@ int main()
     crontab crontab;
 
     directory :: client alice({"127.0.0.1", 7777}, connector, pool, crontab);
-    alice.on <connection> ([](const connection & connection)
+    alice.on <directory :: connection> ([](const directory :: connection & connection)
     {
-        std :: cout << "[alice] Connection incoming!" << std :: endl;
+        std :: cout << "[alice] Connection incoming from " << connection.identifier() << std :: endl;
     });
 
     directory :: client bob({"127.0.0.1", 7777}, connector, pool, crontab);
-    bob.on <connection> ([](const connection & connection)
+    bob.on <directory :: connection> ([](const directory :: connection & connection)
     {
-        std :: cout << "[bob] Connection incoming!" << std :: endl;
+        std :: cout << "[bob] Connection incoming from " << connection.identifier() << std :: endl;
     });
 
     std :: cout << "Event listeners added" << std :: endl;
 
     sleep(1_s);
 
-    bob.connect(alice.identifier()).then([](const connection & connection)
+    bob.connect(alice.identifier()).then([](const directory :: connection & connection)
     {
-        std :: cout << "[bob] Connection established" << std :: endl;
+        std :: cout << "[bob] Connection established with " << connection.identifier() << std :: endl;
     });
 
     sleep(10_h);
