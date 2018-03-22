@@ -92,6 +92,20 @@ namespace poseidon
                 static constexpr interval refresh = 15_m;
             };
 
+        public:
+
+            // Exceptions
+
+            struct exceptions
+            {
+                class lookup_failed : public std :: exception
+                {
+                    const char * what() const throw();
+                };
+            };
+
+        private:
+
             // Service nested classes
 
             struct entry
@@ -136,10 +150,10 @@ namespace poseidon
 
         private:
         public: // REMOVE ME
-        
+
             // Private methods
 
-            promise <optional <entry>> lookup(signature :: publickey);
+            promise <entry> lookup(signature :: publickey);
             promise <void> refresh();
         };
     };

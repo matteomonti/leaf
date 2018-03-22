@@ -89,6 +89,13 @@ namespace poseidon
 
     // client
 
+    // Exceptions
+
+    const char * directory :: client :: exceptions :: lookup_failed :: what() const throw()
+    {
+        return "Directory lookup failed.";
+    }
+
     // Constructors
 
     directory :: client :: client(const address & server, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _server(server), _connector(connector), _pool(pool), _crontab(crontab)
@@ -125,7 +132,7 @@ namespace poseidon
 
     // Private methods
 
-    promise <optional <directory :: client :: entry>> directory :: client :: lookup(signature :: publickey identifier)
+    promise <directory :: client :: entry> directory :: client :: lookup(signature :: publickey identifier)
     {
         try
         {
@@ -135,24 +142,24 @@ namespace poseidon
             co_await connection.send(identifier);
 
             if(!(co_await connection.receive <bool> ()))
-                co_return optional <entry> ();
+                throw exceptions :: lookup_failed();
 
-            optional <entry> entry = def;
+            entry entry;
 
-            entry->address = co_await connection.receive <address> ();
-            entry->publickey = co_await connection.receive <class keyexchanger :: publickey> ();
+            entry.address = co_await connection.receive <address> ();
+            entry.publickey = co_await connection.receive <class keyexchanger :: publickey> ();
 
             signature signature = co_await connection.receive <class signature> ();
 
             verifier verifier(identifier);
-            verifier.verify(signature, signatures :: entry, entry->publickey);
+            verifier.verify(signature, signatures :: entry, entry.publickey);
 
-            entry->time = now;
+            entry.time = now;
             co_return entry;
         }
         catch(...)
         {
-            co_return optional <entry> ();
+            throw exceptions :: lookup_failed();
         }
     }
 

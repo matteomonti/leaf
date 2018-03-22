@@ -32,10 +32,12 @@ int main()
 
     bob.lookup(alice.identifier()).then([](const auto & entry)
     {
-        std :: cout << "Entry is " << ((bool) entry) << std :: endl;
-        std :: cout << entry->time << std :: endl;
-        std :: cout << entry->address << std :: endl;
-        std :: cout << entry->publickey << std :: endl;
+        std :: cout << entry.time << std :: endl;
+        std :: cout << entry.address << std :: endl;
+        std :: cout << entry.publickey << std :: endl;
+    }).except([](const std :: exception_ptr &)
+    {
+        std :: cout << "Exception!" << std :: endl;
     });
 
     sleep(10_h);
