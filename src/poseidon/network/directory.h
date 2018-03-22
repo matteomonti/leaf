@@ -130,6 +130,10 @@ namespace poseidon
             signer & signer();
             keyexchanger & keyexchanger();
 
+            // Methods
+
+            template <typename event, typename lambda, std :: enable_if_t <(std :: is_same <event, connection> :: value) && (acceptors :: tcp :: async :: constraints :: callback <lambda> ())> * = nullptr> void on(const lambda &);
+
         private:
 
             // Private methods

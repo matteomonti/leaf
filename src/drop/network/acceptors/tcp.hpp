@@ -41,13 +41,13 @@ namespace drop :: acceptors
 
     // Methods
 
-    template <typename event, typename lambda, std :: enable_if_t <(std :: is_same <event, connection> :: value) && (tcp :: async :: constraints :: callback <lambda> ())> *> void tcp :: async :: on(const lambda & functor)
+    template <typename event, typename lambda, std :: enable_if_t <(std :: is_same <event, connection> :: value) && (tcp :: async :: constraints :: callback <lambda> ())> *> void tcp :: async :: on(const lambda & handler)
     {
         size_t cursor = 0;
         while(this->_callbacks[cursor])
             cursor++;
 
-        this->_callbacks[cursor] = new callback <lambda> {functor};
+        this->_callbacks[cursor] = new callback <lambda> {handler};
     }
 };
 

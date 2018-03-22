@@ -1,6 +1,6 @@
 // Includes
 
-#include "directory.h"
+#include "directory.hpp"
 
 namespace poseidon
 {
