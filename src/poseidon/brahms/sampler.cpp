@@ -15,9 +15,9 @@ namespace poseidon
 
     // Getters
 
-    const optional <signature :: publickey> & sampler :: value() const
+    const optional <signature :: publickey> & sampler :: sample() const
     {
-        return this->_value;
+        return this->_sample;
     }
 
     // Methods
@@ -25,14 +25,14 @@ namespace poseidon
     void sampler :: init()
     {
         this->_key = hash :: key :: random();
-        this->_value = null;
+        this->_sample = null;
     }
 
     void sampler :: next(const signature :: publickey & identifier)
     {
-        if(!(this->_value))
+        if(!(this->_sample))
         {
-            this->_value = identifier;
+            this->_sample = identifier;
             this->_hash = hash :: keyed(this->_key, identifier);
         }
         else
@@ -40,7 +40,7 @@ namespace poseidon
             hash idhash = hash :: keyed(this->_key, identifier);
             if(idhash < this->_hash)
             {
-                this->_value = identifier;
+                this->_sample = identifier;
                 this->_hash = idhash;
             }
         }

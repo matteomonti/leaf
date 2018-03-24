@@ -24,7 +24,7 @@ namespace poseidon
 
         hash :: key _key;
 
-        optional <signature :: publickey> _value;
+        optional <signature :: publickey> _sample;
         hash _hash;
 
     public:
@@ -35,7 +35,7 @@ namespace poseidon
 
         // Getters
 
-        const optional <signature :: publickey> & value() const;
+        const optional <signature :: publickey> & sample() const;
 
         // Methods
 

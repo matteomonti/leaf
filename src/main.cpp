@@ -11,11 +11,11 @@ int main()
 
     while(true)
     {
-        if(my_sampler.value())
-            std :: cout << (*my_sampler.value()) << std :: endl;
+        if(my_sampler.sample())
+            std :: cout << (*my_sampler.sample()) << std :: endl;
         else
             std :: cout << "<null>" << std :: endl;
-            
+
         my_sampler.next(signer().publickey());
     }
 }
