@@ -25,12 +25,26 @@ namespace poseidon
 
     // Constructors
 
-    brahms :: brahms(const address & directory, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _directory(directory, this->_signer, connector, pool, crontab), _connector(connector), _pool(pool), _crontab(crontab)
+    brahms :: brahms(const signature :: publickey (& view)[settings :: view :: size], const address & directory, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _directory(directory, this->_signer, connector, pool, crontab), _connector(connector), _pool(pool), _crontab(crontab)
     {
+        for(size_t i = 0; i < settings :: view :: size; i++)
+        {
+            this->_view[i] = view[i];
+            this->dispatch(view[i]);
+        }
+
+        this->run();
     }
 
-    brahms :: brahms(const class signer & signer, const address & directory, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _signer(signer), _directory(directory, this->_signer, connector, pool, crontab), _connector(connector), _pool(pool), _crontab(crontab)
+    brahms :: brahms(const class signer & signer, const signature :: publickey (& view)[settings :: view :: size], const address & directory, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _signer(signer), _directory(directory, this->_signer, connector, pool, crontab), _connector(connector), _pool(pool), _crontab(crontab)
     {
+        for(size_t i = 0; i < settings :: view :: size; i++)
+        {
+            this->_view[i] = view[i];
+            this->dispatch(view[i]);
+        }
+
+        this->run();
     }
 
     // Getters
@@ -63,5 +77,21 @@ namespace poseidon
     {
         for(size_t i = 0; i < settings :: sample :: size; i++)
             this->_sample[i].next(identifier);
+    }
+
+    promise <void> brahms :: run()
+    {
+        while(true)
+        {
+            try
+            {
+                co_await this->_crontab.wait(settings :: interval);
+                if(log) std :: cout << "Running" << std :: endl;
+            }
+            catch(...)
+            {
+                this->unlock();
+            }
+        }
     }
 };

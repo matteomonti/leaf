@@ -23,26 +23,28 @@ namespace poseidon
 
     class brahms
     {
+    public:
+
         // Settings
 
         struct settings
         {
             struct view
             {
-                static constexpr size_t size = 64;
+                static constexpr size_t size = 32;
             };
 
             struct sample
             {
-                static constexpr size_t size = 16;
+                static constexpr size_t size = 8;
             };
 
-            static constexpr size_t alpha = 24;
-            static constexpr size_t beta = 56;
+            static constexpr size_t alpha = 12;
+            static constexpr size_t beta = 28;
             static constexpr size_t gamma = sample :: size - (alpha + beta);
-        };
 
-    public:
+            static constexpr interval interval = 10_s;
+        };
 
         // Nested classes
 
@@ -72,10 +74,10 @@ namespace poseidon
 
         // Members
 
+        signer _signer;
+
         signature :: publickey _view[settings :: view :: size];
         sampler _sample[settings :: sample :: size];
-
-        signer _signer;
 
         std :: mutex _mutex;
 
@@ -86,10 +88,14 @@ namespace poseidon
 
     public:
 
+        // Public members
+
+        bool log = false; // REMOVE ME
+
         // Constructors
 
-        brahms(const address &, connectors :: tcp :: async &, pool &, crontab &);
-        brahms(const signer &, const address &, connectors :: tcp :: async &, pool &, crontab &);
+        brahms(const signature :: publickey (&)[settings :: view :: size], const address &, connectors :: tcp :: async &, pool &, crontab &);
+        brahms(const signer &, const signature :: publickey (&)[settings :: view :: size], const address &, connectors :: tcp :: async &, pool &, crontab &);
 
         // Getters
 
@@ -106,6 +112,7 @@ namespace poseidon
         // Private methods
 
         void dispatch(const signature :: publickey &);
+        promise <void> run();
     };
 };
 
