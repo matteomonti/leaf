@@ -59,24 +59,26 @@ namespace poseidon
         return this->_signer;
     }
 
-    // Methods
-
-    void brahms :: lock()
-    {
-        this->_mutex.lock();
-    }
-
-    void brahms :: unlock()
-    {
-        this->_mutex.unlock();
-    }
-
     // Private methods
 
     void brahms :: dispatch(const signature :: publickey & identifier)
     {
         for(size_t i = 0; i < settings :: sample :: size; i++)
             this->_sample[i].next(identifier);
+    }
+
+    promise <void> brahms :: pull(signature :: publickey identifier, size_t slot)
+    {
+        try
+        {
+            std :: cout << "Connecting" << std :: endl;
+            pool :: connection connection = this->_pool.bind(co_await this->_directory.connect(identifier));
+            if(log) std :: cout << "Connected" << std :: endl;
+        }
+        catch(...)
+        {
+
+        }
     }
 
     promise <void> brahms :: run()
@@ -86,11 +88,24 @@ namespace poseidon
             try
             {
                 co_await this->_crontab.wait(settings :: interval);
-                if(log) std :: cout << "Running" << std :: endl;
+
+                signature :: publickey requests[settings :: alpha];
+                for(size_t i = 0; i < settings :: alpha; i++)
+                    requests[i] = this->_view[randombytes_uniform(settings :: alpha)];
+
+                this->_mutex.lock();
+
+                this->_version++;
+                for(size_t i = 0; i < settings :: alpha; i++)
+                {
+                    this->_pullslots[i].completed = false;
+                    this->pull(requests[i], i);
+                }
+
+                this->_mutex.unlock();
             }
             catch(...)
             {
-                this->unlock();
             }
         }
     }

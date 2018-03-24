@@ -11,6 +11,7 @@ namespace poseidon
 // Libraries
 
 #include <mutex>
+#include <sodium.h>
 
 // Includes
 
@@ -72,12 +73,23 @@ namespace poseidon
 
     private:
 
+        // Service nested classes
+
+        struct pullslot
+        {
+            bool completed;
+            signature :: publickey view[settings :: view :: size];
+        };
+
         // Members
 
         signer _signer;
 
         signature :: publickey _view[settings :: view :: size];
         sampler _sample[settings :: sample :: size];
+
+        pullslot _pullslots[settings :: view :: size];
+        size_t _version;
 
         std :: mutex _mutex;
 
@@ -102,16 +114,14 @@ namespace poseidon
         const signature :: publickey & identifier() const;
         signer & signer();
 
-        // Methods
-
-        void lock();
-        void unlock();
-
     private:
 
         // Private methods
 
         void dispatch(const signature :: publickey &);
+
+        promise <void> pull(signature :: publickey, size_t);
+
         promise <void> run();
     };
 };
