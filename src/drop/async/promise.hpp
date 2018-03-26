@@ -373,11 +373,14 @@ namespace drop
             if constexpr (!(std :: is_same <type, void> :: value))
                 this->_coroutine.value = &(*(this->_arc->value()));
 
+            this->then([](auto && ...){}).except([](auto && ...){}); // TODO: Adding dummy handlers fixes the issue of unforwardable_reject being thrown when
+                                                                     // await_ready is true, but is inefficient. Find a way to optimize this condition out.
             return true;
         }
         else if(this->_arc->exception())
         {
             this->_coroutine.exception = this->_arc->exception();
+            this->then([](auto && ...){}).except([](auto && ...){}); // TODO: See above.
             return true;
         }
         else

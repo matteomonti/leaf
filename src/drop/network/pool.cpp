@@ -39,7 +39,7 @@ namespace drop
     promise <void> pool :: connection :: authenticate(keyexchanger exchanger, class keyexchanger :: publickey remote) const
     {
         class secretbox :: nonce txnonce = secretbox :: nonce :: random();
-        this->send(txnonce);
+        co_await this->send(txnonce);
         class secretbox :: nonce rxnonce = co_await this->receive <class secretbox :: nonce> ();
 
         keyexchanger :: sessionkey session = exchanger.exchange(remote);
