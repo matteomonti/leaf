@@ -1,45 +1,35 @@
 #include <iostream>
 
-#include "vine/dialers/directory.hpp"
+#include "drop/async/promise.hpp"
 
 using namespace drop;
-using namespace vine;
+
+promise <void> f(promise <void> p0)
+{
+    std :: cout << "Awaiting" << std :: endl;
+    co_await p0;
+    std :: cout << "Returning from f" << std :: endl;
+}
+
+promise <void> g(const promise <void> & p0)
+{
+    std :: cout << "Calling f" << std :: endl;
+    try
+    {
+        co_await f(p0);
+    }
+    catch(const char * exception)
+    {
+        std :: cout << exception << std :: endl;
+    }
+    std :: cout << "Returned from f" << std :: endl;
+}
 
 int main()
 {
-    dialers :: directory :: server server(7777);
-    std :: cout << "Server started" << std :: endl;
-
-    connectors :: tcp :: async connector;
-    pool pool;
-    crontab crontab;
-
-    dialers :: directory :: client alice({"127.0.0.1", 7777}, connector, pool, crontab);
-    dialers :: directory :: client bob({"127.0.0.1", 7777}, connector, pool, crontab);
-
-    alice.on <dial> ([](const dial & dial)
     {
-        std :: cout << "[alice] Connection incoming from " << dial.identifier() << std :: endl;
-    });
-
-    std :: cout << "[alice] Dial handler registered" << std :: endl;
-
-    sleep(1_s);
-
-    bob.connect(alice.identifier()).then([](const dial & dial)
-    {
-        std :: cout << "[bob] Connection established with " << dial.identifier() << std :: endl;
-    }).except([](const std :: exception_ptr & exception)
-    {
-        try
-        {
-            std :: rethrow_exception(exception);
-        }
-        catch(const std :: exception & exception)
-        {
-            std :: cout << "Exception: " << exception.what() << std :: endl;
-        }
-    });
-
-    sleep(10_h);
+        promise <void> p0;
+        g(p0);
+        p0.reject("Ok, so far so good");
+    }
 }

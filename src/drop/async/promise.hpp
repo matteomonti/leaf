@@ -395,8 +395,9 @@ namespace drop
             this->then([=]()
             {
                 this->_coroutine.handle->resume();
-            }).except([=](const std :: exception_ptr &)
+            }).except([=](const std :: exception_ptr & exception)
             {
+                this->_coroutine.exception = exception;
                 this->_coroutine.handle->resume();
             });
         else
@@ -418,7 +419,7 @@ namespace drop
         if constexpr (std :: is_same <type, void> :: value)
         {
             if(this->_coroutine.exception)
-                std :: rethrow_exception(this->_arc->exception());
+                std :: rethrow_exception(this->_coroutine.exception);
         }
         else
         {
