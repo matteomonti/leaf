@@ -24,7 +24,7 @@ int main()
 
     std :: cout << "[alice] Dial handler registered" << std :: endl;*/
 
-    sleep(1_s);
+    sleep(0.05_s);
 
     bob.connect(alice.identifier()).then([](const dial & dial)
     {
