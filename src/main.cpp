@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "poseidon/brahms/sampler.h"
+#include "poseidon/brahms/brahms.h"
 
 using namespace drop;
 using namespace vine;
