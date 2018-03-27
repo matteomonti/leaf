@@ -24,6 +24,7 @@ namespace vine
 #include "drop/chrono/time.hpp"
 #include "drop/chrono/crontab.h"
 #include "drop/utils/sfinae.hpp"
+#include "vine/network/dial.h"
 
 namespace vine :: dialers
 {

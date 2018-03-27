@@ -7,5 +7,5 @@ using namespace vine;
 
 int main()
 {
-    
+
 }
