@@ -11,6 +11,10 @@ namespace vine
 #if !defined(__forward__) && !defined(__vine__dialers__directory__h)
 #define __vine__dialers__directory__h
 
+// Libraries
+
+#include <unordered_map>
+
 // Includes
 
 #include "drop/network/address.hpp"
@@ -37,6 +41,50 @@ namespace vine :: dialers
         struct signatures
         {
             static const hash entry;
+        };
+
+    public:
+
+        // Nested classes
+
+        class server
+        {
+            // Settings
+
+            struct settings
+            {
+                static constexpr interval timeout = 30_m;
+            };
+
+            struct entry
+            {
+                address address;
+                class keyexchanger :: publickey publickey;
+                timestamp timestamp;
+                signature signature;
+            };
+
+            // Members
+
+            std :: unordered_map <identifier, entry, shorthash> _front;
+            std :: unordered_map <identifier, entry, shorthash> _back;
+
+            timestamp _last_swap;
+
+            acceptors :: tcp :: async _acceptor;
+            pool _pool;
+
+        public:
+
+            // Constructors
+
+            server(const uint16_t &);
+
+        private:
+
+            // Private methods
+
+            promise <void> serve(pool :: connection);
         };
     };
 }
