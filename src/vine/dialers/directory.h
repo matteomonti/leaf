@@ -49,12 +49,18 @@ namespace vine :: dialers
 
         class server
         {
+        public:
+
             // Settings
 
             struct settings
             {
                 static constexpr interval timeout = 30_m;
             };
+
+        private:
+
+            // Service nested classes
 
             struct entry
             {
@@ -85,6 +91,99 @@ namespace vine :: dialers
             // Private methods
 
             promise <void> serve(pool :: connection);
+        };
+
+        class client
+        {
+            // Settings
+
+            struct settings
+            {
+                static constexpr interval timeout = server :: settings :: timeout;
+                static constexpr interval refresh = 15_m;
+            };
+
+        public:
+
+            // Exceptions
+
+            struct exceptions
+            {
+                class lookup_failed : public std :: exception
+                {
+                    const char * what() const throw();
+                };
+            };
+
+        private:
+
+            // Traits
+
+            struct traits
+            {
+                template <typename ctype> static constexpr bool is_dial_callable();
+            };
+
+        public:
+
+            // Constraints
+
+            struct constraints
+            {
+                template <typename ctype> static constexpr bool callback();
+            };
+
+        private:
+
+            // Service nested classes
+
+            struct entry
+            {
+                address address;
+                class keyexchanger :: publickey publickey;
+                timestamp timestamp;
+            };
+
+            // Members
+
+            std :: unordered_map <identifier, entry, shorthash> _cache;
+
+            address _server;
+
+            signer _signer;
+            keyexchanger _keyexchanger;
+
+            acceptors :: tcp :: async _acceptor;
+
+            connectors :: tcp :: async & _connector;
+            pool & _pool;
+            crontab & _crontab;
+
+        public:
+
+            // Constructors
+
+            client(const address &, connectors :: tcp :: async &, pool &, crontab &);
+            client(const address &, const signer &, connectors :: tcp :: async &, pool &, crontab &);
+            client(const address &, const signer &, const keyexchanger &, connectors :: tcp :: async &, pool &, crontab &);
+
+            // Getters
+
+            const identifier & identifier() const;
+            signer & signer();
+            keyexchanger & keyexchanger();
+
+            // Methods
+
+            promise <dial> connect(vine :: identifier);
+            template <typename event, typename lambda, std :: enable_if_t <(std :: is_same <event, dial> :: value) && (constraints :: callback <lambda> ())> * = nullptr> void on(const lambda &);
+
+        private:
+
+            // Private methods
+
+            promise <entry> lookup(vine :: identifier);
+            promise <void> refresh();
         };
     };
 }

@@ -92,4 +92,144 @@ namespace vine :: dialers
         {
         }
     }
+
+    // client
+
+    // Exceptions
+
+    const char * directory :: client :: exceptions :: lookup_failed :: what() const throw()
+    {
+        return "Directory lookup failed.";
+    }
+
+    // Constructors
+
+    directory :: client :: client(const address & server, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _server(server), _connector(connector), _pool(pool), _crontab(crontab)
+    {
+        this->refresh();
+    }
+
+    directory :: client :: client(const address & server, const class signer & signer, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _server(server),  _signer(signer), _connector(connector), _pool(pool), _crontab(crontab)
+    {
+        this->refresh();
+    }
+
+    directory :: client :: client(const address & server, const class signer & signer, const class keyexchanger & keyexchanger, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _server(server), _signer(signer), _keyexchanger(keyexchanger), _connector(connector), _pool(pool), _crontab(crontab)
+    {
+        this->refresh();
+    }
+
+    // Getters
+
+    const identifier & directory :: client :: identifier() const
+    {
+        return this->_signer.publickey();
+    }
+
+    signer & directory :: client :: signer()
+    {
+        return this->_signer;
+    }
+
+    keyexchanger & directory :: client :: keyexchanger()
+    {
+        return this->_keyexchanger;
+    }
+
+    // Methods
+
+    promise <dial> directory :: client :: connect(vine :: identifier identifier)
+    {
+        optional <entry> entry;
+
+        try
+        {
+            entry = this->_cache.at(identifier);
+        }
+        catch(...)
+        {
+        }
+
+        if(!entry)
+        {
+            entry = co_await this->lookup(identifier);
+            this->_cache[identifier] = *entry;
+        }
+
+        connection sync_connection = co_await this->_connector.connect(entry->address);
+        pool :: connection connection = this->_pool.bind(sync_connection);
+
+        co_await connection.send(this->_signer.publickey());
+        co_await connection.send(this->_keyexchanger.publickey());
+
+        timestamp timestamp = now;
+        co_await connection.send(timestamp);
+
+        co_await connection.send(this->_signer.sign(signatures :: entry, this->_keyexchanger.publickey(), timestamp));
+        co_await connection.authenticate(this->_keyexchanger, entry->publickey);
+
+        co_return dial(identifier, sync_connection);
+    }
+
+    // Private methods
+
+    promise <directory :: client :: entry> directory :: client :: lookup(vine :: identifier identifier)
+    {
+        try
+        {
+            pool :: connection connection = this->_pool.bind(co_await this->_connector.connect(this->_server));
+
+            co_await connection.send(false);
+            co_await connection.send(identifier);
+
+            if(!(co_await connection.receive <bool> ()))
+                throw exceptions :: lookup_failed();
+
+            entry entry;
+
+            entry.address = co_await connection.receive <address> ();
+            entry.publickey = co_await connection.receive <class keyexchanger :: publickey> ();
+
+            entry.timestamp = co_await connection.receive <timestamp> ();
+            if(timestamp(now) - entry.timestamp > settings :: timeout)
+                throw exceptions :: lookup_failed();
+
+            signature signature = co_await connection.receive <class signature> ();
+
+            verifier verifier(identifier);
+            verifier.verify(signature, signatures :: entry, entry.publickey, entry.timestamp);
+
+            co_return entry;
+        }
+        catch(...)
+        {
+            throw exceptions :: lookup_failed();
+        }
+    }
+
+    promise <void> directory :: client :: refresh()
+    {
+        while(true)
+        {
+            try
+            {
+                pool :: connection connection = this->_pool.bind(co_await this->_connector.connect(this->_server));
+                co_await connection.send(true);
+
+                co_await connection.send(this->_signer.publickey());
+                co_await connection.send(this->_acceptor.port());
+                co_await connection.send(this->_keyexchanger.publickey());
+
+                timestamp timestamp = now;
+                co_await connection.send(timestamp);
+
+                co_await connection.send(this->_signer.sign(signatures :: entry, this->_keyexchanger.publickey(), timestamp));
+            }
+            catch(...)
+            {
+            }
+
+            co_await this->_crontab.wait(settings :: refresh);
+        }
+    }
 };
