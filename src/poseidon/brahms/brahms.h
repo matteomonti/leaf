@@ -8,6 +8,10 @@ namespace poseidon
 #if !defined(__forward__) && !defined(__poseidon__brahms__brahms__h)
 #define __poseidon__brahms__brahms__h
 
+// Libraries
+
+#include <sodium.h>
+
 // Includes
 
 #include "sampler.h"
@@ -93,6 +97,8 @@ namespace poseidon
         pool & _pool;
         crontab & _crontab;
 
+    public:
+
         // Constructors
 
         brahms(const identifier (&)[settings :: view :: size], const address &, connectors :: tcp :: async &, pool &, crontab &);
@@ -102,6 +108,16 @@ namespace poseidon
 
         const identifier & identifier() const;
         signer & signer();
+
+    private:
+
+        // Private methods
+
+        void dispatch(const vine :: identifier &);
+        promise <void> pull(vine :: identifier, size_t);
+        promise <void> serve(pool :: connection);
+
+        promise <void> run();
     };
 };
 
