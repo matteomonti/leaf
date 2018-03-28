@@ -102,7 +102,10 @@ namespace drop
         {
             request request{.arc = arc, .type = queue :: write};
 
+            this->_newmtx.lock();
             this->_new.push(request);
+            this->_newmtx.unlock();
+
             this->_wakepipe.wake();
 
             return request.promise.then([=]()
@@ -131,7 +134,10 @@ namespace drop
         {
             request request{.arc = arc, .type = queue :: read};
 
+            this->_newmtx.lock();
             this->_new.push(request);
+            this->_newmtx.unlock();
+
             this->_wakepipe.wake();
 
             promise <buffer> promise;

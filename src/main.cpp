@@ -36,12 +36,10 @@ int main()
     brahms * brahms[nodes];
     for(size_t i = 0; i < nodes; i++)
     {
-        std :: cout << "Starting node " << i << std :: endl;
         signature :: publickey view[brahms :: settings :: view :: size];
         sample(signers, view);
 
         brahms[i] = new class brahms(signers[i], view, {"127.0.0.1", 7777}, connector, pool, crontab);
-        sleep(0.2_s);
     }
 
     std :: cout << "Started" << std :: endl;

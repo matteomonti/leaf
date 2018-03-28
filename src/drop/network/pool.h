@@ -16,6 +16,7 @@ namespace drop
 #include <deque>
 #include <memory>
 #include <errno.h>
+#include <mutex>
 
 // Includes
 
@@ -115,7 +116,8 @@ namespace drop
         wakepipe _wakepipe;
 
         channel <request> _new;
-
+        std :: mutex _newmtx;
+        
         std :: unordered_map <int, request> _write;
         std :: unordered_map <int, request> _read;
 
