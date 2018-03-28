@@ -138,7 +138,7 @@ namespace drop
 
                 if(this->_cursor == (target / settings :: bucket :: size))
                 {
-                    if(!(bucket.empty()))
+                    if(!(bucket.empty()) && bucket.top().time() < timestamp((this->_cursor + 1) * settings :: bucket :: size))
                         next = bucket.top().time();
                     else
                         next = timestamp((this->_cursor + 1) * settings :: bucket :: size);
