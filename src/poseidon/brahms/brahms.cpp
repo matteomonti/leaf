@@ -98,31 +98,23 @@ namespace poseidon
     {
         while(true)
         {
-            std :: cout << "Sleeping" << std :: endl;
             co_await this->_crontab.wait(settings :: interval);
-            std :: cout << "Waking" << std :: endl;
 
             try
             {
-                std :: cout << "Sampling requests" << std :: endl;
                 vine :: identifier requests[settings :: alpha];
                 for(size_t i = 0; i < settings :: alpha; i++)
                     requests[i] = this->_view[randombytes_uniform(settings :: alpha)];
 
-                std :: cout << "Locking" << std :: endl;
                 this->_mutex.lock();
 
-                std :: cout << "Pulling" << std :: endl;
                 this->_version++;
                 for(size_t i = 0; i < settings :: alpha; i++)
                 {
-                    std :: cout << "Slot " << i << std :: endl;
                     this->_pullslots[i].completed = false;
                     this->pull(requests[i], i);
-                    std :: cout << "Slot " << i << " completed" << std :: endl;
                 }
 
-                std :: cout << "Unlocking" << std :: endl;
                 this->_mutex.unlock();
             }
             catch(...)
