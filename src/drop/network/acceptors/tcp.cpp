@@ -89,13 +89,19 @@ namespace drop :: acceptors
     {
         while(true)
         {
-            connection connection = this->_acceptor.accept();
+            try
+            {
+                connection connection = this->_acceptor.accept();
 
-            if(!(this->_alive))
-                break;
+                if(!(this->_alive))
+                    break;
 
-            for(size_t i = 0; this->_callbacks[i]; i++)
-                (*(this->_callbacks[i]))(connection);
+                for(size_t i = 0; this->_callbacks[i]; i++)
+                    (*(this->_callbacks[i]))(connection);
+            }
+            catch(...)
+            {
+            }
         }
     }
 
