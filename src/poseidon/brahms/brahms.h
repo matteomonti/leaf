@@ -44,7 +44,7 @@ namespace poseidon
             static constexpr size_t beta = 28;
             static constexpr size_t gamma = sample :: size - (alpha + beta);
 
-            static constexpr interval interval = 10_s;
+            static constexpr interval interval = 20_s;
         };
 
         // Nested classes

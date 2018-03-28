@@ -38,6 +38,16 @@ namespace drop
             static constexpr interval interval = 1_s;
         };
 
+        // Exceptions
+
+        struct exceptions
+        {
+            class event_error : public std :: exception
+            {
+                const char * what() const throw();
+            };
+        };
+
     public:
 
         // Nested classes

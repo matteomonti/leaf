@@ -4,6 +4,13 @@
 
 namespace drop :: connectors
 {
+    // Exceptions
+
+    const char * tcp :: exceptions :: event_error :: what() const throw()
+    {
+        return "Event error.";
+    }
+
     // sync
 
     // Static methods
@@ -70,7 +77,16 @@ namespace drop :: connectors
     {
         while(true)
         {
-            size_t count = this->_queue.select(settings :: interval);
+            size_t count;
+
+            try
+            {
+                count = this->_queue.select(settings :: interval);
+            }
+            catch(...)
+            {
+                continue;
+            }
 
             if(!(this->_alive))
                 break;
@@ -84,16 +100,27 @@ namespace drop :: connectors
                     request request = this->_pending[this->_queue[i].descriptor()];
                     this->_pending.erase(this->_queue[i].descriptor());
 
-                    this->_queue.remove(this->_queue[i].descriptor(), queue :: write);
-
                     try
                     {
-                        request.socket.rethrow();
-                        request.promise.resolve(connection(request.socket));
+                        this->_queue.remove(this->_queue[i].descriptor(), queue :: write);
                     }
                     catch(...)
                     {
-                        request.promise.reject(std :: current_exception());
+                    }
+
+                    if(this->_queue[i].error())
+                        request.promise.reject(exceptions :: event_error());
+                    else
+                    {
+                        try
+                        {
+                            request.socket.rethrow();
+                            request.promise.resolve(connection(request.socket));
+                        }
+                        catch(...)
+                        {
+                            request.promise.reject(std :: current_exception());
+                        }
                     }
                 }
             }
@@ -108,7 +135,14 @@ namespace drop :: connectors
                     if(request.version == this->_timeouts.front().version)
                     {
                         this->_pending.erase(this->_timeouts.front().descriptor);
-                        this->_queue.remove(this->_timeouts.front().descriptor, queue :: write);
+
+                        try
+                        {
+                            this->_queue.remove(this->_timeouts.front().descriptor, queue :: write);
+                        }
+                        catch(...)
+                        {
+                        }
 
                         request.socket.close();
                         request.promise.reject(sockets :: exceptions :: connect_timeout());
@@ -123,11 +157,18 @@ namespace drop :: connectors
 
             while(optional <request> request = this->_new.pop())
             {
-                this->_queue.add(request->socket.descriptor(), queue :: write);
+                try
+                {
+                    this->_queue.add(request->socket.descriptor(), queue :: write);
 
-                request->version = this->_version++;
-                this->_pending[request->socket.descriptor()] = *request;
-                this->_timeouts.push_back({.descriptor = request->socket.descriptor(), .timeout = timestamp(now) + settings :: timeout, .version = request->version});
+                    request->version = this->_version++;
+                    this->_pending[request->socket.descriptor()] = *request;
+                    this->_timeouts.push_back({.descriptor = request->socket.descriptor(), .timeout = timestamp(now) + settings :: timeout, .version = request->version});
+                }
+                catch(...)
+                {
+                    request->promise.reject(std :: current_exception);
+                }
             }
         }
     }

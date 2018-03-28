@@ -34,6 +34,16 @@ namespace drop :: connectors
     {
     public:
 
+        // Exceptions
+
+        struct exceptions
+        {
+            class event_error : public std :: exception
+            {
+                const char * what() const throw();
+            };
+        };
+        
         // Nested classes
 
         class sync

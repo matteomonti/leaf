@@ -6,14 +6,19 @@ namespace drop
 {
     // Exceptions
 
-    const char * queue :: kevent_failed :: what() const noexcept
+    const char * queue :: exceptions :: kevent_failed :: what() const noexcept
     {
         return "Kevent failed.";
     }
 
-    const char * queue :: epoll_ctl_failed :: what() const noexcept
+    const char * queue :: exceptions :: epoll_ctl_failed :: what() const noexcept
     {
         return "Epoll_ctl failed.";
+    }
+
+    const char * queue :: exceptions :: epoll_wait_failed :: what() const noexcept
+    {
+        return "Epoll_wait failed.";
     }
 
     // event
@@ -50,6 +55,14 @@ namespace drop
         else
             assert(false);
         #endif
+    }
+
+    bool queue :: event :: error() const
+    {
+        #ifdef __APPLE__
+        return (this->flags & EV_ERROR);
+        #endif
+        // TODO: Implement for Linux
     }
 
     // queue
@@ -92,7 +105,7 @@ namespace drop
             };
 
             if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
-                throw kevent_failed();
+                throw exceptions :: kevent_failed();
             #endif
 
             #ifdef __linux__
@@ -103,7 +116,7 @@ namespace drop
             };
 
             if(epoll_ctl(this->_descriptor, EPOLL_CTL_ADD, descriptor, &event) < 0)
-                throw epoll_ctl_failed();
+                throw exceptions :: epoll_ctl_failed();
             #endif
         }
         else
@@ -120,7 +133,7 @@ namespace drop
             };
 
             if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
-                throw kevent_failed();
+                throw exceptions :: kevent_failed();
             #endif
 
             #ifdef __linux__
@@ -131,7 +144,7 @@ namespace drop
             };
 
             if(epoll_ctl(this->_descriptor, EPOLL_CTL_ADD, descriptor, &event) < 0)
-                throw epoll_ctl_failed();
+                throw exceptions :: epoll_ctl_failed();
             #endif
         }
     }
@@ -152,7 +165,7 @@ namespace drop
             };
 
             if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
-                throw kevent_failed();
+                throw exceptions :: kevent_failed();
             #endif
 
             #ifdef __linux__
@@ -163,7 +176,7 @@ namespace drop
             };
 
             if(epoll_ctl(this->_descriptor, EPOLL_CTL_DEL, descriptor, &event) < 0)
-                throw epoll_ctl_failed();
+                throw exceptions :: epoll_ctl_failed();
             #endif
         }
         else
@@ -180,7 +193,7 @@ namespace drop
             };
 
             if(kevent(this->_descriptor, &event, 1, 0, 0, 0) < 0)
-                throw kevent_failed();
+                throw exceptions :: kevent_failed();
             #endif
 
             #ifdef __linux__
@@ -191,7 +204,7 @@ namespace drop
             };
 
             if(epoll_ctl(this->_descriptor, EPOLL_CTL_DEL, descriptor, &event) < 0)
-                throw epoll_ctl_failed();
+                throw exceptions :: epoll_ctl_failed();
             #endif
         }
     }
@@ -199,11 +212,21 @@ namespace drop
     size_t queue :: select()
     {
         #ifdef __APPLE__
-        return kevent(this->_descriptor, 0, 0, this->_events, (int) settings :: buffer, nullptr);
+        int count = kevent(this->_descriptor, 0, 0, this->_events, (int) settings :: buffer, nullptr);
+
+        if(count < 0)
+            throw exceptions :: kevent_failed();
+        else
+            return count;
         #endif
 
         #ifdef __linux__
-        return epoll_wait(this->_descriptor, this->_events, (int) settings :: buffer, 0);
+        int count = epoll_wait(this->_descriptor, this->_events, (int) settings :: buffer, 0);
+
+        if(count < 0)
+            throw exceptions :: epoll_wait_failed();
+        else
+            return count;
         #endif
     }
 
@@ -216,11 +239,21 @@ namespace drop
             .tv_nsec = (__darwin_time_t) (((const uint64_t &) timeout) % 1000000) * 1000
         };
 
-        return kevent(this->_descriptor, 0, 0, this->_events, (int) settings :: buffer, &ktimeout);
+        int count = kevent(this->_descriptor, 0, 0, this->_events, (int) settings :: buffer, &ktimeout);
+
+        if(count < 0)
+            throw exceptions :: kevent_failed();
+        else
+            return count;
         #endif
 
         #ifdef __linux__
-        return epoll_wait(this->_descriptor, this->_events, (int) settings :: buffer, (int) (((const uint64_t &) timeout) / 1000));
+        int count = epoll_wait(this->_descriptor, this->_events, (int) settings :: buffer, (int) (((const uint64_t &) timeout) / 1000));
+
+        if(count < 0)
+            throw exceptions :: epoll_wait_failed();
+        else
+            return count;
         #endif
     }
 

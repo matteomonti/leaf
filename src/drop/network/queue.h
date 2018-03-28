@@ -44,14 +44,22 @@ namespace drop
 
         // Exceptions
 
-        class kevent_failed : public std :: exception
+        struct exceptions
         {
-            const char * what() const noexcept;
-        };
+            class kevent_failed : public std :: exception
+            {
+                const char * what() const noexcept;
+            };
 
-        class epoll_ctl_failed : public std :: exception
-        {
-            const char * what() const noexcept;
+            class epoll_ctl_failed : public std :: exception
+            {
+                const char * what() const noexcept;
+            };
+
+            class epoll_wait_failed : public std :: exception
+            {
+                const char * what() const noexcept;
+            };
         };
 
         // Nested enums
@@ -74,6 +82,7 @@ namespace drop
 
             int descriptor() const;
             type type() const;
+            bool error() const;
         };
 
     private:

@@ -4,6 +4,13 @@
 
 namespace drop
 {
+    // Exceptions
+
+    const char * pool :: exceptions :: event_error :: what() const throw()
+    {
+        return "Event error.";
+    }
+
     // connection
 
     // Private constructors
@@ -148,7 +155,16 @@ namespace drop
     {
         while(true)
         {
-            size_t count = this->_queue.select(settings :: interval);
+            size_t count;
+
+            try
+            {
+                count = this->_queue.select(settings :: interval);
+            }
+            catch(...)
+            {
+                continue;
+            }
 
             if(!(this->_alive))
                 break;
@@ -164,19 +180,31 @@ namespace drop
                 auto & table = ((this->_queue[i].type() == queue :: write) ? this->_write : this->_read);
                 request & request = table[this->_queue[i].descriptor()];
 
+                if(this->_queue[i].error())
+                    request.promise.reject(exceptions :: event_error());
+                else
+                {
+                    try
+                    {
+                        if(!(request.type == queue :: write ? request.arc->send_step() : request.arc->receive_step()))
+                            continue;
+
+                        request.promise.resolve();
+                    }
+                    catch(...)
+                    {
+                        request.promise.reject(std :: current_exception());
+                    }
+                }
+
                 try
                 {
-                    if(!(request.type == queue :: write ? request.arc->send_step() : request.arc->receive_step()))
-                        continue;
-
-                    request.promise.resolve();
+                    this->_queue.remove(this->_queue[i].descriptor(), this->_queue[i].type());
                 }
                 catch(...)
                 {
-                    request.promise.reject(std :: current_exception());
                 }
 
-                this->_queue.remove(this->_queue[i].descriptor(), this->_queue[i].type());
                 table.erase(this->_queue[i].descriptor());
             }
 
@@ -197,7 +225,14 @@ namespace drop
                         else
                             request.promise.reject(sockets :: exceptions :: receive_timeout());
 
-                        this->_queue.remove(timeout.descriptor, timeout.type);
+                        try
+                        {
+                            this->_queue.remove(timeout.descriptor, timeout.type);
+                        }
+                        catch(...)
+                        {
+                        }
+
                         table.erase(timeout.descriptor);
                     }
                 }
@@ -212,10 +247,18 @@ namespace drop
             {
                 request->version = this->_version++;
 
-                (request->type == queue :: write ? this->_write : this->_read)[request->arc->descriptor()] = (*request);
-                this->_timeouts.push_back({.descriptor = request->arc->descriptor(), .type = request->type, .timeout = timestamp(now) + settings :: timeout, .version = request->version});
+                try
+                {
+                    this->_queue.add(request->arc->descriptor(), request->type);
 
-                this->_queue.add(request->arc->descriptor(), request->type);
+                    (request->type == queue :: write ? this->_write : this->_read)[request->arc->descriptor()] = (*request);
+                    this->_timeouts.push_back({.descriptor = request->arc->descriptor(), .type = request->type, .timeout = timestamp(now) + settings :: timeout, .version = request->version});
+
+                }
+                catch(...)
+                {
+                    request->promise.reject(std :: current_exception());
+                }
             }
         }
     }
