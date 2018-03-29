@@ -15,7 +15,10 @@ namespace poseidon
 // Includes
 
 #include "sampler.h"
-#include "vine/dialers/directory.hpp"
+#include "drop/network/connectors/tcp.h"
+#include "drop/chrono/crontab.h"
+// #include "vine/dialers/directory.hpp"
+#include "vine/dialers/local.h"
 
 namespace poseidon
 {
@@ -44,7 +47,7 @@ namespace poseidon
             static constexpr size_t beta = 28;
             static constexpr size_t gamma = sample :: size - (alpha + beta);
 
-            static constexpr interval interval = 1_m;
+            static constexpr interval interval = 10_s;
         };
 
         // Nested classes
@@ -92,7 +95,8 @@ namespace poseidon
 
         std :: mutex _mutex;
 
-        dialers :: directory :: client _directory;
+        // dialers :: directory :: client _dialer;
+        dialers :: local :: client _dialer;
         connectors :: tcp :: async & _connector;
         pool & _pool;
         crontab & _crontab;
@@ -101,8 +105,8 @@ namespace poseidon
 
         // Constructors
 
-        brahms(const identifier (&)[settings :: view :: size], const address &, connectors :: tcp :: async &, pool &, crontab &);
-        brahms(const signer &, const identifier (&)[settings :: view :: size], const address &, connectors :: tcp :: async &, pool &, crontab &);
+        brahms(const identifier (&)[settings :: view :: size], /*const address &*/ dialers :: local :: server &, connectors :: tcp :: async &, pool &, crontab &);
+        brahms(const signer &, const identifier (&)[settings :: view :: size], /*const address &*/ dialers :: local :: server &, connectors :: tcp :: async &, pool &, crontab &);
 
         // Getters
 

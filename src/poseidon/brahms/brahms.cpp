@@ -19,14 +19,15 @@ namespace poseidon
 
     promise <dial> brahms :: node :: connect() const
     {
-        return this->_brahms._directory.connect(*this);
+        // return this->_brahms._dialer.connect(*this);
+        return promise <dial> :: resolved(this->_brahms._dialer.connect(*this));
     }
 
     // brahms
 
     // Constructors
 
-    brahms :: brahms(const vine :: identifier (& view)[settings :: view :: size], const address & directory, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _directory(directory, this->_signer, connector, pool, crontab), _connector(connector), _pool(pool), _crontab(crontab)
+    brahms :: brahms(const vine :: identifier (& view)[settings :: view :: size], /*const address & directory*/ dialers :: local :: server & server, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _dialer(server, this->_signer /*, connector, pool, crontab*/), _connector(connector), _pool(pool), _crontab(crontab)
     {
         for(size_t i = 0; i < settings :: view :: size; i++)
         {
@@ -34,7 +35,7 @@ namespace poseidon
             this->dispatch(view[i]);
         }
 
-        this->_directory.on <dial> ([=](const dial & dial)
+        this->_dialer.on <dial> ([=](const dial & dial)
         {
             this->serve(this->_pool.bind(dial));
         });
@@ -42,7 +43,7 @@ namespace poseidon
         this->run();
     }
 
-    brahms :: brahms(const class signer & signer, const vine :: identifier (& view)[settings :: view :: size], const address & directory, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _signer(signer), _directory(directory, this->_signer, connector, pool, crontab), _connector(connector), _pool(pool), _crontab(crontab)
+    brahms :: brahms(const class signer & signer, const vine :: identifier (& view)[settings :: view :: size], /*const address & directory*/ dialers :: local :: server & server, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _signer(signer), _dialer(server, this->_signer /*, connector, pool, crontab*/), _connector(connector), _pool(pool), _crontab(crontab)
     {
         for(size_t i = 0; i < settings :: view :: size; i++)
         {
@@ -50,7 +51,7 @@ namespace poseidon
             this->dispatch(view[i]);
         }
 
-        this->_directory.on <dial> ([=](const dial & dial)
+        this->_dialer.on <dial> ([=](const dial & dial)
         {
             this->serve(this->_pool.bind(dial));
         });
@@ -82,15 +83,19 @@ namespace poseidon
     {
         try
         {
-            pool :: connection connection = this->_pool.bind(co_await this->_directory.connect(identifier));
+            // pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect(identifier));
+            pool :: connection connection = this->_pool.bind(this->_dialer.connect(identifier));
         }
         catch(...)
         {
         }
+
+        return promise <void> :: resolved();
     }
 
     promise <void> brahms :: serve(pool :: connection connection)
     {
+        std :: cout << "Connection incoming" << std :: endl;
         return promise <void> :: resolved();
     }
 
@@ -102,9 +107,9 @@ namespace poseidon
 
             try
             {
-                vine :: identifier requests[settings :: alpha];
+                size_t pullidx[settings :: alpha];
                 for(size_t i = 0; i < settings :: alpha; i++)
-                    requests[i] = this->_view[randombytes_uniform(settings :: alpha)];
+                    pullidx[i] = randombytes_uniform(settings :: alpha);
 
                 this->_mutex.lock();
 
@@ -112,7 +117,7 @@ namespace poseidon
                 for(size_t i = 0; i < settings :: alpha; i++)
                 {
                     this->_pullslots[i].completed = false;
-                    this->pull(requests[i], i);
+                    this->pull(this->_view[pullidx[i]], i);
                 }
 
                 this->_mutex.unlock();
