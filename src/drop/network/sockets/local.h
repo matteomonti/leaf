@@ -15,17 +15,68 @@ namespace drop
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/ioctl.h>
 
 // Includes
 
 #include "exceptions.h"
 #include "drop/chrono/time.hpp"
-#include "drop/utils/sfinae.h"
+#include "drop/network/address.h"
+#include "traits.h"
 
 namespace drop :: sockets
 {
     class local
     {
+    public:
+
+        // Settings
+
+        struct settings
+        {
+            struct streamer
+            {
+                static constexpr size_t buffer = 128;
+            };
+        };
+
+    private:
+
+        // Members
+
+        int _descriptor;
+        bool _blocking;
+
+        // Private constructors
+
+        local(const int &);
+
+    public:
+
+        // Getters
+
+        const int & descriptor() const;
+        const address & remote() const;
+
+        // Setters
+
+        void send_timeout(const interval &);
+        void receive_timeout(const interval &);
+
+        void block(const bool &);
+
+        // Methods
+
+        size_t available();
+
+        size_t send(const uint8_t *, const size_t &);
+
+        size_t receive(uint8_t *, const size_t &);
+        template <typename stype, std :: enable_if_t <constraints :: streamer <stype> ()> * = nullptr> bool receive(stype &);
+
+        void close();
     };
 };
 
