@@ -22,6 +22,7 @@ namespace vine
 #include "drop/network/sockets/local.hpp"
 #include "drop/network/pool.hpp"
 #include "drop/thread/semaphore.h"
+#include "drop/async/eventemitter.hpp"
 #include "exceptions.h"
 
 namespace vine :: dialers
@@ -58,7 +59,7 @@ namespace vine :: dialers
             dial connect(const identifier &, const identifier &);
         };
 
-        class client
+        class client : public eventemitter <dial, dial>
         {
             // Friends
 
@@ -87,6 +88,10 @@ namespace vine :: dialers
             const identifier & identifier() const;
             signer & signer();
             keyexchanger & keyexchanger();
+
+            // Methods
+
+            dial connect(const vine :: identifier &);
         };
     };
 };

@@ -1,6 +1,6 @@
 // Includes
 
-#include "local.hpp"
+#include "local.h"
 
 namespace vine :: dialers
 {
@@ -53,8 +53,7 @@ namespace vine :: dialers
         fromconn.authenticate(from->keyexchanger(), to->keyexchanger().publickey(), fromtxnonce, totxnonce);
         toconn.authenticate(to->keyexchanger(), from->keyexchanger().publickey(), totxnonce, fromtxnonce);
 
-        // Dispatch dial(fromid, toconn) to client
-
+        to->emit <dial> ({fromid, toconn});
         this->_mutex.unlock();
 
         return dial(toid, fromconn);
@@ -101,5 +100,12 @@ namespace vine :: dialers
     keyexchanger & local :: client :: keyexchanger()
     {
         return this->_keyexchanger;
+    }
+
+    // Methods
+
+    dial local :: client :: connect(const vine :: identifier & identifier)
+    {
+        return this->_server.connect(this->_signer.publickey(), identifier);
     }
 }

@@ -1,22 +1,28 @@
 #include <iostream>
 
-#include "drop/network/acceptors/tcp.h"
-#include "drop/network/connectors/tcp.h"
+#include "drop/network/pool.hpp"
+#include "vine/dialers/local.h"
 
 using namespace drop;
+using namespace vine;
 
 int main()
 {
-    acceptors :: tcp :: async my_acceptor(1234);
+    drop :: pool pool;
+    dialers :: local :: server server;
 
-    my_acceptor.on <connection> ([](const connection & connection)
+    dialers :: local :: client alice(server);
+    dialers :: local :: client bob(server);
+
+    alice.on <dial> ([&](const dial & dial)
     {
-        connection.send(buffer("Hello World!"));
+        std :: cout << "Connection incoming from " << dial.identifier() << std :: endl;
+        pool.bind(dial).send(buffer("Hello World")).then([]()
+        {
+            std :: cout << "Message sent" << std :: endl;
+        });
     });
 
-    for(size_t i = 0; i < 10; i++)
-    {
-        connection connection = connectors :: tcp :: sync :: connect({"127.0.0.1", 1234});
-        std :: cout << connection.receive() << std :: endl;
-    }
+    buffer message = bob.connect(alice.identifier()).receive();
+    std :: cout << "Received: " << message << std :: endl;
 }
