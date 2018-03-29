@@ -26,7 +26,7 @@ namespace drop
 #include "exceptions.h"
 #include "drop/network/address.h"
 #include "drop/chrono/time.hpp"
-#include "drop/utils/sfinae.h"
+#include "traits.h"
 
 namespace drop :: sockets
 {
@@ -47,25 +47,6 @@ namespace drop :: sockets
             {
                 static constexpr size_t buffer = 128;
             };
-        };
-
-    private:
-
-        // Traits
-
-        struct traits
-        {
-            template <typename stype> static constexpr bool has_update_method();
-            template <typename stype> static constexpr bool has_pending_method();
-        };
-
-    public:
-
-        // Constraints
-
-        struct constraints
-        {
-            template <typename stype> static constexpr bool streamer();
         };
 
     private:

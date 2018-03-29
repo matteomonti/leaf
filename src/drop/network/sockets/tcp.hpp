@@ -4,32 +4,13 @@
 // Includes
 
 #include "tcp.h"
-#include "drop/utils/sfinae.hpp"
+#include "traits.hpp"
 
 namespace drop :: sockets
 {
-    // Traits
-
-    template <typename stype> constexpr bool tcp :: traits :: has_update_method()
-    {
-        return sfinae :: is_valid([](auto && streamer) -> decltype(streamer.update(std :: declval <const uint8_t *> (), std :: declval <const size_t &> ())) {}).template satisfied <stype> ();
-    }
-
-    template <typename stype> constexpr bool tcp :: traits :: has_pending_method()
-    {
-        return sfinae :: returns <size_t> ([](auto && streamer) -> decltype(streamer.pending()) {}).template satisfied <stype> ();
-    }
-
-    // Constraints
-
-    template <typename stype> constexpr bool tcp :: constraints :: streamer()
-    {
-        return traits :: has_update_method <stype> () && traits :: has_pending_method <stype> ();
-    }
-
     // Methods
 
-    template <typename stype, std :: enable_if_t <tcp :: constraints :: streamer <stype> ()> *> bool tcp :: receive(stype & streamer)
+    template <typename stype, std :: enable_if_t <constraints :: streamer <stype> ()> *> bool tcp :: receive(stype & streamer)
     {
         while(streamer.pending())
         {
