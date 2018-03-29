@@ -156,11 +156,11 @@ namespace drop
             this->send_init(message);
             while(!(this->send_step()));
 
-            this->receive_unlock();
+            this->send_unlock();
         }
         catch(...)
         {
-            this->receive_unlock();
+            this->send_unlock();
             std :: rethrow_exception(std :: current_exception());
         }
     }

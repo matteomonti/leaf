@@ -21,6 +21,7 @@ namespace drop
 // Includes
 
 #include "drop/network/sockets/tcp.hpp"
+#include "drop/network/sockets/local.hpp"
 #include "drop/data/optional.hpp"
 #include "drop/data/buffer.hpp"
 #include "drop/data/varint.hpp"
@@ -54,7 +55,7 @@ namespace drop
         {
             // Members
 
-            variant <sockets :: tcp> _socket;
+            variant <sockets :: tcp, sockets :: local> _socket;
 
             struct
             {
@@ -134,7 +135,7 @@ namespace drop
 
         address remote() const;
         bool authenticated() const;
-        
+
         // Methods
 
         void send(const buffer &) const;

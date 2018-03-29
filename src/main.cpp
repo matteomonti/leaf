@@ -1,20 +1,35 @@
 #include <iostream>
 
 #include "drop/network/sockets/local.hpp"
+#include "drop/network/connection.hpp"
+#include "drop/network/pool.hpp"
 
 using namespace drop;
 
-// close
-// descriptor
-// remote (dang)
-// block
-// send
-// receive streamer
-
 int main()
 {
-    //int descriptors[2];
-    //std :: cout << socketpair(PF_UNIX, SOCK_STREAM, 0, descriptors) << std :: endl;
+    sockets :: socketpair my_socketpair;
 
-    //sleep(10_h);
+    connection alpha = my_socketpair.alpha;
+    connection beta = my_socketpair.beta;
+
+    my_socketpair.alpha.send_timeout(10_s);
+    my_socketpair.beta.receive_timeout(20_s);
+
+    alpha.send(buffer("Hello World!"));
+    std :: cout << beta.receive() << std :: endl;
+
+    pool my_pool;
+
+    pool :: connection async_alpha = my_pool.bind(alpha);
+    pool :: connection async_beta = my_pool.bind(beta);
+
+    async_alpha.send(buffer("Hello World!"));
+
+    async_beta.receive().then([](const buffer & message)
+    {
+        std :: cout << message << std :: endl;
+    });
+
+    sleep(10_s);
 }

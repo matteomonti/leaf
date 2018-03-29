@@ -4,6 +4,8 @@
 
 namespace drop :: sockets
 {
+    // local
+
     // Private constructors
 
     local :: local(const int & descriptor) : _descriptor(descriptor), _blocking(true)
@@ -126,5 +128,20 @@ namespace drop :: sockets
     {
         :: close(this->_descriptor);
         this->_descriptor = -1;
+    }
+
+    // socketpair
+
+    // Constructors
+
+    socketpair :: socketpair()
+    {
+        int descriptors[2];
+
+        if(:: socketpair(PF_UNIX, SOCK_STREAM, 0, descriptors))
+            throw exceptions :: connect_failed();
+
+        this->alpha = local(descriptors[0]);
+        this->beta = local(descriptors[1]);
     }
 };

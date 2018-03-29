@@ -8,6 +8,8 @@
 
 namespace drop :: sockets
 {
+    // local
+    
     // Methods
 
     template <typename stype, std :: enable_if_t <constraints :: streamer <stype> ()> *> bool local :: receive(stype & streamer)

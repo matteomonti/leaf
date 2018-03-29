@@ -5,6 +5,7 @@ namespace drop
     namespace sockets
     {
         class local;
+        struct socketpair;
     };
 };
 
@@ -30,6 +31,10 @@ namespace drop :: sockets
 {
     class local
     {
+        // Friends
+
+        friend class socketpair;
+
     public:
 
         // Settings
@@ -51,6 +56,7 @@ namespace drop :: sockets
 
         // Private constructors
 
+        local() = default;
         local(const int &);
 
     public:
@@ -77,6 +83,18 @@ namespace drop :: sockets
         template <typename stype, std :: enable_if_t <constraints :: streamer <stype> ()> * = nullptr> bool receive(stype &);
 
         void close();
+    };
+
+    struct socketpair
+    {
+        // Constructors
+
+        socketpair();
+
+        // Public members
+
+        local alpha;
+        local beta;
     };
 };
 

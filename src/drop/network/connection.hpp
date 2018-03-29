@@ -11,7 +11,7 @@ namespace drop
 
     template <typename stype> constexpr bool connection :: constraints :: socket()
     {
-        return std :: is_same <stype, sockets :: tcp> :: value;
+        return std :: is_same <stype, sockets :: tcp> :: value || std :: is_same <stype, sockets :: local> :: value;
     }
 
     // arc
