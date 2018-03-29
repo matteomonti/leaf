@@ -101,12 +101,14 @@ namespace poseidon
         pool & _pool;
         crontab & _crontab;
 
+        std :: ostream & log; // REMOVE ME
+
     public:
 
         // Constructors
 
-        brahms(const identifier (&)[settings :: view :: size], /*const address &*/ dialers :: local :: server &, connectors :: tcp :: async &, pool &, crontab &);
-        brahms(const signer &, const identifier (&)[settings :: view :: size], /*const address &*/ dialers :: local :: server &, connectors :: tcp :: async &, pool &, crontab &);
+        brahms(const identifier (&)[settings :: view :: size], /*const address &*/ dialers :: local :: server &, connectors :: tcp :: async &, pool &, crontab &, std :: ostream &);
+        brahms(const signer &, const identifier (&)[settings :: view :: size], /*const address &*/ dialers :: local :: server &, connectors :: tcp :: async &, pool &, crontab &, std :: ostream &);
 
         // Getters
 
@@ -118,8 +120,10 @@ namespace poseidon
         // Private methods
 
         void dispatch(const vine :: identifier &);
-        promise <void> pull(vine :: identifier, size_t);
+        promise <void> pull(size_t, vine :: identifier, size_t);
         promise <void> serve(pool :: connection);
+
+        void snapshot(vine :: identifier (&)[settings :: view :: size]);
 
         promise <void> run();
     };

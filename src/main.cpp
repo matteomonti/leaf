@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "poseidon/brahms/brahms.h"
 #include "drop/network/connectors/tcp.h"
@@ -12,14 +13,17 @@ using namespace poseidon;
 
 static constexpr size_t nodes = 64;
 
-void sample(signer * signers, identifier * sample)
+void sample(size_t node, signer * signers, identifier * sample)
 {
     for(size_t i = 0; i < brahms :: settings :: view :: size; i++)
-        sample[i] = signers[rand() % nodes].publickey();
+        sample[i] = signers[(node + 1 + (rand() % (nodes - 1))) % nodes].publickey();
 }
 
 int main()
 {
+    std :: ofstream nullstream;
+    nullstream.open("/dev/null", std :: ios :: out);
+
     connectors :: tcp :: async connector;
     pool pool;
     crontab crontab;
@@ -39,9 +43,9 @@ int main()
     for(size_t i = 0; i < nodes; i++)
     {
         signature :: publickey view[brahms :: settings :: view :: size];
-        sample(signers, view);
+        sample(i, signers, view);
 
-        brahms[i] = new class brahms(signers[i], view, /*{"127.0.0.1", 7777}*/ server, connector, pool, crontab);
+        brahms[i] = new class brahms(signers[i], view, /*{"127.0.0.1", 7777}*/ server, connector, pool, crontab, (i == 0 ? std :: cout : nullstream));
     }
 
     std :: cout << "Started" << std :: endl;
