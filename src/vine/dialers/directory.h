@@ -29,6 +29,7 @@ namespace vine
 #include "drop/chrono/crontab.h"
 #include "drop/utils/sfinae.hpp"
 #include "vine/network/dial.h"
+#include "exceptions.h"
 
 namespace vine :: dialers
 {
@@ -102,20 +103,6 @@ namespace vine :: dialers
                 static constexpr interval timeout = server :: settings :: timeout;
                 static constexpr interval refresh = 15_m;
             };
-
-        public:
-
-            // Exceptions
-
-            struct exceptions
-            {
-                class lookup_failed : public std :: exception
-                {
-                    const char * what() const throw();
-                };
-            };
-
-        private:
 
             // Traits
 

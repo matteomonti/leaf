@@ -95,13 +95,6 @@ namespace vine :: dialers
 
     // client
 
-    // Exceptions
-
-    const char * directory :: client :: exceptions :: lookup_failed :: what() const throw()
-    {
-        return "Directory lookup failed.";
-    }
-
     // Constructors
 
     directory :: client :: client(const address & server, connectors :: tcp :: async & connector, pool & pool, crontab & crontab) : _server(server), _connector(connector), _pool(pool), _crontab(crontab)
@@ -183,7 +176,7 @@ namespace vine :: dialers
             co_await connection.send(identifier);
 
             if(!(co_await connection.receive <bool> ()))
-                throw exceptions :: lookup_failed();
+                throw exceptions :: node_not_found();
 
             entry entry;
 
@@ -192,7 +185,7 @@ namespace vine :: dialers
 
             entry.timestamp = co_await connection.receive <timestamp> ();
             if(timestamp(now) - entry.timestamp > settings :: timeout)
-                throw exceptions :: lookup_failed();
+                throw exceptions :: node_not_found();
 
             signature signature = co_await connection.receive <class signature> ();
 
@@ -203,7 +196,7 @@ namespace vine :: dialers
         }
         catch(...)
         {
-            throw exceptions :: lookup_failed();
+            throw exceptions :: node_not_found();
         }
     }
 

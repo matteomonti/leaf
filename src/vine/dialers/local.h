@@ -22,6 +22,7 @@ namespace vine
 #include "drop/network/sockets/local.hpp"
 #include "drop/network/pool.hpp"
 #include "drop/thread/semaphore.h"
+#include "exceptions.h"
 
 namespace vine :: dialers
 {

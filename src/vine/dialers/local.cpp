@@ -39,7 +39,7 @@ namespace vine :: dialers
         catch(...)
         {
             this->_mutex.unlock();
-            throw "lookup_failed"; // TODO: Move lookup_failed to common exceptions file
+            throw exceptions :: node_not_found();
         }
 
         sockets :: socketpair socketpair;
