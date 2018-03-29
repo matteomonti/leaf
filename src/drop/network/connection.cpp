@@ -192,6 +192,11 @@ namespace drop
 
         class secretbox :: nonce rxnonce = this->receive <class secretbox :: nonce> ();
 
+        this->authenticate(exchanger, remote, txnonce, rxnonce);
+    }
+
+    void connection :: arc :: authenticate(const keyexchanger & exchanger, const class keyexchanger :: publickey & remote, const class secretbox :: nonce & txnonce, const class secretbox :: nonce & rxnonce)
+    {
         keyexchanger :: sessionkey session = exchanger.exchange(remote);
         this->secretkeys(session.transmit(), txnonce, session.receive(), rxnonce);
     }
@@ -245,5 +250,10 @@ namespace drop
     void connection :: authenticate(const keyexchanger & exchanger, const class keyexchanger :: publickey & remote) const
     {
         this->_arc->authenticate(exchanger, remote);
+    }
+
+    void connection :: authenticate(const keyexchanger & exchanger, const class keyexchanger :: publickey & remote, const class secretbox :: nonce & txnonce, const class secretbox :: nonce & rxnonce) const
+    {
+        this->_arc->authenticate(exchanger, remote, txnonce, rxnonce);
     }
 };

@@ -114,6 +114,7 @@ namespace drop
             template <typename... types> auto receive();
 
             void authenticate(const keyexchanger &, const class keyexchanger :: publickey &);
+            void authenticate(const keyexchanger &, const class keyexchanger :: publickey &, const class secretbox :: nonce &, const class secretbox :: nonce &);
 
             void send_lock();
             void send_unlock();
@@ -145,6 +146,7 @@ namespace drop
         template <typename... types, std :: enable_if_t <(... && (bytewise :: constraints :: deserializable <types> ()))> * = nullptr> auto receive() const;
 
         void authenticate(const keyexchanger &, const class keyexchanger :: publickey &) const;
+        void authenticate(const keyexchanger &, const class keyexchanger :: publickey &, const class secretbox :: nonce &, const class secretbox :: nonce &) const;
     };
 };
 

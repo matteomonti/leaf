@@ -501,6 +501,13 @@ namespace drop
         return promise;
     }
 
+    template <typename type> template <typename etype> promise <type> promise <type> :: rejected(const etype & exception)
+    {
+        promise promise;
+        promise.reject(exception);
+        return promise;
+    }
+
     // Operators
 
     template <typename type> promise <type> & promise <type> :: operator = (const promise & rho)
