@@ -1,46 +1,22 @@
 #include <iostream>
 
-#include "drop/async/eventemitter.hpp"
+#include "drop/network/acceptors/tcp.h"
+#include "drop/network/connectors/tcp.h"
 
 using namespace drop;
 
-class myevent;
-
-class myclass : public eventemitter <myevent>
-{
-public:
-
-    void doit()
-    {
-        this->emit <myevent> ();
-    }
-};
-
 int main()
 {
-    myclass myobject;
+    acceptors :: tcp :: async my_acceptor(1234);
 
-    std :: cout << "First call" << std :: endl;
-    myobject.doit();
-
-    myobject.on <myevent> ([]()
+    my_acceptor.on <connection> ([](const connection & connection)
     {
-        std :: cout << "Event triggered!!" << std :: endl;
+        connection.send(buffer("Hello World!"));
     });
 
-    std :: cout << "Second call" << std :: endl;
-    myobject.doit();
-
-    myobject.on <myevent> ([]()
+    for(size_t i = 0; i < 10; i++)
     {
-        std :: cout << "Also here!" << std :: endl;
-    });
-
-    std :: cout << "Third call" << std :: endl;
-    myobject.doit();
-
-    myobject.clear();
-
-    std :: cout << "Fourth call" << std :: endl;
-    myobject.doit();
+        connection connection = connectors :: tcp :: sync :: connect({"127.0.0.1", 1234});
+        std :: cout << connection.receive() << std :: endl;
+    }
 }

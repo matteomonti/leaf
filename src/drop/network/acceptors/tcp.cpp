@@ -1,6 +1,6 @@
 // Includes
 
-#include "tcp.hpp"
+#include "tcp.h"
 
 namespace drop :: acceptors
 {
@@ -33,23 +33,15 @@ namespace drop :: acceptors
         return connection(this->_socket.accept());
     }
 
-    // callback_interface
-
-    // Destructor
-
-    tcp :: async :: callback_interface :: ~callback_interface()
-    {
-    }
-
     // async
 
     // Constructors
 
-    tcp :: async :: async() : _acceptor(), _callbacks{}, _alive(true), _thread(&async :: run, this)
+    tcp :: async :: async() : _acceptor(), _alive(true), _thread(&async :: run, this)
     {
     }
 
-    tcp :: async :: async(const uint16_t & port) : _acceptor(port), _callbacks{}, _alive(true), _thread(&async :: run, this)
+    tcp :: async :: async(const uint16_t & port) : _acceptor(port), _alive(true), _thread(&async :: run, this)
     {
     }
 
@@ -60,9 +52,6 @@ namespace drop :: acceptors
         this->_alive = false;
         this->wake();
         this->_thread.join();
-
-        for(size_t i = 0; this->_callbacks[i]; i++)
-            delete this->_callbacks[i];
     }
 
     // Getters
@@ -70,17 +59,6 @@ namespace drop :: acceptors
     const class address :: port & tcp :: async :: port() const
     {
         return this->_acceptor.port();
-    }
-
-    // Methods
-
-    void tcp :: async :: reset()
-    {
-        for(size_t i = 0; this->_callbacks[i]; i++)
-        {
-            delete this->_callbacks[i];
-            this->_callbacks[i] = nullptr;
-        }
     }
 
     // Private methods
@@ -96,8 +74,7 @@ namespace drop :: acceptors
                 if(!(this->_alive))
                     break;
 
-                for(size_t i = 0; this->_callbacks[i]; i++)
-                    (*(this->_callbacks[i]))(connection);
+                this->emit <class connection> (connection);
             }
             catch(...)
             {
