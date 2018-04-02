@@ -24,39 +24,46 @@ namespace vine :: dialers
         this->_mutex.unlock();
     }
 
-    dial local :: server :: connect(const identifier & fromid, const identifier & toid)
+    promise <dial> local :: server :: connect(const identifier & fromid, const identifier & toid)
     {
-        this->_mutex.lock();
-
-        client * from;
-        client * to;
-
         try
         {
-            from = this->_clients.at(fromid);
-            to = this->_clients.at(toid);
+            this->_mutex.lock();
+
+            client * from;
+            client * to;
+
+            try
+            {
+                from = this->_clients.at(fromid);
+                to = this->_clients.at(toid);
+            }
+            catch(...)
+            {
+                this->_mutex.unlock();
+                throw exceptions :: node_not_found();
+            }
+
+            sockets :: socketpair socketpair;
+
+            connection fromconn(socketpair.alpha);
+            connection toconn(socketpair.beta);
+
+            class secretbox :: nonce fromtxnonce = secretbox :: nonce :: random();
+            class secretbox :: nonce totxnonce = secretbox :: nonce :: random();
+
+            fromconn.authenticate(from->keyexchanger(), to->keyexchanger().publickey(), fromtxnonce, totxnonce);
+            toconn.authenticate(to->keyexchanger(), from->keyexchanger().publickey(), totxnonce, fromtxnonce);
+
+            to->emit <dial> ({fromid, toconn});
+            this->_mutex.unlock();
+
+            return promise <dial> :: resolved(dial(toid, fromconn));
         }
         catch(...)
         {
-            this->_mutex.unlock();
-            throw exceptions :: node_not_found();
+            return promise <dial> :: rejected(std :: current_exception());
         }
-
-        sockets :: socketpair socketpair;
-
-        connection fromconn(socketpair.alpha);
-        connection toconn(socketpair.beta);
-
-        class secretbox :: nonce fromtxnonce = secretbox :: nonce :: random();
-        class secretbox :: nonce totxnonce = secretbox :: nonce :: random();
-
-        fromconn.authenticate(from->keyexchanger(), to->keyexchanger().publickey(), fromtxnonce, totxnonce);
-        toconn.authenticate(to->keyexchanger(), from->keyexchanger().publickey(), totxnonce, fromtxnonce);
-
-        to->emit <dial> ({fromid, toconn});
-        this->_mutex.unlock();
-
-        return dial(toid, fromconn);
     }
 
     // client
@@ -104,7 +111,7 @@ namespace vine :: dialers
 
     // Methods
 
-    dial local :: client :: connect(const vine :: identifier & identifier)
+    promise <dial> local :: client :: connect(const vine :: identifier & identifier)
     {
         return this->_server.connect(this->_signer.publickey(), identifier);
     }

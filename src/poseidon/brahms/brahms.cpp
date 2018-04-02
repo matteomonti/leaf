@@ -19,8 +19,7 @@ namespace poseidon
 
     promise <dial> brahms :: node :: connect() const
     {
-        // return this->_brahms._dialer.connect(*this);
-        return promise <dial> :: resolved(this->_brahms._dialer.connect(*this));
+        return this->_brahms._dialer.connect(*this);
     }
 
     // brahms
@@ -83,8 +82,7 @@ namespace poseidon
     {
         try
         {
-            // pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect(identifier));
-            pool :: connection connection = this->_pool.bind(this->_dialer.connect(identifier));
+            pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect(identifier));
             co_await connection.send(false);
 
             vine :: identifier view[settings :: view :: size];

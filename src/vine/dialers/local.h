@@ -56,7 +56,7 @@ namespace vine :: dialers
             void add(const identifier &, client *);
             void remove(const identifier &);
 
-            dial connect(const identifier &, const identifier &);
+            promise <dial> connect(const identifier &, const identifier &);
         };
 
         class client : public eventemitter <dial, dial>
@@ -91,7 +91,7 @@ namespace vine :: dialers
 
             // Methods
 
-            dial connect(const vine :: identifier &);
+            promise <dial> connect(const vine :: identifier &);
         };
     };
 };
