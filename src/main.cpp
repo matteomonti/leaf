@@ -1,68 +1,67 @@
 #include <iostream>
 #include <fstream>
 
-#include "drop/async/eventemitter.hpp"
+#include "poseidon/brahms/brahms.h"
+#include "drop/network/connectors/tcp.h"
+#include "drop/network/pool.hpp"
+#include "drop/chrono/crontab.h"
+#include "vine/dialers/local.h"
 
 using namespace drop;
+using namespace vine;
+using namespace poseidon;
 
-class myevent
+static constexpr size_t nodes = 64;
+
+std :: array <identifier, brahms :: settings :: view :: size> view(std :: array <signer, nodes> & signers, size_t node)
 {
-};
+    std :: array <identifier, brahms :: settings :: view :: size> sample;
 
-class myclass : public eventemitter <myevent>
-{
-public:
+    for(size_t i = 0; i < brahms :: settings :: view :: size; i++)
+        sample[i] = signers[(node + 1 + (rand() % (nodes - 1))) % nodes].publickey();
 
-    void doit()
-    {
-        bool pass = this->emit <myevent> ();
-
-        if(pass)
-            std :: cout << "Event passed" << std :: endl << std :: endl;
-        else
-            std :: cout << "Event not passed" << std :: endl << std :: endl;
-    }
-};
+    return sample;
+}
 
 int main()
 {
-    myclass myobject;
-    myobject.doit();
+    std :: ofstream nullstream;
+    nullstream.open("/dev/null", std :: ios :: out);
 
-    myobject.on <myevent> ([]()
+    connectors :: tcp :: async connector;
+    pool pool;
+    crontab crontab;
+
+    dialers :: local :: server server;
+
+    std :: array <signer, nodes> signers;
+    std :: array <dialers :: local :: client *, nodes> dialers;
+    std :: array <brahms *, nodes> brahms;
+
+    std :: cout << "Creating nodes" << std :: endl;
+
+    for(size_t i = 0; i < nodes; i++)
     {
-        std :: cout << "First callback" << std :: endl;
+        auto view = :: view(signers, i);
+        dialers[i] = new dialers :: local :: client(server, signers[i]);
+
+        brahms[i] = new class brahms(signers[i], view, *(dialers[i]), pool, crontab, (i == 0 ? std :: cout : nullstream));
+    }
+
+    brahms[0]->on <events :: push :: send> ([](const vine :: identifier & identifier)
+    {
+        std :: cout << "Going to push to " << identifier << std :: endl;
+
+        //std :: cout << "Changed my mind!" << std :: endl;
+        //return false;
     });
 
-    myobject.doit();
+    std :: cout << "Starting nodes" << std :: endl;
 
-    bool pass = true;
+    for(size_t i = 0; i < nodes; i++)
+        brahms[i]->start();
 
-    myobject.on <myevent> ([&]()
-    {
-        std :: cout << "Second callback" << std :: endl;
-        return pass;
-    });
+    std :: cout << "Started" << std :: endl;
 
-    myobject.doit();
-
-    myobject.on <myevent> ([]()
-    {
-        std :: cout << "Third callback" << std :: endl;
-    });
-
-    myobject.doit();
-
-    pass = false;
-    myobject.doit();
-
-    pass = true;
-
-    myobject.on <myevent> ([&]()
-    {
-        std :: cout << "Fourth callback" << std :: endl;
-        throw "You shall not pass!";
-    });
-
-    myobject.doit();
+    sleep(10_h);
 }

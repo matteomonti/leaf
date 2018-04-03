@@ -28,28 +28,10 @@ namespace poseidon
 
     brahms :: brahms(const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _view(view), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
-        for(size_t i = 0; i < settings :: view :: size; i++)
-            this->update_sample(view[i]);
-
-        this->_dialer.on <dial> ([=](const dial & dial)
-        {
-            this->serve(this->_pool.bind(dial));
-        });
-
-        this->run();
     }
 
     brahms :: brahms(const class signer & signer, const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _view(view), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
-        for(size_t i = 0; i < settings :: view :: size; i++)
-            this->update_sample(view[i]);
-
-        this->_dialer.on <dial> ([=](const dial & dial)
-        {
-            this->serve(this->_pool.bind(dial));
-        });
-
-        this->run();
     }
 
     // Getters
@@ -62,6 +44,24 @@ namespace poseidon
     signer & brahms :: signer()
     {
         return this->_signer;
+    }
+
+    // Methods
+
+    void brahms :: start()
+    {
+        for(size_t i = 0; i < settings :: view :: size; i++)
+        {
+            this->update_sample(this->_view[i]);
+            this->emit <events :: view :: join> (this->_view[i]);
+        }
+
+        this->_dialer.on <dial> ([=](const dial & dial)
+        {
+            this->serve(this->_pool.bind(dial));
+        });
+
+        this->run();
     }
 
     // Private methods
@@ -157,7 +157,12 @@ namespace poseidon
                 log << "Sending push requests" << std :: endl;
 
                 for(size_t i = 0; i < settings :: beta; i++)
-                    this->push(this->_view[randombytes_uniform(settings :: beta)]);
+                {
+                    vine :: identifier identifier = this->_view[randombytes_uniform(settings :: beta)];
+
+                    if(this->emit <events :: push :: send> (identifier))
+                        this->push(identifier);
+                }
 
                 this->_mutex.unlock();
 

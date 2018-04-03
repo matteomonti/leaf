@@ -5,6 +5,7 @@ namespace poseidon
     namespace events
     {
         struct push;
+        struct view;
     };
 
     class brahms;
@@ -44,9 +45,23 @@ namespace poseidon
             {
             };
         };
+
+        struct view
+        {
+            struct join
+            {
+            };
+
+            struct leave
+            {
+            };
+        };
     };
 
-    class brahms
+    class brahms : public eventemitter <events :: push :: send, vine :: identifier>,
+                   public eventemitter <events :: push :: receive, vine :: identifier>,
+                   public eventemitter <events :: view :: join, vine :: identifier>,
+                   public eventemitter <events :: view :: leave, vine :: identifier>
     {
     public:
 
@@ -72,6 +87,24 @@ namespace poseidon
 
             static constexpr interval interval = 10_s;
         };
+
+        // Using
+
+        using eventemitter <events :: push :: send, vine :: identifier> :: on;
+        using eventemitter <events :: push :: receive, vine :: identifier> :: on;
+        using eventemitter <events :: view :: join, vine :: identifier> :: on;
+        using eventemitter <events :: view :: leave, vine :: identifier> :: on;
+
+    private:
+
+        // Private using
+
+        using eventemitter <events :: push :: send, vine :: identifier> :: emit;
+        using eventemitter <events :: push :: receive, vine :: identifier> :: emit;
+        using eventemitter <events :: view :: join, vine :: identifier> :: emit;
+        using eventemitter <events :: view :: leave, vine :: identifier> :: emit;
+
+    public:
 
         // Nested classes
 
@@ -135,6 +168,10 @@ namespace poseidon
 
         const identifier & identifier() const;
         signer & signer();
+
+        // Methods
+
+        void start();
 
     private:
 
