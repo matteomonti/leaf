@@ -26,13 +26,10 @@ namespace poseidon
 
     // Constructors
 
-    brahms :: brahms(const vine :: identifier (& view)[settings :: view :: size], /*const address & directory*/ dialers :: local :: server & server, connectors :: tcp :: async & connector, pool & pool, crontab & crontab, std :: ostream & log) : _dialer(server, this->_signer /*, connector, pool, crontab*/), _connector(connector), _pool(pool), _crontab(crontab), log(log)
+    brahms :: brahms(const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _view(view), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
         for(size_t i = 0; i < settings :: view :: size; i++)
-        {
-            this->_view[i] = view[i];
-            this->dispatch(view[i]);
-        }
+            this->update_sample(view[i]);
 
         this->_dialer.on <dial> ([=](const dial & dial)
         {
@@ -42,13 +39,10 @@ namespace poseidon
         this->run();
     }
 
-    brahms :: brahms(const class signer & signer, const vine :: identifier (& view)[settings :: view :: size], /*const address & directory*/ dialers :: local :: server & server, connectors :: tcp :: async & connector, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _dialer(server, this->_signer /*, connector, pool, crontab*/), _connector(connector), _pool(pool), _crontab(crontab), log(log)
+    brahms :: brahms(const class signer & signer, const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _view(view), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
         for(size_t i = 0; i < settings :: view :: size; i++)
-        {
-            this->_view[i] = view[i];
-            this->dispatch(view[i]);
-        }
+            this->update_sample(view[i]);
 
         this->_dialer.on <dial> ([=](const dial & dial)
         {
@@ -72,27 +66,27 @@ namespace poseidon
 
     // Private methods
 
-    void brahms :: dispatch(const vine :: identifier & identifier)
+    void brahms :: update_sample(const vine :: identifier & identifier)
     {
         for(size_t i = 0; i < settings :: sample :: size; i++)
             this->_sample[i].next(identifier);
     }
 
-    promise <void> brahms :: pull(size_t version, vine :: identifier identifier, size_t slot)
+    promise <void> brahms :: pull(vine :: identifier identifier, size_t slot, size_t version)
     {
         try
         {
             pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect(identifier));
             co_await connection.send(false);
 
-            vine :: identifier view[settings :: view :: size];
+            std :: array <vine :: identifier, settings :: view :: size> view;
             for(size_t i = 0; i < settings :: view :: size; i++)
                 view[i] = co_await connection.receive <vine :: identifier> ();
 
             this->_mutex.lock();
             if(this->_version == version)
             {
-                std :: copy(std :: begin(view), std :: end(view), this->_pullslots[slot].view);
+                this->_pullslots[slot].view = view;
                 this->_pullslots[slot].completed = true;
             }
             this->_mutex.unlock();
@@ -113,9 +107,10 @@ namespace poseidon
             }
             else
             {
-                vine :: identifier view[settings :: view :: size];
-                this->snapshot(view);
-
+                this->_mutex.lock();
+                std :: array <vine :: identifier, settings :: view :: size> view = this->_view;
+                this->_mutex.unlock();
+                
                 for(size_t i = 0; i < settings :: view :: size; i++)
                     co_await connection.send <vine :: identifier> (view[i]);
             }
@@ -123,13 +118,6 @@ namespace poseidon
         catch(...)
         {
         }
-    }
-
-    void brahms :: snapshot(vine :: identifier (& view)[settings :: view :: size])
-    {
-        this->_mutex.lock();
-        std :: copy(std :: begin(this->_view), std :: end(this->_view), view);
-        this->_mutex.unlock();
     }
 
     promise <void> brahms :: run()
@@ -148,7 +136,7 @@ namespace poseidon
                 for(size_t i = 0; i < settings :: alpha; i++)
                 {
                     this->_pullslots[i].completed = false;
-                    this->pull(this->_version, this->_view[randombytes_uniform(settings :: alpha)], i);
+                    this->pull(this->_view[randombytes_uniform(settings :: alpha)], i, this->_version);
                 }
 
                 this->_mutex.unlock();

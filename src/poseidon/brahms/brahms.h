@@ -11,13 +11,14 @@ namespace poseidon
 // Libraries
 
 #include <sodium.h>
+#include <array>
 
 // Includes
 
 #include "sampler.h"
 #include "drop/network/connectors/tcp.h"
 #include "drop/chrono/crontab.h"
-// #include "vine/dialers/directory.hpp"
+#include "vine/dialers/directory.hpp"
 #include "vine/dialers/local.h"
 
 namespace poseidon
@@ -33,6 +34,8 @@ namespace poseidon
 
         struct settings
         {
+            typedef dialers :: local :: client dialer;
+
             struct view
             {
                 static constexpr size_t size = 32;
@@ -80,24 +83,22 @@ namespace poseidon
         struct pullslot
         {
             bool completed;
-            identifier view[settings :: view :: size];
+            std :: array <identifier, settings :: view :: size> view;
         };
 
         // Members
 
         signer _signer;
 
-        identifier _view[settings :: view :: size];
-        sampler _sample[settings :: sample :: size];
+        std :: array <identifier, settings :: view :: size> _view;
+        std :: array <sampler, settings :: sample :: size> _sample;
 
-        pullslot _pullslots[settings :: view :: size];
+        std :: array <pullslot, settings :: alpha> _pullslots;
         size_t _version;
 
         std :: mutex _mutex;
 
-        // dialers :: directory :: client _dialer;
-        dialers :: local :: client _dialer;
-        connectors :: tcp :: async & _connector;
+        typename settings :: dialer & _dialer;
         pool & _pool;
         crontab & _crontab;
 
@@ -107,8 +108,8 @@ namespace poseidon
 
         // Constructors
 
-        brahms(const identifier (&)[settings :: view :: size], /*const address &*/ dialers :: local :: server &, connectors :: tcp :: async &, pool &, crontab &, std :: ostream &);
-        brahms(const signer &, const identifier (&)[settings :: view :: size], /*const address &*/ dialers :: local :: server &, connectors :: tcp :: async &, pool &, crontab &, std :: ostream &);
+        brahms(const std :: array <identifier, settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &, std :: ostream &);
+        brahms(const signer &, const std :: array <identifier, settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &, std :: ostream &);
 
         // Getters
 
@@ -119,11 +120,10 @@ namespace poseidon
 
         // Private methods
 
-        void dispatch(const vine :: identifier &);
-        promise <void> pull(size_t, vine :: identifier, size_t);
-        promise <void> serve(pool :: connection);
+        void update_sample(const vine :: identifier &);
 
-        void snapshot(vine :: identifier (&)[settings :: view :: size]);
+        promise <void> pull(vine :: identifier, size_t, size_t);
+        promise <void> serve(pool :: connection);
 
         promise <void> run();
     };
