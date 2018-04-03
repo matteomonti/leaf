@@ -18,6 +18,7 @@ namespace poseidon
 
 #include <sodium.h>
 #include <array>
+#include <vector>
 
 // Includes
 
@@ -147,6 +148,7 @@ namespace poseidon
         std :: array <sampler, settings :: sample :: size> _sample;
 
         std :: array <pullslot, settings :: alpha> _pullslots;
+        std :: vector <identifier> _pushslots;
         size_t _version;
 
         std :: mutex _mutex;

@@ -118,6 +118,13 @@ namespace poseidon
             if(push)
             {
                 vine :: identifier identifier = co_await connection.receive <vine :: identifier> ();
+
+                if(this->emit <events :: push :: receive> (identifier))
+                {
+                    this->_mutex.lock();
+                    this->_pushslots.push_back(identifier);
+                    this->_mutex.unlock();
+                }
             }
             else
             {

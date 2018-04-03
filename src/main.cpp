@@ -56,6 +56,14 @@ int main()
         //return false;
     });
 
+    brahms[0]->on <events :: push :: receive> ([](const vine :: identifier & identifier)
+    {
+        std :: cout << "Received push from " << identifier << std :: endl;
+
+        std :: cout << "Changed my mind!" << std :: endl;
+        return false;
+    });
+
     std :: cout << "Starting nodes" << std :: endl;
 
     for(size_t i = 0; i < nodes; i++)
