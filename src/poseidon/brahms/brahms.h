@@ -2,6 +2,11 @@
 
 namespace poseidon
 {
+    namespace events
+    {
+        struct push;
+    };
+
     class brahms;
 };
 
@@ -18,6 +23,7 @@ namespace poseidon
 #include "sampler.h"
 #include "drop/network/connectors/tcp.h"
 #include "drop/chrono/crontab.h"
+#include "drop/async/eventemitter.hpp"
 #include "vine/dialers/directory.hpp"
 #include "vine/dialers/local.h"
 
@@ -25,6 +31,20 @@ namespace poseidon
 {
     using namespace drop;
     using namespace vine;
+
+    namespace events
+    {
+        struct push
+        {
+            struct send
+            {
+            };
+
+            struct receive
+            {
+            };
+        };
+    };
 
     class brahms
     {

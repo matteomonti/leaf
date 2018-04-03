@@ -40,9 +40,15 @@ namespace drop
 
     // Operators
 
-    template <typename event, typename... types> template <typename lambda> void eventemitter <event, types...> :: callback <lambda> :: operator () (const types & ... values)
+    template <typename event, typename... types> template <typename lambda> bool eventemitter <event, types...> :: callback <lambda> :: operator () (const types & ... values)
     {
-        this->_callback(values...);
+        if constexpr (std :: is_same <decltype(this->_callback(values...)), bool> :: value)
+            return this->_callback(values...);
+        else
+        {
+            this->_callback(values...);
+            return true;
+        }
     }
 
     // eventemitter
@@ -77,14 +83,27 @@ namespace drop
 
     // Protected methods
 
-    template <typename event, typename... types> template <typename etype, std :: enable_if_t <std :: is_same <etype, event> :: value> *> void eventemitter <event, types...> :: emit(const types & ... values)
+    template <typename event, typename... types> template <typename etype, std :: enable_if_t <std :: is_same <etype, event> :: value> *> bool eventemitter <event, types...> :: emit(const types & ... values)
     {
         this->_mutex.lock();
 
         for(size_t i = 0; i < this->_callbacks.size(); i++)
-            (*(this->_callbacks[i]))(values...);
+            try
+            {
+                if(!((*(this->_callbacks[i]))(values...)))
+                {
+                    this->_mutex.unlock();
+                    return false;
+                }
+            }
+            catch(...)
+            {
+                this->_mutex.unlock();
+                return false;
+            }
 
         this->_mutex.unlock();
+        return true;
     }
 };
 

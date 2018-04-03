@@ -51,7 +51,7 @@ namespace drop
 
             // Operators
 
-            virtual void operator () (const types & ...) = 0;
+            virtual bool operator () (const types & ...) = 0;
         };
 
         template <typename lambda> class callback : public callback_interface
@@ -68,14 +68,14 @@ namespace drop
 
             // Operators
 
-            void operator () (const types & ...);
+            bool operator () (const types & ...);
         };
 
         // Members
 
         std :: vector <callback_interface *> _callbacks;
         std :: mutex _mutex;
-        
+
     public:
 
         // Destructor
@@ -92,7 +92,7 @@ namespace drop
 
         // Protected methods
 
-        template <typename etype, std :: enable_if_t <std :: is_same <etype, event> :: value> * = nullptr> void emit(const types & ...);
+        template <typename etype, std :: enable_if_t <std :: is_same <etype, event> :: value> * = nullptr> bool emit(const types & ...);
     };
 };
 

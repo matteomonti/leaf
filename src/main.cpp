@@ -1,54 +1,68 @@
 #include <iostream>
 #include <fstream>
 
-#include "poseidon/brahms/brahms.h"
-#include "drop/network/connectors/tcp.h"
-#include "drop/network/pool.hpp"
-#include "drop/chrono/crontab.h"
-#include "vine/dialers/local.h"
+#include "drop/async/eventemitter.hpp"
 
 using namespace drop;
-using namespace vine;
-using namespace poseidon;
 
-static constexpr size_t nodes = 64;
-
-std :: array <identifier, brahms :: settings :: view :: size> view(std :: array <signer, nodes> & signers, size_t node)
+class myevent
 {
-    std :: array <identifier, brahms :: settings :: view :: size> sample;
+};
 
-    for(size_t i = 0; i < brahms :: settings :: view :: size; i++)
-        sample[i] = signers[(node + 1 + (rand() % (nodes - 1))) % nodes].publickey();
+class myclass : public eventemitter <myevent>
+{
+public:
 
-    return sample;
-}
+    void doit()
+    {
+        bool pass = this->emit <myevent> ();
+
+        if(pass)
+            std :: cout << "Event passed" << std :: endl << std :: endl;
+        else
+            std :: cout << "Event not passed" << std :: endl << std :: endl;
+    }
+};
 
 int main()
 {
-    std :: ofstream nullstream;
-    nullstream.open("/dev/null", std :: ios :: out);
+    myclass myobject;
+    myobject.doit();
 
-    connectors :: tcp :: async connector;
-    pool pool;
-    crontab crontab;
-
-    dialers :: local :: server server;
-
-    std :: array <signer, nodes> signers;
-    std :: array <dialers :: local :: client *, nodes> dialers;
-    std :: array <brahms *, nodes> brahms;
-
-    std :: cout << "Starting nodes" << std :: endl;
-
-    for(size_t i = 0; i < nodes; i++)
+    myobject.on <myevent> ([]()
     {
-        auto view = :: view(signers, i);
-        dialers[i] = new dialers :: local :: client(server, signers[i]);
+        std :: cout << "First callback" << std :: endl;
+    });
 
-        brahms[i] = new class brahms(signers[i], view, *(dialers[i]), pool, crontab, (i == 0 ? std :: cout : nullstream));
-    }
+    myobject.doit();
 
-    std :: cout << "Started" << std :: endl;
+    bool pass = true;
 
-    sleep(10_h);
+    myobject.on <myevent> ([&]()
+    {
+        std :: cout << "Second callback" << std :: endl;
+        return pass;
+    });
+
+    myobject.doit();
+
+    myobject.on <myevent> ([]()
+    {
+        std :: cout << "Third callback" << std :: endl;
+    });
+
+    myobject.doit();
+
+    pass = false;
+    myobject.doit();
+
+    pass = true;
+
+    myobject.on <myevent> ([&]()
+    {
+        std :: cout << "Fourth callback" << std :: endl;
+        throw "You shall not pass!";
+    });
+
+    myobject.doit();
 }
