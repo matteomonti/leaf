@@ -96,6 +96,19 @@ namespace poseidon
         }
     }
 
+    promise <void> brahms :: push(vine :: identifier identifier)
+    {
+        try
+        {
+            pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect(identifier));
+            co_await connection.send(true);
+            co_await connection.send(this->_signer.publickey());
+        }
+        catch(...)
+        {
+        }
+    }
+
     promise <void> brahms :: serve(pool :: connection connection)
     {
         try
@@ -104,13 +117,14 @@ namespace poseidon
 
             if(push)
             {
+                vine :: identifier identifier = co_await connection.receive <vine :: identifier> ();
             }
             else
             {
                 this->_mutex.lock();
                 std :: array <vine :: identifier, settings :: view :: size> view = this->_view;
                 this->_mutex.unlock();
-                
+
                 for(size_t i = 0; i < settings :: view :: size; i++)
                     co_await connection.send <vine :: identifier> (view[i]);
             }
@@ -128,16 +142,22 @@ namespace poseidon
         {
             try
             {
-                log << "Sending pull requests" << std :: endl;
-
                 this->_mutex.lock();
 
                 this->_version++;
+
+                log << "Sending pull requests" << std :: endl;
+
                 for(size_t i = 0; i < settings :: alpha; i++)
                 {
                     this->_pullslots[i].completed = false;
                     this->pull(this->_view[randombytes_uniform(settings :: alpha)], i, this->_version);
                 }
+
+                log << "Sending push requests" << std :: endl;
+
+                for(size_t i = 0; i < settings :: beta; i++)
+                    this->push(this->_view[randombytes_uniform(settings :: beta)]);
 
                 this->_mutex.unlock();
 

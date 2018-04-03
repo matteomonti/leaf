@@ -123,6 +123,7 @@ namespace poseidon
         void update_sample(const vine :: identifier &);
 
         promise <void> pull(vine :: identifier, size_t, size_t);
+        promise <void> push(vine :: identifier);
         promise <void> serve(pool :: connection);
 
         promise <void> run();
