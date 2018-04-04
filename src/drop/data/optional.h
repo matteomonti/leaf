@@ -32,6 +32,7 @@ namespace drop
         // Constructors
 
         optional_base();
+        optional_base(null);
         optional_base(def);
         template <typename... types, std :: enable_if_t <std :: is_constructible <type, types...> :: value> * = nullptr> optional_base(types && ...);
 
@@ -79,6 +80,7 @@ namespace drop
 
         optional() = default;
         template <typename dtype, std :: enable_if_t <std :: is_same <dtype, def> :: value && std :: is_default_constructible <type> :: value> * = nullptr> optional(dtype);
+        optional(null);
         template <typename... types, std :: enable_if_t <std :: is_constructible <type, types...> :: value> * = nullptr> optional(types && ...);
 
         // Operators

@@ -20,6 +20,10 @@ namespace drop
         new (&(this->_value)) type();
     }
 
+    template <typename type> optional_base <type> :: optional_base(class null) : _set(false)
+    {
+    }
+
     template <typename type> template <typename... types, std :: enable_if_t <std :: is_constructible <type, types...> :: value> *> optional_base <type> :: optional_base(types && ... args) : _set(true)
     {
         new (&(this->_value)) type(args...);
@@ -146,6 +150,10 @@ namespace drop
     // Constructors
 
     template <typename type> template <typename dtype, std :: enable_if_t <std :: is_same <dtype, class def> :: value && std :: is_default_constructible <type> :: value> *> optional <type> :: optional(dtype) : optional_base <type> (def)
+    {
+    }
+
+    template <typename type> optional <type> :: optional(class null) : optional_base <type> (null)
     {
     }
 

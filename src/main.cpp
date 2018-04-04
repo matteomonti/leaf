@@ -11,14 +11,21 @@ using namespace drop;
 using namespace vine;
 using namespace poseidon;
 
-static constexpr size_t nodes = 64;
+static constexpr size_t nodes = 256;
 
-std :: array <identifier, brahms :: settings :: view :: size> view(std :: array <signer, nodes> & signers, size_t node)
+std :: array <identifier, brahms :: settings :: view :: size> view(std :: array <signer, nodes> & signers, size_t exclude)
 {
     std :: array <identifier, brahms :: settings :: view :: size> sample;
 
     for(size_t i = 0; i < brahms :: settings :: view :: size; i++)
-        sample[i] = signers[(node + 1 + (rand() % (nodes - 1))) % nodes].publickey();
+    {
+        size_t pick = rand() % nodes;
+
+        while(pick == exclude)
+            pick = rand() % nodes;
+
+        sample[i] = signers[pick].publickey();
+    }
 
     return sample;
 }
@@ -48,20 +55,14 @@ int main()
         brahms[i] = new class brahms(signers[i], view, *(dialers[i]), pool, crontab, (i == 0 ? std :: cout : nullstream));
     }
 
-    brahms[0]->on <events :: push :: send> ([](const vine :: identifier & identifier)
+    brahms[0]->on <events :: view :: join> ([](const identifier & identifier)
     {
-        std :: cout << "Going to push to " << identifier << std :: endl;
-
-        //std :: cout << "Changed my mind!" << std :: endl;
-        //return false;
+        std :: cout << "Join: " << identifier << std :: endl;
     });
 
-    brahms[0]->on <events :: push :: receive> ([](const vine :: identifier & identifier)
+    brahms[0]->on <events :: view :: leave> ([](const identifier & identifier)
     {
-        std :: cout << "Received push from " << identifier << std :: endl;
-
-        std :: cout << "Changed my mind!" << std :: endl;
-        return false;
+        std :: cout << "Leave: " << identifier << std :: endl;
     });
 
     std :: cout << "Starting nodes" << std :: endl;

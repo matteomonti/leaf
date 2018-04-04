@@ -19,12 +19,14 @@ namespace poseidon
 #include <sodium.h>
 #include <array>
 #include <vector>
+#include <algorithm>
 
 // Includes
 
 #include "sampler.h"
 #include "drop/network/connectors/tcp.h"
 #include "drop/chrono/crontab.h"
+#include "drop/data/optional.hpp"
 #include "drop/async/eventemitter.hpp"
 #include "vine/dialers/directory.hpp"
 #include "vine/dialers/local.h"
@@ -82,11 +84,11 @@ namespace poseidon
                 static constexpr size_t size = 8;
             };
 
-            static constexpr size_t alpha = 12;
-            static constexpr size_t beta = 28;
-            static constexpr size_t gamma = sample :: size - (alpha + beta);
+            static constexpr size_t alpha = 8;
+            static constexpr size_t beta = 14;
+            static constexpr size_t gamma = view :: size - (alpha + beta);
 
-            static constexpr interval interval = 10_s;
+            static constexpr interval interval = 3_s;
         };
 
         // Using
@@ -147,7 +149,7 @@ namespace poseidon
         std :: array <identifier, settings :: view :: size> _view;
         std :: array <sampler, settings :: sample :: size> _sample;
 
-        std :: array <pullslot, settings :: alpha> _pullslots;
+        std :: array <pullslot, settings :: beta> _pullslots;
         std :: vector <identifier> _pushslots;
         size_t _version;
 
@@ -180,6 +182,8 @@ namespace poseidon
         // Private methods
 
         void update_sample(const vine :: identifier &);
+        void update_view(const std :: array <vine :: identifier, settings :: view :: size> &);
+        optional <std :: array <vine :: identifier, settings :: view :: size>> next_view();
 
         promise <void> pull(vine :: identifier, size_t, size_t);
         promise <void> push(vine :: identifier);
