@@ -40,24 +40,14 @@ namespace poseidon
     {
         struct push
         {
-            struct send
-            {
-            };
-
-            struct receive
-            {
-            };
+            struct send {};
+            struct receive {};
         };
 
         struct view
         {
-            struct join
-            {
-            };
-
-            struct leave
-            {
-            };
+            struct join {};
+            struct leave {};
         };
     };
 
@@ -149,9 +139,9 @@ namespace poseidon
         std :: array <identifier, settings :: view :: size> _view;
         std :: array <sampler, settings :: sample :: size> _sample;
 
-        std :: array <pullslot, settings :: beta> _pullslots;
-        std :: vector <identifier> _pushslots;
         size_t _version;
+        std :: vector <identifier> _pushslots;
+        std :: array <pullslot, settings :: beta> _pullslots;
 
         std :: mutex _mutex;
 
