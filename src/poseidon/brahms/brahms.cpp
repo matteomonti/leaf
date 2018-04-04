@@ -79,6 +79,12 @@ namespace poseidon
 
     void brahms :: update_view(const std :: array <vine :: identifier, settings :: view :: size> & view)
     {
+        auto next = [](const std :: array <vine :: identifier, settings :: view :: size> & array, size_t & index)
+        {
+            do index++;
+            while((index < settings :: view :: size) && (array[index] == array[index - 1]));
+        };
+
         size_t i = 0;
         size_t j = 0;
 
@@ -87,48 +93,33 @@ namespace poseidon
             if(this->_view[i] < view[j])
             {
                 this->emit <events :: view :: leave> (this->_view[i]);
-
-                i++;
-                while((i < settings :: view :: size) && (this->_view[i] == this->_view[i - 1]))
-                    i++;
+                next(this->_view, i);
             }
             else if(this->_view[i] > view[j])
             {
                 this->emit <events :: view :: join> (view[j]);
-
-                j++;
-                while((j < settings :: view :: size) && (view[j] == view[j - 1]))
-                    j++;
+                next(view, j);
             }
             else
             {
-                i++;
-                while((i < settings :: view :: size) && (this->_view[i] == this->_view[i - 1]))
-                    i++;
-
-                j++;
-                while((j < settings :: view :: size) && (view[j] == view[j - 1]))
-                    j++;
+                next(this->_view, i);
+                next(view, j);
             }
         }
 
         while(i < settings :: view :: size)
         {
             this->emit <events :: view :: leave> (this->_view[i]);
-
-            i++;
-            while((i < settings :: view :: size) && (this->_view[i] == this->_view[i - 1]))
-                i++;
+            next(this->_view, i);
         }
 
         while(j < settings :: view :: size)
         {
             this->emit <events :: view :: join> (view[j]);
-
-            j++;
-            while((j < settings :: view :: size) && (this->_view[j] == this->_view[j - 1]))
-                j++;
+            next(view, j);
         }
+
+        this->_view = view;
     }
 
     optional <std :: array <vine :: identifier, brahms :: settings :: view :: size>> brahms :: next_view()
