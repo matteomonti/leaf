@@ -100,31 +100,6 @@ namespace poseidon
         using eventemitter <events :: view :: join, vine :: identifier> :: emit;
         using eventemitter <events :: view :: leave, vine :: identifier> :: emit;
 
-    public:
-
-        // Nested classes
-
-        class node : public vine :: identifier
-        {
-            // Friends
-
-            friend class brahms;
-
-            // Members
-
-            brahms & _brahms;
-
-            // Private constructors
-
-            node(const identifier &, brahms &);
-
-        public:
-
-            // Methods
-
-            promise <dial> connect() const;
-        };
-
     private:
 
         // Members

@@ -7,23 +7,6 @@ namespace poseidon
     using namespace drop;
     using namespace vine;
 
-    // node
-
-    // Private constructors
-
-    brahms :: node :: node(const vine :: identifier & identifier, brahms & brahms) : vine :: identifier(identifier), _brahms(brahms)
-    {
-    }
-
-    // Methods
-
-    promise <dial> brahms :: node :: connect() const
-    {
-        return this->_brahms._dialer.connect(*this);
-    }
-
-    // brahms
-
     // Constructors
 
     brahms :: brahms(const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab) : _view(view), _pullpool(this->_signer.publickey()), _dialer(dialer), _pool(pool), _crontab(crontab)
