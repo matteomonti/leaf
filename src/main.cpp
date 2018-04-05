@@ -51,7 +51,6 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new dialers :: local :: client(server, signers[i]);
-
         brahms[i] = new class brahms(signers[i], view, *(dialers[i]), pool, crontab, (i == 0 ? std :: cout : nullstream));
     }
 

@@ -23,7 +23,10 @@ namespace poseidon
 
 // Includes
 
-#include "sampler.h"
+#include "view.hpp"
+#include "sample.hpp"
+#include "pullpool.hpp"
+#include "pushpool.hpp"
 #include "drop/network/connectors/tcp.h"
 #include "drop/chrono/crontab.h"
 #include "drop/data/optional.hpp"
@@ -124,24 +127,15 @@ namespace poseidon
 
     private:
 
-        // Service nested classes
-
-        struct pullslot
-        {
-            bool completed;
-            std :: array <identifier, settings :: view :: size> view;
-        };
-
         // Members
 
         signer _signer;
 
-        std :: array <identifier, settings :: view :: size> _view;
-        std :: array <sampler, settings :: sample :: size> _sample;
+        view <settings :: view :: size> _view;
+        sample <settings :: sample :: size> _sample;
 
-        size_t _version;
-        std :: vector <identifier> _pushslots;
-        std :: array <pullslot, settings :: beta> _pullslots;
+        pushpool <settings :: alpha> _pushpool;
+        pullpool <settings :: beta, settings :: view :: size> _pullpool;
 
         std :: mutex _mutex;
 
@@ -171,13 +165,9 @@ namespace poseidon
 
         // Private methods
 
-        void update_sample(const vine :: identifier &);
-        void update_view(const std :: array <vine :: identifier, settings :: view :: size> &);
-        optional <std :: array <vine :: identifier, settings :: view :: size>> next_view();
-
-        promise <void> pull(vine :: identifier, size_t, size_t);
+        promise <void> pull(size_t, size_t, vine :: identifier);
         promise <void> push(vine :: identifier);
-        promise <void> serve(pool :: connection);
+        promise <void> serve(vine :: identifier, pool :: connection);
 
         promise <void> run();
     };

@@ -26,14 +26,12 @@ namespace poseidon
 
     // Constructors
 
-    brahms :: brahms(const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _view(view), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
+    brahms :: brahms(const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _view(view), _pullpool(this->_signer.publickey()), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
-        std :: sort(this->_view.begin(), this->_view.end());
     }
 
-    brahms :: brahms(const class signer & signer, const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _view(view), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
+    brahms :: brahms(const class signer & signer, const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _view(view), _pullpool(this->_signer.publickey()), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
-        std :: sort(this->_view.begin(), this->_view.end());
     }
 
     // Getters
@@ -52,18 +50,15 @@ namespace poseidon
 
     void brahms :: start()
     {
-        for(size_t i = 0; i < settings :: view :: size; i++)
+        this->_view.distinct([&](const vine :: identifier & identifier)
         {
-            if((i == 0) || (this->_view[i] != this->_view[i - 1]))
-            {
-                this->update_sample(this->_view[i]);
-                this->emit <events :: view :: join> (this->_view[i]);
-            }
-        }
+            this->_sample.update(identifier);
+            this->emit <events :: view :: join> (identifier);
+        });
 
         this->_dialer.on <dial> ([=](const dial & dial)
         {
-            this->serve(this->_pool.bind(dial));
+            this->serve(dial.identifier(), this->_pool.bind(dial));
         });
 
         this->run();
@@ -71,120 +66,7 @@ namespace poseidon
 
     // Private methods
 
-    void brahms :: update_sample(const vine :: identifier & identifier)
-    {
-        for(size_t i = 0; i < settings :: sample :: size; i++)
-            this->_sample[i].next(identifier);
-    }
-
-    void brahms :: update_view(const std :: array <vine :: identifier, settings :: view :: size> & view)
-    {
-        auto next = [](const std :: array <vine :: identifier, settings :: view :: size> & array, size_t & index)
-        {
-            do index++;
-            while((index < settings :: view :: size) && (array[index] == array[index - 1]));
-        };
-
-        size_t i = 0;
-        size_t j = 0;
-
-        while((i < settings :: view :: size) && (j < settings :: view :: size))
-        {
-            if(this->_view[i] < view[j])
-            {
-                this->emit <events :: view :: leave> (this->_view[i]);
-                next(this->_view, i);
-            }
-            else if(this->_view[i] > view[j])
-            {
-                this->emit <events :: view :: join> (view[j]);
-                next(view, j);
-            }
-            else
-            {
-                next(this->_view, i);
-                next(view, j);
-            }
-        }
-
-        while(i < settings :: view :: size)
-        {
-            this->emit <events :: view :: leave> (this->_view[i]);
-            next(this->_view, i);
-        }
-
-        while(j < settings :: view :: size)
-        {
-            this->emit <events :: view :: join> (view[j]);
-            next(view, j);
-        }
-
-        this->_view = view;
-    }
-
-    optional <std :: array <vine :: identifier, brahms :: settings :: view :: size>> brahms :: next_view()
-    {
-        if((this->_pushslots.size() == 0) || (this->_pushslots.size() > settings :: alpha))
-            return null;
-
-        bool empty = true;
-        for(size_t i = 0; i < settings :: beta; i++)
-            if(this->_pullslots[i].completed)
-            {
-                empty = false;
-                break;
-            }
-
-        if(empty)
-            return null;
-
-        empty = true;
-        for(size_t i = 0; i < settings :: sample :: size; i++)
-            if(this->_sample[i].sample())
-            {
-                empty = false;
-                break;
-            }
-
-        if(empty)
-            return null;
-
-        optional <std :: array <vine :: identifier, settings :: view :: size>> view = def;
-
-        for(size_t i = 0; i < settings :: alpha; i++)
-            (*view)[i] = this->_pushslots[randombytes_uniform(this->_pushslots.size())];
-
-        for(size_t i = settings :: alpha; i < settings :: alpha + settings :: beta; i++)
-        {
-            while(true)
-            {
-                size_t slot = randombytes_uniform(settings :: beta);
-                if(this->_pullslots[slot].completed)
-                {
-                    while(((*view)[i] = this->_pullslots[slot].view[randombytes_uniform(settings :: view :: size)]) == this->_signer.publickey());
-                    break;
-                }
-            }
-        }
-
-        for(size_t i = settings :: alpha + settings :: beta; i < settings :: alpha + settings :: beta + settings :: gamma; i++)
-        {
-            while(true)
-            {
-                size_t sample = randombytes_uniform(settings :: sample :: size);
-                if(this->_sample[sample].sample())
-                {
-                    (*view)[i] = *(this->_sample[sample].sample());
-                    break;
-                }
-            }
-        }
-
-        std :: sort(view->begin(), view->end());
-        return view;
-    }
-
-    promise <void> brahms :: pull(vine :: identifier identifier, size_t slot, size_t version)
+    promise <void> brahms :: pull(size_t version, size_t slot, vine :: identifier identifier)
     {
         try
         {
@@ -197,11 +79,7 @@ namespace poseidon
                 view[i] = co_await connection.receive <vine :: identifier> ();
 
             this->_mutex.lock();
-            if(this->_version == version)
-            {
-                this->_pullslots[slot].view = view;
-                this->_pullslots[slot].completed = true;
-            }
+            this->_pullpool.set(version, slot, view);
             this->_mutex.unlock();
         }
         catch(...)
@@ -214,16 +92,14 @@ namespace poseidon
         try
         {
             pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect(identifier));
-
             co_await connection.send(true);
-            co_await connection.send(this->_signer.publickey());
         }
         catch(...)
         {
         }
     }
 
-    promise <void> brahms :: serve(pool :: connection connection)
+    promise <void> brahms :: serve(vine :: identifier identifier, pool :: connection connection)
     {
         try
         {
@@ -231,12 +107,10 @@ namespace poseidon
 
             if(push)
             {
-                vine :: identifier identifier = co_await connection.receive <vine :: identifier> ();
-
                 if(this->emit <events :: push :: receive> (identifier))
                 {
                     this->_mutex.lock();
-                    this->_pushslots.push_back(identifier);
+                    this->_pushpool.push(identifier);
                     this->_mutex.unlock();
                 }
             }
@@ -265,22 +139,26 @@ namespace poseidon
             {
                 this->_mutex.lock();
 
-                this->_pushslots.clear();
+                log << "Initializing pushpool" << std :: endl;
+
+                this->_pushpool.init();
                 for(size_t i = 0; i < settings :: alpha; i++)
                 {
-                    vine :: identifier identifier = this->_view[randombytes_uniform(settings :: view :: size)];
+                    vine :: identifier identifier = this->_view.random();
+                    log << "Sending push request to " << identifier << std :: endl;
 
                     if(this->emit <events :: push :: send> (identifier))
                         this->push(identifier);
                 }
 
-                this->_version++;
+                log << std :: endl << "Initializing pullpool" << std :: endl;
+                size_t version = this->_pullpool.init();
                 for(size_t i = 0; i < settings :: beta; i++)
                 {
-                    this->_pullslots[i].completed = false;
+                    vine :: identifier identifier = this->_view.random();
+                    log << "Sending pull request to " << identifier << std :: endl;
 
-                    vine :: identifier identifier = this->_view[randombytes_uniform(settings :: view :: size)];
-                    this->pull(identifier, i, this->_version);
+                    this->pull(version, i, identifier);
                 }
 
                 this->_mutex.unlock();
@@ -289,14 +167,46 @@ namespace poseidon
 
                 this->_mutex.lock();
 
-                auto view = this->next_view();
+                log << std :: endl << "Pushpool " << (this->_pushpool ? "ok" : "not ok") << std :: endl;
+                log << "Pullpool " << (this->_pullpool ? "ok" : "not ok") << std :: endl;
+                log << "Sample " << (this->_sample ? "ok" : "not ok") << std :: endl;
 
-                if(view)
+                if(this->_pushpool && this->_pullpool && this->_sample)
                 {
-                    for(size_t i = 0; i < settings :: view :: size; i++)
-                        this->update_sample((*view)[i]);
+                    log << std :: endl << "All tests passed." << std :: endl;
 
-                    this->update_view(*view);
+                    view <settings :: view :: size> next = view <settings :: view :: size> :: from <settings :: alpha, settings :: beta, settings :: gamma> (this->_pushpool, this->_pullpool, this->_sample);
+
+                    for(size_t i = 0; i < settings :: view :: size; i++)
+                        log << i << ": " << this->_view[i] << std :: endl;
+
+                    log << "Updating sample" << std :: endl;
+
+                    next.distinct([&](const vine :: identifier & identifier)
+                    {
+                        this->_sample.update(identifier);
+                    });
+
+                    log << std :: endl << "View comparison (old - new):" << std :: endl;
+
+                    for(size_t i = 0; i < settings :: view :: size; i++)
+                        log << i << ": " << this->_view[i] << "\t" << next[i] << std :: endl;
+
+                    log << std :: endl << "Emitting differences:" << std :: endl;
+
+                    this->_view.diff(next, [&](const vine :: identifier & join)
+                    {
+                        this->emit <events :: view :: join> (join);
+                    }, [&](const vine :: identifier & leave)
+                    {
+                        this->emit <events :: view :: leave> (leave);
+                    });
+
+                    log << std :: endl << "Setting new view" << std :: endl;
+
+                    this->_view = next;
+
+                    log << std :: endl << std :: endl << "------------------------------------------------" << std :: endl << std :: endl << std :: endl;
                 }
 
                 this->_mutex.unlock();
