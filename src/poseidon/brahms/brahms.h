@@ -143,14 +143,12 @@ namespace poseidon
         pool & _pool;
         crontab & _crontab;
 
-        std :: ostream & log; // REMOVE ME
-
     public:
 
         // Constructors
 
-        brahms(const std :: array <identifier, settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &, std :: ostream &);
-        brahms(const signer &, const std :: array <identifier, settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &, std :: ostream &);
+        brahms(const std :: array <identifier, settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &);
+        brahms(const signer &, const std :: array <identifier, settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &);
 
         // Getters
 

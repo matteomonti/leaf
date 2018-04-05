@@ -32,9 +32,6 @@ std :: array <identifier, brahms :: settings :: view :: size> view(std :: array 
 
 int main()
 {
-    std :: ofstream nullstream;
-    nullstream.open("/dev/null", std :: ios :: out);
-
     connectors :: tcp :: async connector;
     pool pool;
     crontab crontab;
@@ -51,7 +48,7 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new dialers :: local :: client(server, signers[i]);
-        brahms[i] = new class brahms(signers[i], view, *(dialers[i]), pool, crontab, (i == 0 ? std :: cout : nullstream));
+        brahms[i] = new class brahms(signers[i], view, *(dialers[i]), pool, crontab);
     }
 
     brahms[0]->on <events :: view :: join> ([](const identifier & identifier)

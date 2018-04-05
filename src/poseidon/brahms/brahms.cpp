@@ -26,11 +26,11 @@ namespace poseidon
 
     // Constructors
 
-    brahms :: brahms(const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _view(view), _pullpool(this->_signer.publickey()), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
+    brahms :: brahms(const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab) : _view(view), _pullpool(this->_signer.publickey()), _dialer(dialer), _pool(pool), _crontab(crontab)
     {
     }
 
-    brahms :: brahms(const class signer & signer, const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _view(view), _pullpool(this->_signer.publickey()), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
+    brahms :: brahms(const class signer & signer, const std :: array <vine :: identifier, settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab) : _signer(signer), _view(view), _pullpool(this->_signer.publickey()), _dialer(dialer), _pool(pool), _crontab(crontab)
     {
     }
 
@@ -139,27 +139,18 @@ namespace poseidon
             {
                 this->_mutex.lock();
 
-                log << "Initializing pushpool" << std :: endl;
-
                 this->_pushpool.init();
                 for(size_t i = 0; i < settings :: alpha; i++)
                 {
                     vine :: identifier identifier = this->_view.random();
-                    log << "Sending push request to " << identifier << std :: endl;
 
                     if(this->emit <events :: push :: send> (identifier))
                         this->push(identifier);
                 }
 
-                log << std :: endl << "Initializing pullpool" << std :: endl;
                 size_t version = this->_pullpool.init();
                 for(size_t i = 0; i < settings :: beta; i++)
-                {
-                    vine :: identifier identifier = this->_view.random();
-                    log << "Sending pull request to " << identifier << std :: endl;
-
-                    this->pull(version, i, identifier);
-                }
+                    this->pull(version, i, this->_view.random());
 
                 this->_mutex.unlock();
 
@@ -167,32 +158,14 @@ namespace poseidon
 
                 this->_mutex.lock();
 
-                log << std :: endl << "Pushpool " << (this->_pushpool ? "ok" : "not ok") << std :: endl;
-                log << "Pullpool " << (this->_pullpool ? "ok" : "not ok") << std :: endl;
-                log << "Sample " << (this->_sample ? "ok" : "not ok") << std :: endl;
-
                 if(this->_pushpool && this->_pullpool && this->_sample)
                 {
-                    log << std :: endl << "All tests passed." << std :: endl;
-
                     view <settings :: view :: size> next = view <settings :: view :: size> :: from <settings :: alpha, settings :: beta, settings :: gamma> (this->_pushpool, this->_pullpool, this->_sample);
-
-                    for(size_t i = 0; i < settings :: view :: size; i++)
-                        log << i << ": " << this->_view[i] << std :: endl;
-
-                    log << "Updating sample" << std :: endl;
 
                     next.distinct([&](const vine :: identifier & identifier)
                     {
                         this->_sample.update(identifier);
                     });
-
-                    log << std :: endl << "View comparison (old - new):" << std :: endl;
-
-                    for(size_t i = 0; i < settings :: view :: size; i++)
-                        log << i << ": " << this->_view[i] << "\t" << next[i] << std :: endl;
-
-                    log << std :: endl << "Emitting differences:" << std :: endl;
 
                     this->_view.diff(next, [&](const vine :: identifier & join)
                     {
@@ -202,11 +175,7 @@ namespace poseidon
                         this->emit <events :: view :: leave> (leave);
                     });
 
-                    log << std :: endl << "Setting new view" << std :: endl;
-
                     this->_view = next;
-
-                    log << std :: endl << std :: endl << "------------------------------------------------" << std :: endl << std :: endl << std :: endl;
                 }
 
                 this->_mutex.unlock();
