@@ -33,6 +33,7 @@ namespace poseidon
 #include "drop/async/eventemitter.hpp"
 #include "vine/dialers/directory.hpp"
 #include "vine/dialers/local.h"
+#include "vine/network/multiplexer.hpp"
 
 namespace poseidon
 {
@@ -65,7 +66,8 @@ namespace poseidon
 
         struct settings
         {
-            typedef dialers :: local :: client dialer;
+            typedef multiplexer <dialers :: local :: client, 2> dialer;
+            static constexpr size_t channel = 0;
 
             struct view
             {

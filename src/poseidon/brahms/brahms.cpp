@@ -39,7 +39,7 @@ namespace poseidon
             this->emit <events :: view :: join> (identifier);
         });
 
-        this->_dialer.on <dial> ([=](const dial & dial)
+        this->_dialer.on <settings :: channel> ([=](const dial & dial)
         {
             this->serve(dial.identifier(), this->_pool.bind(dial));
         });
@@ -53,7 +53,7 @@ namespace poseidon
     {
         try
         {
-            pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect(identifier));
+            pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <settings :: channel> (identifier));
 
             co_await connection.send(false);
 
@@ -74,7 +74,7 @@ namespace poseidon
     {
         try
         {
-            pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect(identifier));
+            pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <settings :: channel> (identifier));
             co_await connection.send(true);
         }
         catch(...)
