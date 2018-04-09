@@ -88,6 +88,8 @@ namespace drop
 
     // interval
 
+    // Constructors
+
     interval :: interval()
     {
     }
@@ -97,6 +99,17 @@ namespace drop
     interval :: operator const uint64_t & () const
     {
         return this->_value;
+    }
+
+    // Static methods
+
+    interval interval :: random(const interval & max)
+    {
+        interval interval;
+        randombytes_buf(&(interval._value), sizeof(uint64_t));
+        interval._value %= max._value;
+
+        return interval;
     }
 
     // Functions

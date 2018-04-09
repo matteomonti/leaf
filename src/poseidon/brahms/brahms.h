@@ -66,7 +66,7 @@ namespace poseidon
 
         struct settings
         {
-            typedef multiplexer <dialers :: local :: client, 2> dialer;
+            typedef multiplexer <dialers :: local :: client, 3> dialer;
             static constexpr size_t channel = 0;
 
             struct view

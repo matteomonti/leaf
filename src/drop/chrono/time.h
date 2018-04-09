@@ -12,6 +12,7 @@ namespace drop
 
 // Libraries
 
+#include <sodium.h>
 #include <stdint.h>
 #include <sys/time.h>
 #include <iostream>
@@ -90,6 +91,10 @@ namespace drop
         // Casting
 
         operator const uint64_t & () const;
+
+        // Static methods
+
+        static interval random(const interval &);
     };
 
     // Literals
