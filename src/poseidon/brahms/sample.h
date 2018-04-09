@@ -11,6 +11,7 @@ namespace poseidon
 // Libraries
 
 #include <array>
+#include <algorithm>
 
 // Forward includes
 
@@ -33,14 +34,14 @@ namespace poseidon
 
         friend class brahms;
         template <size_t> friend class view;
-        
+
         // Members
 
         std :: array <sampler, size> _samplers;
 
         // Methods
 
-        void update(const identifier &);
+        template <typename alambda, typename rlambda> void update(const identifier &, const alambda &, const rlambda &);
 
         const identifier & random();
 

@@ -35,7 +35,14 @@ namespace poseidon
     {
         this->_view.distinct([&](const vine :: identifier & identifier)
         {
-            this->_sample.update(identifier);
+            this->_sample.update(identifier, [&](const vine :: identifier & add)
+            {
+                this->emit <events :: sample :: join> (add);
+            }, [&](const vine :: identifier & remove)
+            {
+                this->emit <events :: sample :: leave> (remove);
+            });
+
             this->emit <events :: view :: join> (identifier);
         });
 
@@ -147,7 +154,13 @@ namespace poseidon
 
                     next.distinct([&](const vine :: identifier & identifier)
                     {
-                        this->_sample.update(identifier);
+                        this->_sample.update(identifier, [&](const vine :: identifier & add)
+                        {
+                            this->emit <events :: sample :: join> (add);
+                        }, [&](const vine :: identifier & remove)
+                        {
+                            this->emit <events :: sample :: leave> (remove);
+                        });
                     });
 
                     this->_view.diff(next, [&](const vine :: identifier & join)

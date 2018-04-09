@@ -29,12 +29,14 @@ namespace poseidon
         this->_sample = null;
     }
 
-    void sampler :: next(const identifier & identifier)
+    bool sampler :: next(const identifier & identifier)
     {
         if(!(this->_sample))
         {
             this->_sample = identifier;
             this->_hash = hash :: keyed(this->_key, identifier);
+
+            return true;
         }
         else
         {
@@ -43,7 +45,11 @@ namespace poseidon
             {
                 this->_sample = identifier;
                 this->_hash = idhash;
+
+                return true;
             }
         }
+
+        return false;
     }
 };

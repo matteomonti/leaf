@@ -42,7 +42,7 @@ namespace poseidon
         // Methods
 
         void init();
-        void next(const identifier &);
+        bool next(const identifier &);
     };
 };
 

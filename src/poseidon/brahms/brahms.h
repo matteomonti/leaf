@@ -6,6 +6,7 @@ namespace poseidon
     {
         struct push;
         struct view;
+        struct sample;
     };
 
     class brahms;
@@ -53,12 +54,20 @@ namespace poseidon
             struct join {};
             struct leave {};
         };
+
+        struct sample
+        {
+            struct join {};
+            struct leave {};
+        };
     };
 
     class brahms : public eventemitter <events :: push :: send, vine :: identifier>,
                    public eventemitter <events :: push :: receive, vine :: identifier>,
                    public eventemitter <events :: view :: join, vine :: identifier>,
-                   public eventemitter <events :: view :: leave, vine :: identifier>
+                   public eventemitter <events :: view :: leave, vine :: identifier>,
+                   public eventemitter <events :: sample :: join, vine :: identifier>,
+                   public eventemitter <events :: sample :: leave, vine :: identifier>
     {
     public:
 
@@ -92,6 +101,8 @@ namespace poseidon
         using eventemitter <events :: push :: receive, vine :: identifier> :: on;
         using eventemitter <events :: view :: join, vine :: identifier> :: on;
         using eventemitter <events :: view :: leave, vine :: identifier> :: on;
+        using eventemitter <events :: sample :: join, vine :: identifier> :: on;
+        using eventemitter <events :: sample :: leave, vine :: identifier> :: on;
 
     private:
 
@@ -101,6 +112,8 @@ namespace poseidon
         using eventemitter <events :: push :: receive, vine :: identifier> :: emit;
         using eventemitter <events :: view :: join, vine :: identifier> :: emit;
         using eventemitter <events :: view :: leave, vine :: identifier> :: emit;
+        using eventemitter <events :: sample :: join, vine :: identifier> :: emit;
+        using eventemitter <events :: sample :: leave, vine :: identifier> :: emit;
 
     private:
 

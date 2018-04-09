@@ -11,10 +11,21 @@ namespace poseidon
 
     // Methods
 
-    template <size_t size> void sample <size> :: update(const identifier & identifier)
+    template <size_t size> template <typename alambda, typename rlambda> void sample <size> :: update(const identifier & identifier, const alambda & add, const rlambda & remove)
     {
         for(size_t i = 0; i < size; i++)
-            this->_samplers[i].next(identifier);
+        {
+            optional <vine :: identifier> previous = this->_samplers[i].sample();
+
+            if(this->_samplers[i].next(identifier))
+            {
+                if(previous && std :: none_of(this->_samplers.begin(), this->_samplers.end(), [&](const sampler & sampler) {return sampler.sample() && (*(sampler.sample())) == (*previous);}))
+                    remove(*previous);
+
+                if(std :: count_if(this->_samplers.begin(), this->_samplers.end(), [&](const sampler & sampler) {return sampler.sample() && (*(sampler.sample())) == identifier;}) == 1)
+                    add(identifier);
+            }
+        }
     }
 
     template <size_t size> const identifier & sample <size> :: random()
