@@ -37,7 +37,7 @@ namespace poseidon
         struct settings
         {
             typedef multiplexer <dialers :: local :: client, 3> dialer;
-            static constexpr size_t channel = 0;
+            static constexpr size_t channel = 1;
 
             typedef gossiper server;
 

@@ -34,7 +34,7 @@ namespace poseidon
 
     void crawler :: start()
     {
-        /*auto handler = [=](const vine :: identifier & identifier)
+        auto handler = [=](const vine :: identifier & identifier)
         {
             this->log << "Push receive / send: " << identifier << std :: endl;
 
@@ -47,19 +47,9 @@ namespace poseidon
         };
 
         this->_brahms.on <events :: push :: receive> (handler);
-        this->_brahms.on <events :: push :: send> (handler);*/
+        this->_brahms.on <events :: push :: send> (handler);
 
-        this->_brahms.on <events :: push :: receive> ([=](const vine :: identifier & identifier)
-        {
-            this->log << "Received push from " << identifier << std :: endl;
-        });
-
-        this->_brahms.on <events :: push :: send> ([=](const vine :: identifier & identifier)
-        {
-            this->log << "Sending push to " << identifier << std :: endl;
-        });
-
-        /*this->_dialer.on <settings :: channel> ([=](const dial & dial) -> promise <void>
+        this->_dialer.on <settings :: channel> ([=](const dial & dial) -> promise <void>
         {
             try
             {
@@ -93,7 +83,7 @@ namespace poseidon
         {
             this->log << "Sample leave: " << identifier << " (dropping)" << std :: endl;
             this->drop(identifier);
-        });*/
+        });
 
         this->_brahms.start();
     }
@@ -187,7 +177,7 @@ namespace poseidon
         this->_neighborhood.insert(identifier);
         this->_mutex.unlock();
 
-        while(true && false) // REMOVE ME (false)
+        while(true)
         {
             log << "Maintenance round for " << identifier << std :: endl;
 
@@ -201,14 +191,22 @@ namespace poseidon
                 break;
             }
 
+            bool exception;
+
             try
             {
                 log << "Connecting" << std :: endl;
                 pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <settings :: channel> (identifier));
                 log << "Serving connection" << std :: endl;
                 co_await this->serve(identifier, connection);
+                exception = false;
             }
             catch(...)
+            {
+                exception = true;
+            }
+
+            if(exception)
             {
                 interval retry = interval :: random(settings :: intervals :: retry);
                 log << "Maintenance round failed for " << identifier << std :: endl;
