@@ -127,7 +127,7 @@ namespace poseidon
         pushpool <settings :: alpha> _pushpool;
         pullpool <settings :: beta, settings :: view :: size> _pullpool;
 
-        std :: mutex _mutex;
+        std :: recursive_mutex _mutex;
 
         typename settings :: dialer & _dialer;
         pool & _pool;
