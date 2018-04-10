@@ -10,11 +10,11 @@ namespace poseidon
 
     // Constructors
 
-    crawler :: crawler(const std :: array <vine :: identifier, brahms :: settings :: view :: size> & view, settings :: server & server, typename settings :: dialer & dialer, pool & pool, crontab & crontab) : _brahms(this->_signer, view, dialer, pool, crontab), _server(server), _dialer(dialer), _pool(pool), _crontab(crontab)
+    crawler :: crawler(const std :: array <vine :: identifier, brahms :: settings :: view :: size> & view, settings :: server & server, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _brahms(this->_signer, view, dialer, pool, crontab), _server(server), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
     }
 
-    crawler :: crawler(const class signer & signer, const std :: array <vine :: identifier, brahms :: settings :: view :: size> & view, settings :: server & server, typename settings :: dialer & dialer, pool & pool, crontab & crontab) : _signer(signer), _brahms(this->_signer, view, dialer, pool, crontab), _server(server), _dialer(dialer), _pool(pool), _crontab(crontab)
+    crawler :: crawler(const class signer & signer, const std :: array <vine :: identifier, brahms :: settings :: view :: size> & view, settings :: server & server, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _brahms(this->_signer, view, dialer, pool, crontab), _server(server), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
     }
 

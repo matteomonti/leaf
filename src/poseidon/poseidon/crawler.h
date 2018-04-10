@@ -38,7 +38,7 @@ namespace poseidon
         {
             typedef multiplexer <dialers :: local :: client, 3> dialer;
             static constexpr size_t channel = 0;
-            
+
             typedef gossiper server;
 
             struct intervals
@@ -71,12 +71,14 @@ namespace poseidon
         pool & _pool;
         crontab & _crontab;
 
+        std :: ostream & log;
+
     public:
 
         // Constructors
 
-        crawler(const std :: array <identifier, brahms :: settings :: view :: size> &, settings :: server &, typename settings :: dialer &, pool &, crontab &);
-        crawler(const signer &, const std :: array <identifier, brahms :: settings :: view :: size> &, settings :: server &, typename settings :: dialer &, pool &, crontab &);
+        crawler(const std :: array <identifier, brahms :: settings :: view :: size> &, settings :: server &, typename settings :: dialer &, pool &, crontab &, std :: ostream &);
+        crawler(const signer &, const std :: array <identifier, brahms :: settings :: view :: size> &, settings :: server &, typename settings :: dialer &, pool &, crontab &, std :: ostream &);
 
         // Getters
 

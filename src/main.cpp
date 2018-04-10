@@ -34,6 +34,9 @@ std :: array <identifier, brahms :: settings :: view :: size> view(std :: array 
 
 int main()
 {
+    std :: ofstream mute;
+    mute.open("/dev/null", std :: ios :: out);
+
     connectors :: tcp :: async connector;
     pool pool;
     crontab crontab;
@@ -53,7 +56,7 @@ int main()
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
         gossipers[i] = new gossiper(crontab);
 
-        crawlers[i] = new crawler(signers[i], view, *(gossipers[i]), *(dialers[i]), pool, crontab);
+        crawlers[i] = new crawler(signers[i], view, *(gossipers[i]), *(dialers[i]), pool, crontab, ((i == 0) ? std :: cout : mute));
     }
 
     std :: cout << "Starting nodes" << std :: endl;
