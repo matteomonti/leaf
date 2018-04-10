@@ -40,7 +40,6 @@ namespace vine :: dialers
             }
             catch(...)
             {
-                this->_mutex.unlock();
                 throw exceptions :: node_not_found();
             }
 
@@ -56,12 +55,13 @@ namespace vine :: dialers
             toconn.authenticate(to->keyexchanger(), from->keyexchanger().publickey(), totxnonce, fromtxnonce);
 
             to->emit <dial> ({fromid, toconn});
-            this->_mutex.unlock();
 
+            this->_mutex.unlock();
             return promise <dial> :: resolved(dial(toid, fromconn));
         }
         catch(...)
         {
+            this->_mutex.unlock();
             return promise <dial> :: rejected(std :: current_exception());
         }
     }

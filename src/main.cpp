@@ -1,8 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "poseidon/poseidon/crawler.h"
-#include "poseidon/poseidon/gossiper.h"
+#include "poseidon/brahms/brahms.h"
 #include "drop/network/connectors/tcp.h"
 #include "drop/network/pool.hpp"
 #include "drop/chrono/crontab.h"
@@ -45,8 +44,7 @@ int main()
 
     std :: array <signer, nodes> signers;
     std :: array <multiplexer <dialers :: local :: client, 3> *, nodes> dialers;
-    std :: array <gossiper *, nodes> gossipers;
-    std :: array <crawler *, nodes> crawlers;
+    std :: array <class brahms *, nodes> brahms;
 
     std :: cout << "Creating nodes" << std :: endl;
 
@@ -54,18 +52,48 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        gossipers[i] = new gossiper(crontab);
-
-        crawlers[i] = new crawler(signers[i], view, *(gossipers[i]), *(dialers[i]), pool, crontab, ((i == 0) ? std :: cout : mute));
+        brahms[i] = new class brahms(signers[i], view, *(dialers[i]), pool, crontab);
     }
+
+    std :: cout << "Registering handlers" << std :: endl;
+
+    brahms[0]->on <events :: push :: send> ([](const identifier & identifier)
+    {
+        std :: cout << "Sending push to " << identifier << std :: endl;
+    });
+
+    brahms[0]->on <events :: push :: receive> ([](const identifier & identifier)
+    {
+        std :: cout << "Received push from " << identifier << std :: endl;
+    });
+
+    brahms[0]->on <events :: view :: join> ([](const identifier & identifier)
+    {
+        std :: cout << "View join: " << identifier << std :: endl;
+    });
+
+    brahms[0]->on <events :: view :: leave> ([](const identifier & identifier)
+    {
+        std :: cout << "View leave: " << identifier << std :: endl;
+    });
+
+    brahms[0]->on <events :: sample :: join> ([](const identifier & identifier)
+    {
+        std :: cout << "Sample join: " << identifier << std :: endl;
+    });
+
+    brahms[0]->on <events :: sample :: leave> ([](const identifier & identifier)
+    {
+        std :: cout << "Sample leave: " << identifier << std :: endl;
+    });
 
     std :: cout << "Starting nodes" << std :: endl;
 
     for(size_t i = 0; i < nodes; i++)
     {
         std :: cout << "Starting node " << i << std :: endl;
-        crawlers[i]->start();
-        sleep(0.03_s);
+        brahms[i]->start();
+        // sleep(30_ms);
     }
 
     std :: cout << "Started" << std :: endl;
