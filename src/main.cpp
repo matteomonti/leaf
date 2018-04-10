@@ -62,7 +62,11 @@ int main()
     std :: cout << "Starting nodes" << std :: endl;
 
     for(size_t i = 0; i < nodes; i++)
+    {
+        std :: cout << "Starting node " << i << std :: endl;
         crawlers[i]->start();
+        sleep(0.03_s);
+    }
 
     std :: cout << "Started" << std :: endl;
 
