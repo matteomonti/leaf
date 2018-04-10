@@ -1,7 +1,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "poseidon/brahms/brahms.h"
+#include "poseidon/poseidon/crawler.h"
+#include "poseidon/poseidon/gossiper.h"
 #include "drop/network/connectors/tcp.h"
 #include "drop/network/pool.hpp"
 #include "drop/chrono/crontab.h"
@@ -41,7 +42,8 @@ int main()
 
     std :: array <signer, nodes> signers;
     std :: array <multiplexer <dialers :: local :: client, 3> *, nodes> dialers;
-    std :: array <brahms *, nodes> brahms;
+    std :: array <gossiper *, nodes> gossipers;
+    std :: array <crawler *, nodes> crawlers;
 
     std :: cout << "Creating nodes" << std :: endl;
 
@@ -49,33 +51,15 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        brahms[i] = new class brahms(signers[i], view, *(dialers[i]), pool, crontab);
+        gossipers[i] = new gossiper(crontab);
+
+        crawlers[i] = new crawler(signers[i], view, *(gossipers[i]), *(dialers[i]), pool, crontab);
     }
-
-    brahms[0]->on <events :: view :: join> ([](const identifier & identifier)
-    {
-        std :: cout << "View join: " << identifier << std :: endl;
-    });
-
-    brahms[0]->on <events :: view :: leave> ([](const identifier & identifier)
-    {
-        std :: cout << "View leave: " << identifier << std :: endl;
-    });
-
-    brahms[0]->on <events :: sample :: join> ([](const identifier & identifier)
-    {
-        std :: cout << "Sample join: " << identifier << std :: endl;
-    });
-
-    brahms[0]->on <events :: sample :: leave> ([](const identifier & identifier)
-    {
-        std :: cout << "Sample leave: " << identifier << std :: endl;
-    });
 
     std :: cout << "Starting nodes" << std :: endl;
 
     for(size_t i = 0; i < nodes; i++)
-        brahms[i]->start();
+        crawlers[i]->start();
 
     std :: cout << "Started" << std :: endl;
 

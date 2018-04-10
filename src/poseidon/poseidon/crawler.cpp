@@ -62,7 +62,17 @@ namespace poseidon
             this->maintain(identifier);
         });
 
+        this->_brahms.on <events :: sample :: join> ([=](const vine :: identifier & identifier)
+        {
+            this->maintain(identifier);
+        });
+
         this->_brahms.on <events :: view :: leave> ([=](const vine :: identifier & identifier)
+        {
+            this->drop(identifier);
+        });
+
+        this->_brahms.on <events :: sample :: leave> ([=](const vine :: identifier & identifier)
         {
             this->drop(identifier);
         });
