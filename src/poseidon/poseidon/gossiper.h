@@ -25,9 +25,11 @@ namespace poseidon
 
         crontab & _crontab;
 
+        std :: ostream & log;
+
         // Constructors
 
-        gossiper(crontab &);
+        gossiper(crontab &, std :: ostream &);
 
         // Methods
 

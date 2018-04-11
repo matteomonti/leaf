@@ -6,7 +6,7 @@ namespace poseidon
 {
     // Constructors
 
-    gossiper :: gossiper(crontab & crontab) : _crontab(crontab)
+    gossiper :: gossiper(crontab & crontab, std :: ostream & log) : _crontab(crontab), log(log)
     {
     }
 
@@ -14,6 +14,8 @@ namespace poseidon
 
     promise <void> gossiper :: serve(pool :: connection connection)
     {
+        log << "Serving a connection" << std :: endl;
+
         for(uint64_t i = 0; i < 10; i++)
         {
             co_await connection.send(i);
