@@ -50,4 +50,11 @@ namespace poseidon
         verifier verifier(this->_identifier);
         verifier.verify(this->_signature, signatures :: statement, this->_sequence, this->_value);
     }
+
+    // Operators
+
+    bool statement :: operator == (const statement & rho) const
+    {
+        return (this->_identifier == rho._identifier) && (this->_sequence == rho._sequence) && (this->_value == rho._value);
+    }
 };

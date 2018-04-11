@@ -144,7 +144,7 @@ namespace poseidon
         try
         {
             pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <settings :: channel> (identifier));
-            co_await this->_server.serve(connection);
+            co_await this->_server.serve(identifier, connection);
 
             this->_mutex.lock();
             this->increment(identifier);
@@ -173,7 +173,7 @@ namespace poseidon
 
         try
         {
-            co_await this->_server.serve(connection);
+            co_await this->_server.serve(identifier, connection);
 
             this->_mutex.lock();
             this->increment(identifier);

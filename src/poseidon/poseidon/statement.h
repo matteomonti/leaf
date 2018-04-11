@@ -57,6 +57,10 @@ namespace poseidon
 
         template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
         template <typename vtype> void accept(bytewise :: writer <vtype> &);
+
+        // Operators
+
+        bool operator == (const statement &) const;
     };
 };
 
