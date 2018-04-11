@@ -54,6 +54,16 @@ namespace poseidon
             };
         };
 
+        // Exceptions
+
+        struct exceptions
+        {
+            class already_serving : public std :: exception
+            {
+                const char * what() const throw();
+            };
+        };
+
         // Members
 
         signer _signer;

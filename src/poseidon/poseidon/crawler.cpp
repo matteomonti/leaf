@@ -8,6 +8,13 @@ namespace poseidon
     using namespace drop;
     using namespace vine;
 
+    // Exceptions
+
+    const char * crawler :: exceptions :: already_serving :: what() const throw()
+    {
+        return "Already serving.";
+    }
+
     // Constructors
 
     crawler :: crawler(const std :: array <vine :: identifier, brahms :: settings :: view :: size> & view, settings :: server & server, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _brahms(this->_signer, view, dialer, pool, crontab), _server(server), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
@@ -36,11 +43,8 @@ namespace poseidon
     {
         auto handler = [=](const vine :: identifier & identifier)
         {
-            this->log << "Push receive / send: " << identifier << std :: endl;
-
             this->_mutex.lock();
             bool pass = (this->score(identifier) >= settings :: thresholds :: push);
-            this->log << "Score is " << (this->score(identifier)) << ": " << (pass ? "allowing" : "blocking") << std :: endl;
             this->_mutex.unlock();
 
             return pass;
@@ -53,7 +57,6 @@ namespace poseidon
         {
             try
             {
-                this->log << "Connection incoming from " << dial.identifier() << ": serving" << std :: endl;
                 co_await this->serve(dial.identifier(), this->_pool.bind(dial));
             }
             catch(...)
@@ -63,25 +66,25 @@ namespace poseidon
 
         this->_brahms.on <events :: view :: join> ([=](const vine :: identifier & identifier)
         {
-            this->log << "View join: " << identifier << " (beginning to maintain)" << std :: endl;
+            this->log << "View join: " << identifier << std :: endl;
             this->maintain(identifier);
         });
 
         this->_brahms.on <events :: sample :: join> ([=](const vine :: identifier & identifier)
         {
-            this->log << "Sample join: " << identifier << " (beginning to maintain)" << std :: endl;
+            this->log << "Sample join: " << identifier << std :: endl;
             this->maintain(identifier);
         });
 
         this->_brahms.on <events :: view :: leave> ([=](const vine :: identifier & identifier)
         {
-            this->log << "View leave: " << identifier << " (dropping)" << std :: endl;
+            this->log << "View leave: " << identifier << std :: endl;
             this->drop(identifier);
         });
 
         this->_brahms.on <events :: sample :: leave> ([=](const vine :: identifier & identifier)
         {
-            this->log << "Sample leave: " << identifier << " (dropping)" << std :: endl;
+            this->log << "Sample leave: " << identifier << std :: endl;
             this->drop(identifier);
         });
 
@@ -134,36 +137,26 @@ namespace poseidon
 
     promise <void> crawler :: serve(vine :: identifier identifier)
     {
-        log << "Connecting and serving " << identifier << std :: endl;
-
         this->_mutex.lock();
         bool duplicate = this->_connections.count(identifier);
         if(!duplicate) this->_connections.insert(identifier);
-
-        log << "Connection " << (duplicate ? "is" : "is not") << " a duplicate" << std :: endl;
         this->_mutex.unlock();
 
         if(duplicate)
-            throw "Already serving"; // TODO: Make appropriate exception
+            throw exceptions :: already_serving();
 
         try
         {
-            log << "Establishing connection" << std :: endl;
             pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <settings :: channel> (identifier));
-
-            log << "Forwarding to server" << std :: endl;
             co_await this->_server.serve(connection);
-            log << "Server returned successfully from " << identifier << std :: endl;
 
             this->_mutex.lock();
-            log << "Incrementing " << identifier << std :: endl;
             this->increment(identifier);
             this->_connections.erase(identifier);
             this->_mutex.unlock();
         }
         catch(const std :: exception & exception)
         {
-            log << "Server threw an error on " << identifier << ": " << exception.what() << std :: endl;
             this->_mutex.lock();
             this->_connections.erase(identifier);
             this->_mutex.unlock();
@@ -174,33 +167,25 @@ namespace poseidon
 
     promise <void> crawler :: serve(vine :: identifier identifier, pool :: connection connection)
     {
-        log << "Serving " << identifier << std :: endl;
-
         this->_mutex.lock();
         bool duplicate = this->_connections.count(identifier);
         if(!duplicate) this->_connections.insert(identifier);
-
-        log << "Connection " << (duplicate ? "is" : "is not") << " a duplicate" << std :: endl;
         this->_mutex.unlock();
 
         if(duplicate)
-            throw "Already serving"; // TODO: Make appropriate exception
+            throw exceptions :: already_serving();
 
         try
         {
-            log << "Forwarding to server" << std :: endl;
             co_await this->_server.serve(connection);
-            log << "Server returned successfully from " << identifier << std :: endl;
 
             this->_mutex.lock();
-            log << "Incrementing " << identifier << std :: endl;
             this->increment(identifier);
             this->_connections.erase(identifier);
             this->_mutex.unlock();
         }
         catch(const std :: exception & exception)
         {
-            log << "Server threw an error on " << identifier << ": " << exception.what() << std :: endl;
             this->_mutex.lock();
             this->_connections.erase(identifier);
             this->_mutex.unlock();
@@ -211,31 +196,23 @@ namespace poseidon
 
     promise <void> crawler :: maintain(vine :: identifier identifier)
     {
-        log << "Maintaining " << identifier << std :: endl;
-
         this->_mutex.lock();
         this->_neighborhood.insert(identifier);
         this->_mutex.unlock();
 
         while(true)
         {
-            log << "Maintenance round for " << identifier << std :: endl;
-
             this->_mutex.lock();
             bool alive = this->_neighborhood.count(identifier);
             this->_mutex.unlock();
 
             if(!alive)
-            {
-                log << "Node was dropped: end of maintenance" << std :: endl;
                 break;
-            }
 
             bool exception;
 
             try
             {
-                log << "Serving node" << std :: endl;
                 co_await this->serve(identifier);
                 exception = false;
             }
@@ -247,8 +224,6 @@ namespace poseidon
             if(exception)
             {
                 interval retry = interval :: random(settings :: intervals :: retry);
-                log << "Maintenance round failed for " << identifier << std :: endl;
-                log << "Waiting for " << retry << std :: endl;
                 co_await this->_crontab.wait(retry);
             }
         }
