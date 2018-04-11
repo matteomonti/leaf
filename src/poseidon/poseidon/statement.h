@@ -61,6 +61,7 @@ namespace poseidon
         // Operators
 
         bool operator == (const statement &) const;
+        bool operator != (const statement &) const;
     };
 };
 

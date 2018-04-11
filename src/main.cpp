@@ -1,74 +1,73 @@
 #include <iostream>
+#include <fstream>
 
-#include "drop/data/syncset.hpp"
+#include "poseidon/poseidon/crawler.h"
+#include "poseidon/poseidon/gossiper.h"
+#include "drop/network/connectors/tcp.h"
+#include "drop/network/pool.hpp"
+#include "drop/chrono/crontab.h"
+#include "vine/dialers/local.h"
+#include "vine/network/multiplexer.hpp"
 
 using namespace drop;
+using namespace vine;
+using namespace poseidon;
+
+static constexpr size_t nodes = 256;
+
+std :: array <identifier, brahms :: settings :: view :: size> view(std :: array <signer, nodes> & signers, size_t exclude)
+{
+    std :: array <identifier, brahms :: settings :: view :: size> sample;
+
+    for(size_t i = 0; i < brahms :: settings :: view :: size; i++)
+    {
+        size_t pick = rand() % nodes;
+
+        while(pick == exclude)
+            pick = rand() % nodes;
+
+        sample[i] = signers[pick].publickey();
+    }
+
+    return sample;
+}
 
 int main()
 {
-    syncset <int> alice;
-    syncset <int> bob;
+    std :: ofstream mute;
+    mute.open("/dev/null", std :: ios :: out);
 
-    alice.add(1);
-    alice.add(2);
-    alice.add(4);
-    alice.add(5);
-    alice.add(8);
-    alice.add(10);
+    connectors :: tcp :: async connector;
+    pool pool;
+    crontab crontab;
 
-    bob.add(2);
-    bob.add(3);
-    bob.add(5);
-    bob.add(6);
-    bob.add(7);
-    bob.add(9);
+    dialers :: local :: server server;
 
-    for(int i = 100; i < 200; i++)
+    std :: array <signer, nodes> signers;
+    std :: array <multiplexer <dialers :: local :: client, 3> *, nodes> dialers;
+    std :: array <gossiper *, nodes> gossipers;
+    std :: array <crawler *, nodes> crawlers;
+
+    std :: cout << "Creating nodes" << std :: endl;
+
+    for(size_t i = 0; i < nodes; i++)
     {
-        alice.add(i);
-        bob.add(i);
+        auto view = :: view(signers, i);
+        dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
+        gossipers[i] = new gossiper(signers[i].publickey(), crontab, ((i == 0) ? std :: cout : mute));
+
+        crawlers[i] = new crawler(signers[i], view, *(gossipers[i]), *(dialers[i]), pool, crontab);
     }
 
-    syncset <int> :: round round;
-    buffer message;
+    std :: cout << "Starting nodes" << std :: endl;
 
-    round = alice.sync();
-    message = bytewise :: serialize(round.view);
+    for(size_t i = 0; i < nodes; i++)
+    {
+        std :: cout << "Starting node " << i << std :: endl;
+        crawlers[i]->start();
+        sleep(200_ms);
+    }
 
-    std :: cout << message << std :: endl << std :: endl;
-
-    round = bob.sync(bytewise :: deserialize <syncset <int> :: view> (message));
-    message = bytewise :: serialize(round.view);
-
-    std :: cout << message << std :: endl << std :: endl;
-
-    round = alice.sync(bytewise :: deserialize <syncset <int> :: view> (message));
-    message = bytewise :: serialize(round.view);
-
-    std :: cout << message << std :: endl << std :: endl;
-
-    round = bob.sync(bytewise :: deserialize <syncset <int> :: view> (message));
-    message = bytewise :: serialize(round.view);
-
-    std :: cout << message << std :: endl << std :: endl;
-
-    round = alice.sync(bytewise :: deserialize <syncset <int> :: view> (message));
-    message = bytewise :: serialize(round.view);
-
-    std :: cout << message << std :: endl << std :: endl;
-
-    round = bob.sync(bytewise :: deserialize <syncset <int> :: view> (message));
-    message = bytewise :: serialize(round.view);
-
-    std :: cout << message << std :: endl << std :: endl;
-
-    round = alice.sync(bytewise :: deserialize <syncset <int> :: view> (message));
-    message = bytewise :: serialize(round.view);
-
-    std :: cout << message << std :: endl << std :: endl;
-
-    round = bob.sync(bytewise :: deserialize <syncset <int> :: view> (message));
-    message = bytewise :: serialize(round.view);
-
-    std :: cout << message << std :: endl << std :: endl;
+    std :: cout << "Started" << std :: endl;
+    sleep(10_h);
 }

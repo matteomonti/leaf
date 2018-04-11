@@ -57,4 +57,9 @@ namespace poseidon
     {
         return (this->_identifier == rho._identifier) && (this->_sequence == rho._sequence) && (this->_value == rho._value);
     }
+
+    bool statement :: operator != (const statement & rho) const
+    {
+        return !((*this) == rho);
+    }
 };

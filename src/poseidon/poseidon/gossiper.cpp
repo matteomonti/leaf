@@ -85,16 +85,45 @@ namespace poseidon
                 throw exceptions :: merge_in_progress();
             }
 
-            for(uint64_t i = 0; i < 10; i++)
+            if(this->_identifier < identifier)
             {
-                co_await connection.send(i);
-                uint64_t j = co_await connection.receive <uint64_t> ();
-
-                if(j != i)
-                    throw "Wrong value!";
-
-                co_await this->_crontab.wait(3_s);
+                log << "Initializing sync" << std :: endl;
+                co_await connection.send(this->_statements.sync().view);
             }
+
+            while(true)
+            {
+                log << "Waiting for remote view" << std :: endl;
+                syncset <statement> :: view view = co_await connection.receive <syncset <statement> :: view> ();
+                log << "Remote view received, its size is " << view.size() << std :: endl;
+
+                if(view.size() == 0)
+                    break;
+
+                log << "Syncing remote view" << std :: endl;
+
+                syncset <statement> :: round round = this->_statements.sync(view);
+
+                this->_mutex.lock();
+
+                for(const statement & statement : round.add)
+                {
+                    log << "Adding " << statement.identifier() << " / " << statement.sequence() << std :: endl;
+                    this->_addbuffer.insert(statement);
+                }
+
+                this->_mutex.unlock();
+
+                log << "Local view size is " << round.view.size() << std :: endl;
+                co_await connection.send(round.view);
+
+                if(round.view.size() == 0)
+                    break;
+            }
+
+            log << "Sync successfully completed, waiting 30 seconds" << std :: endl;
+
+            co_await this->_crontab.wait(30_s);
         }
         catch(...)
         {
