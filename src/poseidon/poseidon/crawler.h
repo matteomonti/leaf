@@ -90,7 +90,6 @@ namespace poseidon
         void start();
 
     private:
-    public: // REMOVE ME
 
         // Private methods
 
@@ -98,6 +97,7 @@ namespace poseidon
         void increment(const vine :: identifier &);
         void decrement(const vine :: identifier &);
 
+        promise <void> serve(vine :: identifier);
         promise <void> serve(vine :: identifier, pool :: connection);
         promise <void> poll(vine :: identifier);
 

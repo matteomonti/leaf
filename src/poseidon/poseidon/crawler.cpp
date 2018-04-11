@@ -132,6 +132,46 @@ namespace poseidon
             this->_scores.erase(identifier);
     }
 
+    promise <void> crawler :: serve(vine :: identifier identifier)
+    {
+        log << "Connecting and serving " << identifier << std :: endl;
+
+        this->_mutex.lock();
+        bool duplicate = this->_connections.count(identifier);
+        if(!duplicate) this->_connections.insert(identifier);
+
+        log << "Connection " << (duplicate ? "is" : "is not") << " a duplicate" << std :: endl;
+        this->_mutex.unlock();
+
+        if(duplicate)
+            throw "Already serving"; // TODO: Make appropriate exception
+
+        try
+        {
+            log << "Establishing connection" << std :: endl;
+            pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <settings :: channel> (identifier));
+
+            log << "Forwarding to server" << std :: endl;
+            co_await this->_server.serve(connection);
+            log << "Server returned successfully from " << identifier << std :: endl;
+
+            this->_mutex.lock();
+            log << "Incrementing " << identifier << std :: endl;
+            this->increment(identifier);
+            this->_connections.erase(identifier);
+            this->_mutex.unlock();
+        }
+        catch(const std :: exception & exception)
+        {
+            log << "Server threw an error on " << identifier << ": " << exception.what() << std :: endl;
+            this->_mutex.lock();
+            this->_connections.erase(identifier);
+            this->_mutex.unlock();
+
+            std :: rethrow_exception(std :: current_exception());
+        }
+    }
+
     promise <void> crawler :: serve(vine :: identifier identifier, pool :: connection connection)
     {
         log << "Serving " << identifier << std :: endl;
@@ -195,10 +235,8 @@ namespace poseidon
 
             try
             {
-                log << "Connecting" << std :: endl;
-                pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <settings :: channel> (identifier));
-                log << "Serving connection" << std :: endl;
-                co_await this->serve(identifier, connection);
+                log << "Serving node" << std :: endl;
+                co_await this->serve(identifier);
                 exception = false;
             }
             catch(...)
