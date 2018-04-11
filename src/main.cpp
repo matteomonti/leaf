@@ -56,7 +56,7 @@ int main()
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
         gossipers[i] = new gossiper(crontab);
 
-        crawlers[i] = new crawler(signers[i], view, *(gossipers[i]), *(dialers[i]), pool, crontab, ((i == 0) ? std :: cout : mute));
+        crawlers[i] = new crawler(signers[i], view, *(gossipers[i]), *(dialers[i]), pool, crontab);
     }
 
     std :: cout << "Starting nodes" << std :: endl;
@@ -65,16 +65,9 @@ int main()
     {
         std :: cout << "Starting node " << i << std :: endl;
         crawlers[i]->start();
-        sleep(30_ms);
+        sleep(200_ms);
     }
 
     std :: cout << "Started" << std :: endl;
-
-    while(true)
-    {
-        char buffer[1024];
-        std :: cin.getline(buffer, 1024);
-        if(strcmp(buffer, "seppuku") == 0)
-            (*(int *) nullptr) = -1;
-    }
+    sleep(10_h);
 }

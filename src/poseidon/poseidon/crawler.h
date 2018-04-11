@@ -81,14 +81,12 @@ namespace poseidon
         pool & _pool;
         crontab & _crontab;
 
-        std :: ostream & log;
-
     public:
 
         // Constructors
 
-        crawler(const std :: array <identifier, brahms :: settings :: view :: size> &, settings :: server &, typename settings :: dialer &, pool &, crontab &, std :: ostream &);
-        crawler(const signer &, const std :: array <identifier, brahms :: settings :: view :: size> &, settings :: server &, typename settings :: dialer &, pool &, crontab &, std :: ostream &);
+        crawler(const std :: array <identifier, brahms :: settings :: view :: size> &, settings :: server &, typename settings :: dialer &, pool &, crontab &);
+        crawler(const signer &, const std :: array <identifier, brahms :: settings :: view :: size> &, settings :: server &, typename settings :: dialer &, pool &, crontab &);
 
         // Getters
 

@@ -92,7 +92,7 @@ namespace poseidon
             static constexpr size_t beta = 14;
             static constexpr size_t gamma = view :: size - (alpha + beta);
 
-            static constexpr interval interval = 10_s;
+            static constexpr interval interval = 60_s;
         };
 
         // Using
