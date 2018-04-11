@@ -70,13 +70,13 @@ namespace drop
         return right;
     }
 
-    template <typename type> template <typename vtype> void syncset <type> :: prefix :: visit(bytewise :: reader <vtype> & reader) const
+    template <typename type> template <typename vtype> void syncset <type> :: prefix :: accept(bytewise :: reader <vtype> & reader) const
     {
         reader << (this->_bits);
         reader.update(this->_value, (this->_bits + 7) / 8);
     }
 
-    template <typename type> template <typename vtype> void syncset <type> :: prefix :: visit(bytewise :: writer <vtype> & writer)
+    template <typename type> template <typename vtype> void syncset <type> :: prefix :: accept(bytewise :: writer <vtype> & writer)
     {
         writer >> (this->_bits);
         size_t bytes = (this->_bits + 7) / 8;
@@ -421,8 +421,8 @@ namespace drop
 
     template <typename type> template <typename vtype> void syncset <type> :: labelset :: accept(bytewise :: reader <vtype> & reader) const
     {
-        reader >> (this->_prefix);
-        reader >> (this->_label);
+        reader << (this->_prefix);
+        reader << (this->_label);
     }
 
     template <typename type> template <typename vtype> void syncset <type> :: labelset :: accept(bytewise :: writer <vtype> & writer)
@@ -521,6 +521,8 @@ namespace drop
     {
         writer >> (this->_prefix);
         writer >> (this->_size);
+
+        this->_elements = new type[this->_size];
 
         for(size_t i = 0; i < this->_size; i++)
             writer >> this->_elements[i];
@@ -658,7 +660,7 @@ namespace drop
         return round;
     }
 
-    template <typename type> typename syncset <type> :: round syncset <type> :: sync(const std :: vector <variant <labelset, listset>> & view)
+    template <typename type> typename syncset <type> :: round syncset <type> :: sync(const view & view)
     {
         round round;
         round.view.reserve(2 * view.size());

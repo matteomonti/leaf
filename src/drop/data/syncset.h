@@ -79,8 +79,8 @@ namespace drop
             prefix left() const;
             prefix right() const;
 
-            template <typename vtype> void visit(bytewise :: reader <vtype> &) const;
-            template <typename vtype> void visit(bytewise :: writer <vtype> &);
+            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+            template <typename vtype> void accept(bytewise :: writer <vtype> &);
 
             // Operators
 
@@ -311,9 +311,11 @@ namespace drop
             listset & operator = (listset &&);
         };
 
+        typedef std :: vector <variant <labelset, listset>> view;
+
         struct round
         {
-            std :: vector <variant <labelset, listset>> view;
+            view view;
             std :: vector <type> add;
             std :: vector <type> remove;
         };
@@ -336,7 +338,7 @@ namespace drop
         void remove(const type &);
 
         round sync();
-        round sync(const std :: vector <variant <labelset, listset>> &);
+        round sync(const view &);
 
     private:
 
