@@ -39,7 +39,7 @@ int main()
     {
         char path[1024];
         sprintf(path, "/Users/monti/logs/%d.log", (int)i);
-        std :: cout << "Trying to open " << path << std :: endl;
+        std :: cout << "Opening " << path << std :: endl;
         logs[i].open(path, std :: ios :: out);
     }
 
@@ -65,7 +65,7 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        gossipers[i] = new gossiper(signers[i].publickey(), crontab, (i == 0 ? std :: cout : mute));
+        gossipers[i] = new gossiper(signers[i].publickey(), crontab, logs[i]);
 
         crawlers[i] = new crawler(signers[i], view, *(gossipers[i]), *(dialers[i]), pool, crontab);
     }
