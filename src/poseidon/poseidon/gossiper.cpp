@@ -33,7 +33,7 @@ namespace poseidon
     {
         this->_mutex.lock();
         this->_locks++;
-        log << "Lock: " << this->_locks << std :: endl;
+        // log << "Lock: " << this->_locks << std :: endl;
         this->_mutex.unlock();
     }
 
@@ -41,7 +41,7 @@ namespace poseidon
     {
         this->_mutex.lock();
         this->_locks--;
-        log << "Unlock: " << this->_locks << std :: endl;
+        // log << "Unlock: " << this->_locks << std :: endl;
         this->_mutex.unlock();
     }
 
@@ -74,33 +74,33 @@ namespace poseidon
 
     promise <void> gossiper :: serve(identifier identifier, pool :: connection connection)
     {
-        log << "Serving a connection" << std :: endl;
+        // log << "Serving a connection" << std :: endl;
         this->lock();
 
         try
         {
             if(this->merging())
             {
-                log << "Should be merging, rejecting connection" << std :: endl;
+                // log << "Should be merging, rejecting connection" << std :: endl;
                 throw exceptions :: merge_in_progress();
             }
 
             if(this->_identifier < identifier)
             {
-                log << "Initializing sync" << std :: endl;
+                // log << "Initializing sync" << std :: endl;
                 co_await connection.send(this->_statements.sync().view);
             }
 
             while(true)
             {
-                log << "Waiting for remote view" << std :: endl;
+                // log << "Waiting for remote view" << std :: endl;
                 syncset <statement> :: view view = co_await connection.receive <syncset <statement> :: view> ();
-                log << "Remote view received, its size is " << view.size() << std :: endl;
+                // log << "Remote view received, its size is " << view.size() << std :: endl;
 
                 if(view.size() == 0)
                     break;
 
-                log << "Syncing remote view" << std :: endl;
+                // log << "Syncing remote view" << std :: endl;
 
                 syncset <statement> :: round round = this->_statements.sync(view);
 
@@ -108,20 +108,20 @@ namespace poseidon
 
                 for(const statement & statement : round.add)
                 {
-                    log << "Adding " << statement.identifier() << " / " << statement.sequence() << std :: endl;
+                    // log << "Adding " << statement.identifier() << " / " << statement.sequence() << std :: endl;
                     this->_addbuffer.insert(statement);
                 }
 
                 this->_mutex.unlock();
 
-                log << "Local view size is " << round.view.size() << std :: endl;
+                // log << "Local view size is " << round.view.size() << std :: endl;
                 co_await connection.send(round.view);
 
                 if(round.view.size() == 0)
                     break;
             }
 
-            log << "Sync successfully completed, waiting 30 seconds" << std :: endl;
+            // log << "Sync successfully completed, waiting 30 seconds" << std :: endl;
 
             co_await this->_crontab.wait(30_s);
         }
@@ -138,22 +138,26 @@ namespace poseidon
     {
         while(true)
         {
-            log << "Waiting for next merge" << std :: endl;
+            // log << "Waiting for next merge" << std :: endl;
             co_await this->wait_merge();
 
-            log << "Acquiring lock" << std :: endl;
+            // log << "Acquiring lock" << std :: endl;
             while(this->locked())
                 co_await this->_crontab.wait(settings :: intervals :: retry);
 
-            log << "Lock acquired" << std :: endl;
+            // log << "Lock acquired" << std :: endl;
 
-            log << "Merging statements" << std :: endl;
+            // log << "Merging statements" << std :: endl;
 
             for(const statement & statement : this->_addbuffer)
             {
-                log << statement.identifier() << " / " << statement.sequence() << std :: endl;
+                // log << statement.identifier() << " / " << statement.sequence() << std :: endl;
+
+                this->emit <class statement> (statement);
                 this->_statements.add(statement);
             }
+
+            this->_addbuffer.clear();
         }
     }
 };

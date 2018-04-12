@@ -16,6 +16,7 @@ namespace poseidon
 
 // Includes
 
+#include "drop/async/eventemitter.hpp"
 #include "drop/network/pool.hpp"
 #include "drop/chrono/crontab.h"
 #include "drop/chrono/time.hpp"
@@ -27,7 +28,7 @@ namespace poseidon
 {
     using namespace drop;
 
-    class gossiper
+    class gossiper : public eventemitter <statement, statement>
     {
         // Settings
 
