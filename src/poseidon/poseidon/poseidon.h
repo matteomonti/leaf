@@ -8,10 +8,16 @@ namespace poseidon
 #if !defined(__forward__) && !defined(__poseidon__poseidon__poseidon__h)
 #define __poseidon__poseidon__poseidon__h
 
+// Libraries
+
+#include <unordered_map>
+#include <unordered_set>
+
 // Includes
 
 #include "crawler.h"
 #include "gossiper.h"
+#include "drop/crypto/shorthash.hpp"
 
 namespace poseidon
 {
@@ -32,6 +38,31 @@ namespace poseidon
 
         friend class gossiper;
 
+        // Service nested classes
+
+        struct index
+        {
+            // Members
+
+            identifier identifier;
+            uint64_t sequence;
+
+            // Methods
+
+            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+
+            // Operators
+
+            bool operator == (const index &) const;
+        };
+
+        struct entry
+        {
+            buffer value;
+            timestamp timestamp;
+            bool accepted;
+        };
+
         // Members
 
         signer _signer;
@@ -40,6 +71,9 @@ namespace poseidon
         crawler _crawler;
 
         uint64_t _sequence;
+
+        std :: unordered_map <index, entry, shorthash> _logs;
+        std :: unordered_set <index, shorthash> _checklist;
 
         std :: mutex _mutex;
 

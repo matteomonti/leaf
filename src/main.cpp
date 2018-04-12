@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "poseidon/poseidon/poseidon.h"
+#include "poseidon/poseidon/poseidon.hpp"
 #include "drop/network/connectors/tcp.h"
 #include "drop/network/pool.hpp"
 #include "drop/chrono/crontab.h"

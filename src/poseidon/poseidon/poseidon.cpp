@@ -1,11 +1,22 @@
 // Includes
 
-#include "poseidon.h"
+#include "poseidon.hpp"
 
 namespace poseidon
 {
     using namespace drop;
     using namespace vine;
+
+    // index
+
+    // Operators
+
+    bool poseidon :: index :: operator == (const index & rho) const
+    {
+        return (this->identifier == rho.identifier) && (this->sequence == rho.sequence);
+    }
+
+    // poseidon
 
     // Constructors
 
@@ -35,6 +46,20 @@ namespace poseidon
 
     void poseidon :: gossip(const statement & statement)
     {
-        std :: cout << "Received statement: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
+        index index{.identifier = statement.identifier(), .sequence = statement.sequence()};
+
+        this->_mutex.lock();
+
+        try
+        {
+            this->_logs.at(index);
+        }
+        catch(...)
+        {
+            this->_logs[index] = entry{.value = statement.value(), .timestamp = now, .accepted = false};
+            this->_checklist.insert(index);
+        }
+
+        this->_mutex.unlock();
     }
 };
