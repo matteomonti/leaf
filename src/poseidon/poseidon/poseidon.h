@@ -28,6 +28,10 @@ namespace poseidon
             static constexpr size_t channel = 2;
         };
 
+        // Friends
+
+        friend class gossiper;
+
         // Members
 
         signer _signer;
@@ -35,13 +39,30 @@ namespace poseidon
         gossiper _gossiper;
         crawler _crawler;
 
+        uint64_t _sequence;
+
+        std :: mutex _mutex;
+
         typename settings :: dialer & _dialer;
         pool & _pool;
         crontab & _crontab;
 
+    public:
+
         // Constructors
 
         poseidon(const signer &, const std :: array <identifier, brahms :: settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &);
+
+        // Methods
+
+        void start();
+        void publish(const buffer &);
+
+    private:
+
+        // Private methods
+
+        void gossip(const statement &);
     };
 };
 

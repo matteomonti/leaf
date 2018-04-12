@@ -14,6 +14,12 @@ namespace poseidon
 #include <unordered_set>
 #include <exception>
 
+// Forward includes
+
+#define __forward__
+#include "poseidon.h"
+#undef __forward__
+
 // Includes
 
 #include "drop/async/eventemitter.hpp"
@@ -28,12 +34,14 @@ namespace poseidon
 {
     using namespace drop;
 
-    class gossiper : public eventemitter <statement, statement>
+    class gossiper
     {
         // Settings
 
         struct settings
         {
+            typedef poseidon handler;
+            
             struct intervals
             {
                 static constexpr interval merge = 1_m;
@@ -67,13 +75,15 @@ namespace poseidon
 
         std :: mutex _mutex;
 
+        typename settings :: handler & _handler;
+
         crontab & _crontab;
 
     public:
 
         // Constructors
 
-        gossiper(const identifier &, crontab &);
+        gossiper(const identifier &, typename settings :: handler &, crontab &);
 
         // Methods
 

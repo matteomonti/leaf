@@ -1,8 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "poseidon/poseidon/crawler.h"
-#include "poseidon/poseidon/gossiper.h"
+#include "poseidon/poseidon/poseidon.h"
 #include "drop/network/connectors/tcp.h"
 #include "drop/network/pool.hpp"
 #include "drop/chrono/crontab.h"
@@ -42,8 +41,7 @@ int main()
 
     std :: array <signer, nodes> signers;
     std :: array <multiplexer <dialers :: local :: client, 3> *, nodes> dialers;
-    std :: array <gossiper *, nodes> gossipers;
-    std :: array <crawler *, nodes> crawlers;
+    std :: array <class poseidon *, nodes> clients;
 
     std :: cout << "Creating nodes" << std :: endl;
 
@@ -51,33 +49,19 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        gossipers[i] = new gossiper(signers[i].publickey(), crontab);
-
-        crawlers[i] = new crawler(signers[i], view, *(gossipers[i]), *(dialers[i]), pool, crontab);
+        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab);
     }
-
-    std :: cout << "Registering statement handlers" << std :: endl;
-
-    size_t * spreading = new size_t(0);
-
-    for(size_t i = 0; i < nodes; i++)
-        gossipers[i]->on <statement> ([=](const statement & statement)
-        {
-            std :: cout << (*spreading) << ": Gossiper " << i << " received statement " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
-            (*spreading)++;
-        });
 
     std :: cout << "Seeding gossip" << std :: endl;
 
-    statement seed(signers[44], 0, "I love apples!");
-    gossipers[44]->add(seed);
+    clients[44]->publish("I love apples!");
 
     std :: cout << "Starting nodes" << std :: endl;
 
     for(size_t i = 0; i < nodes; i++)
     {
         std :: cout << "Starting node " << i << std :: endl;
-        crawlers[i]->start();
+        clients[i]->start();
         sleep(200_ms);
     }
 

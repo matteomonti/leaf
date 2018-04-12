@@ -1,6 +1,7 @@
 // Includes
 
 #include "gossiper.h"
+#include "poseidon.h"
 
 namespace poseidon
 {
@@ -13,7 +14,7 @@ namespace poseidon
 
     // Constructors
 
-    gossiper :: gossiper(const identifier & identifier, crontab & crontab) : _identifier(identifier), _locks(0), _crontab(crontab)
+    gossiper :: gossiper(const identifier & identifier, typename settings :: handler & handler, crontab & crontab) : _identifier(identifier), _locks(0), _handler(handler), _crontab(crontab)
     {
         this->run();
     }
@@ -126,7 +127,7 @@ namespace poseidon
 
             for(const statement & statement : this->_addbuffer)
             {
-                this->emit <class statement> (statement);
+                this->_handler.gossip(statement);
                 this->_statements.add(statement);
             }
 
