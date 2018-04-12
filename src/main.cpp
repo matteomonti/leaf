@@ -34,20 +34,6 @@ std :: array <identifier, brahms :: settings :: view :: size> view(std :: array 
 
 int main()
 {
-    std :: ofstream logs[nodes];
-    for(size_t i = 0; i < nodes; i++)
-    {
-        char path[1024];
-        sprintf(path, "/Users/monti/logs/%d.log", (int)i);
-        std :: cout << "Opening " << path << std :: endl;
-        logs[i].open(path, std :: ios :: out);
-    }
-
-    std :: ofstream mute;
-    mute.open("/dev/null", std :: ios :: out);
-
-    std :: cout << "Logs opened" << std :: endl;
-
     connectors :: tcp :: async connector;
     pool pool;
     crontab crontab;
@@ -65,7 +51,7 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        gossipers[i] = new gossiper(signers[i].publickey(), crontab, logs[i]);
+        gossipers[i] = new gossiper(signers[i].publickey(), crontab);
 
         crawlers[i] = new crawler(signers[i], view, *(gossipers[i]), *(dialers[i]), pool, crontab);
     }
