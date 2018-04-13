@@ -17,6 +17,7 @@ namespace poseidon
 
 #include "crawler.h"
 #include "gossiper.h"
+#include "checkpool.hpp"
 #include "drop/crypto/shorthash.hpp"
 #include "drop/data/varint.hpp"
 
