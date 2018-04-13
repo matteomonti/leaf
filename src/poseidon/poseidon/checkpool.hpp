@@ -19,24 +19,18 @@ namespace poseidon
         this->_indexes.clear();
         this->_indexes.reserve(indexes.size());
 
-        for(size_t i = 0; i < size; i++)
-        {
-            this->_slots[i].clear();
-            this->_slots[i].reserve(indexes.size());
-        }
-
         for(const index & index : indexes)
             this->_indexes.push_back(index);
 
         return this->_version;
     }
 
-    template <size_t size> void checkpool <size> :: push(const size_t & version, const size_t & slot, const optional <buffer> & value)
+    template <size_t size> void checkpool <size> :: set(const size_t & version, const size_t & slot, const std :: vector <optional <buffer>> & responses)
     {
         if(version != this->_version)
             return;
 
-        this->_slots[slot].push_back(value);
+        this->_slots[slot] = responses;
     }
 };
 

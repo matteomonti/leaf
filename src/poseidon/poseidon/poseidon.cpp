@@ -25,6 +25,7 @@ namespace poseidon
         });
 
         this->_crawler.start();
+        this->run();
     }
 
     void poseidon :: publish(const buffer & value)
@@ -84,5 +85,78 @@ namespace poseidon
         this->_mutex.unlock();
 
         co_await connection.send(responses);
+    }
+
+    promise <void> poseidon :: check(size_t version, size_t slot, optional <identifier> identifier, std :: vector <index> indexes)
+    {
+        try
+        {
+            if(identifier)
+            {
+                pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <settings :: channel> (*identifier));
+                co_await connection.send(indexes);
+
+                std :: vector <optional <value>> values = co_await connection.receive <std :: vector <optional <value>>> ();
+
+                if(values.size() != indexes.size())
+                    throw "Unexpected size"; // TODO: Add proper exception
+
+                std :: vector <optional <buffer>> responses;
+                responses.reserve(values.size());
+
+                for(size_t i = 0; i < values.size(); i++)
+                {
+                    try
+                    {
+                        if(values[i])
+                        {
+                            statement statement(indexes[i], values[i]->value, values[i]->signature);
+                            statement.verify();
+
+                            responses.push_back(statement.value());
+                        }
+                        else
+                            responses.push_back(null);
+                    }
+                    catch(...)
+                    {
+                        responses.push_back(null);
+                    }
+                }
+
+                this->_mutex.lock();
+                this->_checkpool.set(version, slot, responses);
+                this->_mutex.unlock();
+            }
+        }
+        catch(...)
+        {
+        }
+    }
+
+    promise <void> poseidon :: run()
+    {
+        co_await this->_crontab.wait(settings :: intervals :: check);
+
+        while(true)
+        {
+            this->_mutex.lock();
+            size_t version = this->_checkpool.init(this->_checklist);
+
+            std :: vector <index> indexes;
+            indexes.reserve(this->_checklist.size());
+
+            for(const index & index : this->_checklist)
+                indexes.push_back(index);
+
+            this->_mutex.unlock();
+
+            std :: array <optional <identifier>, brahms :: settings :: sample :: size> sample = this->_crawler.sample();
+
+            for(size_t slot = 0; slot < brahms :: settings :: sample :: size; slot++)
+                this->check(version, slot, sample[slot], indexes);
+
+            co_await this->_crontab.wait(settings :: intervals :: check);
+        }
     }
 };

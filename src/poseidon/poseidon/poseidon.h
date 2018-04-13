@@ -38,6 +38,7 @@ namespace poseidon
             struct intervals
             {
                 static constexpr interval vote = 5_m;
+                static constexpr interval check = 1_m;
             };
         };
 
@@ -79,6 +80,7 @@ namespace poseidon
 
         std :: unordered_map <index, entry, shorthash> _logs;
         std :: unordered_set <index, shorthash> _checklist;
+        checkpool <brahms :: settings :: sample :: size> _checkpool;
 
         std :: mutex _mutex;
 
@@ -104,6 +106,8 @@ namespace poseidon
         void gossip(const statement &);
 
         promise <void> serve(pool :: connection);
+        promise <void> check(size_t, size_t, optional <identifier>, std :: vector <index>);
+        promise <void> run();
     };
 };
 

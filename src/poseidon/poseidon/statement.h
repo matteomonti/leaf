@@ -72,6 +72,8 @@ namespace poseidon
 
         statement();
         statement(signer &, const uint64_t &, const buffer &);
+        statement(const index &, const buffer &, const signature &);
+        statement(const identifier &, const uint64_t &, const buffer &, const signature &);
 
         // Getters
 

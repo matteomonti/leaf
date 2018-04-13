@@ -38,7 +38,7 @@ namespace poseidon
         // Methods
 
         size_t init(const std :: unordered_set <index, shorthash> &);
-        void push(const size_t &, const size_t &, const optional <buffer> &);
+        void set(const size_t &, const size_t &, const std :: vector <optional <buffer>> &);
     };
 };
 

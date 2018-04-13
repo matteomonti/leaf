@@ -54,6 +54,14 @@ namespace poseidon
     {
     }
 
+    statement :: statement(const class index & index, const buffer & value, const class signature & signature) : _index(index), _value(value), _signature(signature)
+    {
+    }
+
+    statement :: statement(const vine :: identifier & identifier, const uint64_t & sequence, const buffer & value, const class signature & signature) : _index(identifier, sequence), _value(value), _signature(signature)
+    {
+    }
+
     // Getters
 
     const index & statement :: index() const
