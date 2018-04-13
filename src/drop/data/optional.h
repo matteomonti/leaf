@@ -17,11 +17,24 @@ namespace drop
 // Includes
 
 #include "drop/utils/enablers.h"
+#include "drop/bytewise/bytewise.hpp"
 
 namespace drop
 {
     template <typename type> class optional_base
     {
+    public:
+
+        // Constraints
+
+        struct constraints
+        {
+            template <typename vtype> static constexpr bool readable();
+            template <typename vtype> static constexpr bool writable();
+        };
+
+    private:
+
         // Members
 
         bool _set;
@@ -46,6 +59,9 @@ namespace drop
         // Methods
 
         template <typename... types, std :: enable_if_t <std :: is_constructible <type, types...> :: value> * = nullptr> void emplace(types && ...);
+
+        template <typename vtype, std :: enable_if_t <constraints :: template readable <vtype> ()> * = nullptr> void accept(bytewise :: reader <vtype> &) const;
+        template <typename vtype, std :: enable_if_t <constraints :: template writable <vtype> ()> * = nullptr> void accept(bytewise :: writer <vtype> &);
 
         // Operators
 
@@ -75,6 +91,10 @@ namespace drop
                                               public enablers :: move_assignable <std :: is_move_assignable <type> :: value && std :: is_copy_constructible <type> :: value>
     {
     public:
+
+        // Constraints
+
+        typedef typename optional_base <type> :: constraints constraints;
 
         // Constructors
 

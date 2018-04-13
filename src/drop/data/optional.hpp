@@ -9,6 +9,18 @@ namespace drop
 {
     // optional_base
 
+    // Constraints
+
+    template <typename type> template <typename vtype> constexpr bool optional_base <type> :: constraints :: readable()
+    {
+        return bytewise :: constraints :: readable <type, vtype> ();
+    }
+
+    template <typename type> template <typename vtype> constexpr bool optional_base <type> :: constraints :: writable()
+    {
+        return bytewise :: constraints :: writable <type, vtype> () && std :: is_default_constructible <type> :: value;
+    }
+
     // Constructors
 
     template <typename type> optional_base <type> :: optional_base() : _set(false)
@@ -57,6 +69,32 @@ namespace drop
 
         this->_set = true;
         new (&(this->_value)) type(args...);
+    }
+
+    template <typename type> template <typename vtype, std :: enable_if_t <optional_base <type> :: constraints :: template readable <vtype> ()> *> void optional_base <type> :: accept(bytewise :: reader <vtype> & reader) const
+    {
+        reader << this->_set;
+
+        if(this->_set)
+            reader << reinterpret_cast <const type &> (this->_value);
+    }
+
+    template <typename type> template <typename vtype, std :: enable_if_t <optional_base <type> :: constraints :: template writable <vtype> ()> *> void optional_base <type> :: accept(bytewise :: writer <vtype> & writer)
+    {
+        bool set;
+        writer >> set;
+
+        if(set)
+        {
+            if(!(this->_set))
+                new (&(this->_value)) type();
+
+            writer >> reinterpret_cast <type &> (this->_value);
+        }
+        else
+            this->~optional_base();
+
+        this->_set = set;
     }
 
     // Operators

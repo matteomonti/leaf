@@ -94,6 +94,6 @@ namespace poseidon
 
         this->_mutex.unlock();
 
-        // co_await connection.send(responses); TODO: Implement serialization for optionals.
+        co_await connection.send(responses);
     }
 };
