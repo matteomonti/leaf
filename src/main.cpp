@@ -33,6 +33,9 @@ std :: array <identifier, brahms :: settings :: view :: size> view(std :: array 
 
 int main()
 {
+    std :: ofstream mute;
+    mute.open("/dev/null", std :: ios :: out);
+
     connectors :: tcp :: async connector;
     pool pool;
     crontab crontab;
@@ -49,7 +52,7 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab);
+        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab, ((i == 0) ? std :: cout : mute));
     }
 
     std :: cout << "Seeding gossip" << std :: endl;
