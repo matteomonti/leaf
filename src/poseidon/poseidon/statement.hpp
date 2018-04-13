@@ -10,20 +10,36 @@ namespace poseidon
     using namespace drop;
     using namespace vine;
 
+    // index
+
+    // Methods
+
+    template <typename vtype> void index :: accept(bytewise :: reader <vtype> & reader) const
+    {
+        reader << (this->_identifier);
+        reader << (this->_sequence);
+    }
+
+    template <typename vtype> void index :: accept(bytewise :: writer <vtype> & writer)
+    {
+        writer >> (this->_identifier);
+        writer >> (this->_sequence);
+    }
+
+    // statement
+
     // Methods
 
     template <typename vtype> void statement :: accept(bytewise :: reader <vtype> & reader) const
     {
-        reader << (this->_identifier);
-        reader << (this->_sequence);
+        reader << (this->_index);
         reader << (this->_value);
         reader << (this->_signature);
     }
 
     template <typename vtype> void statement :: accept(bytewise :: writer <vtype> & writer)
     {
-        writer >> (this->_identifier);
-        writer >> (this->_sequence);
+        writer >> (this->_index);
         writer >> (this->_value);
         writer >> (this->_signature);
     }

@@ -7,15 +7,6 @@ namespace poseidon
     using namespace drop;
     using namespace vine;
 
-    // index
-
-    // Operators
-
-    bool poseidon :: index :: operator == (const index & rho) const
-    {
-        return (this->identifier == rho.identifier) && (this->sequence == rho.sequence);
-    }
-
     // poseidon
 
     // Constructors
@@ -51,18 +42,16 @@ namespace poseidon
 
     void poseidon :: gossip(const statement & statement)
     {
-        index index{.identifier = statement.identifier(), .sequence = statement.sequence()};
-
         this->_mutex.lock();
 
         try
         {
-            this->_logs.at(index);
+            this->_logs.at(statement.index());
         }
         catch(...)
         {
-            this->_logs[index] = entry{.value = statement.value(), .signature = statement.signature(), .timestamp = now, .accepted = false};
-            this->_checklist.insert(index);
+            this->_logs[statement.index()] = entry{.value = statement.value(), .signature = statement.signature(), .timestamp = now, .accepted = false};
+            this->_checklist.insert(statement.index());
         }
 
         this->_mutex.unlock();

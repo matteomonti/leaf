@@ -1,50 +1,70 @@
 #include <iostream>
+#include <fstream>
 
-#include "drop/data/optional.hpp"
-#include "drop/bytewise/bytewise.hpp"
+#include "poseidon/poseidon/poseidon.hpp"
+#include "drop/network/connectors/tcp.h"
+#include "drop/network/pool.hpp"
+#include "drop/chrono/crontab.h"
+#include "vine/dialers/local.h"
+#include "vine/network/multiplexer.hpp"
 
 using namespace drop;
+using namespace vine;
+using namespace poseidon;
 
-class myclass
+static constexpr size_t nodes = 256;
+
+std :: array <identifier, brahms :: settings :: view :: size> view(std :: array <signer, nodes> & signers, size_t exclude)
 {
-public:
+    std :: array <identifier, brahms :: settings :: view :: size> sample;
 
-    // Members
-
-    uint32_t _i;
-
-    // Constructors
-
-    myclass()
+    for(size_t i = 0; i < brahms :: settings :: view :: size; i++)
     {
+        size_t pick = rand() % nodes;
+
+        while(pick == exclude)
+            pick = rand() % nodes;
+
+        sample[i] = signers[pick].publickey();
     }
 
-    myclass(const uint32_t & i) : _i(i)
-    {
-    }
-
-    // Methods
-
-    template <typename vtype> void accept(bytewise :: reader <vtype> & reader) const
-    {
-        reader << this->_i;
-    }
-
-    template <typename vtype> void accept(bytewise :: writer <vtype> & writer)
-    {
-        writer >> this->_i;
-    }
-};
+    return sample;
+}
 
 int main()
 {
-    optional <myclass> my_optional = 44;
-    buffer serialized = bytewise :: serialize(my_optional);
+    connectors :: tcp :: async connector;
+    pool pool;
+    crontab crontab;
 
-    optional <myclass> my_other_optional = bytewise :: deserialize <optional <myclass>> (serialized);
+    dialers :: local :: server server;
 
-    if(my_other_optional)
-        std :: cout << my_other_optional->_i << std :: endl;
-    else
-        std :: cout << "<null>" << std :: endl;
+    std :: array <signer, nodes> signers;
+    std :: array <multiplexer <dialers :: local :: client, 3> *, nodes> dialers;
+    std :: array <class poseidon *, nodes> clients;
+
+    std :: cout << "Creating nodes" << std :: endl;
+
+    for(size_t i = 0; i < nodes; i++)
+    {
+        auto view = :: view(signers, i);
+        dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
+        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab);
+    }
+
+    std :: cout << "Seeding gossip" << std :: endl;
+
+    clients[44]->publish("I love apples!");
+
+    std :: cout << "Starting nodes" << std :: endl;
+
+    for(size_t i = 0; i < nodes; i++)
+    {
+        std :: cout << "Starting node " << i << std :: endl;
+        clients[i]->start();
+        sleep(200_ms);
+    }
+
+    std :: cout << "Started" << std :: endl;
+    sleep(10_h);
 }

@@ -2,6 +2,7 @@
 
 namespace poseidon
 {
+    class index;
     class statement;
 };
 
@@ -21,6 +22,35 @@ namespace poseidon
     using namespace drop;
     using namespace vine;
 
+    class index
+    {
+        // Members
+
+        identifier _identifier;
+        uint64_t _sequence;
+
+    public:
+
+        // Constructors
+
+        index();
+        index(const identifier &, const uint64_t &);
+
+        // Getters
+
+        const identifier & identifier() const;
+        const uint64_t & sequence() const;
+
+        // Methods
+
+        template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+        template <typename vtype> void accept(bytewise :: writer <vtype> &);
+
+        // Operators
+
+        bool operator == (const index &) const;
+    };
+
     class statement
     {
         // Signatures
@@ -32,8 +62,7 @@ namespace poseidon
 
         // Members
 
-        identifier _identifier;
-        uint64_t _sequence;
+        index _index;
         buffer _value;
         signature _signature;
 
@@ -46,6 +75,7 @@ namespace poseidon
 
         // Getters
 
+        const index & index() const;
         const identifier & identifier() const;
         const uint64_t & sequence() const;
         const buffer & value() const;

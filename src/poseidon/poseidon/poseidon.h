@@ -36,7 +36,7 @@ namespace poseidon
 
             struct intervals
             {
-                static constexpr interval vote = 5_m;    
+                static constexpr interval vote = 5_m;
             };
         };
 
@@ -45,23 +45,6 @@ namespace poseidon
         friend class gossiper;
 
         // Service nested classes
-
-        struct index
-        {
-            // Members
-
-            identifier identifier;
-            uint64_t sequence;
-
-            // Methods
-
-            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
-            template <typename vtype> void accept(bytewise :: writer <vtype> &);
-
-            // Operators
-
-            bool operator == (const index &) const;
-        };
 
         struct value
         {
