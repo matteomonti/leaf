@@ -38,6 +38,13 @@ namespace poseidon
         }
     }
 
+    // Operators
+
+    template <size_t size> const sampler & sample <size> :: operator [] (const size_t & index) const
+    {
+        return this->_samplers[index];
+    }
+
     // Casting
 
     template <size_t size> sample <size> :: operator bool ()

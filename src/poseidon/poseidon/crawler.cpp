@@ -37,6 +37,11 @@ namespace poseidon
         return this->_signer;
     }
 
+    std :: array <optional <vine :: identifier>, brahms :: settings :: sample :: size> crawler :: sample()
+    {
+        return this->_brahms.sample();
+    }
+
     // Methods
 
     void crawler :: start()

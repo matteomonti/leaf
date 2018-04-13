@@ -45,6 +45,10 @@ namespace poseidon
 
         const identifier & random();
 
+        // Operators
+
+        const sampler & operator [] (const size_t &) const;
+
         // Casting
 
         operator bool ();

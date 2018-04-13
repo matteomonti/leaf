@@ -29,6 +29,20 @@ namespace poseidon
         return this->_signer;
     }
 
+    std :: array <optional <vine :: identifier>, brahms :: settings :: sample :: size> brahms :: sample()
+    {
+        std :: array <optional <vine :: identifier>, settings :: sample :: size> sample;
+
+        this->_mutex.lock();
+
+        for(size_t i = 0; i < settings :: sample :: size; i++)
+            sample[i] = this->_sample[i].sample();
+
+        this->_mutex.unlock();
+
+        return sample;
+    }
+
     // Methods
 
     void brahms :: start()

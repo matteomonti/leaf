@@ -93,6 +93,8 @@ namespace poseidon
         const identifier & identifier() const;
         signer & signer();
 
+        std :: array <optional <vine :: identifier>, brahms :: settings :: sample :: size> sample();
+
         // Methods
 
         void start();
