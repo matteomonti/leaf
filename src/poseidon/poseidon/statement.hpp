@@ -26,6 +26,22 @@ namespace poseidon
         writer >> (this->_sequence);
     }
 
+    // value
+
+    // Methods
+
+    template <typename vtype> void value :: accept(bytewise :: reader <vtype> & reader) const
+    {
+        reader << this->value;
+        reader << this->signature;
+    }
+
+    template <typename vtype> void value :: accept(bytewise :: writer <vtype> & writer)
+    {
+        writer >> this->value;
+        writer >> this->signature;
+    }
+
     // statement
 
     // Methods

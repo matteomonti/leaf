@@ -129,41 +129,30 @@ namespace poseidon
                 co_await connection.send(indexes);
 
                 log << "Retrieving response values" << std :: endl;
-                std :: vector <optional <value>> values = co_await connection.receive <std :: vector <optional <value>>> ();
+                std :: vector <optional <value>> responses = co_await connection.receive <std :: vector <optional <value>>> ();
 
-                if(values.size() != indexes.size())
+                if(responses.size() != indexes.size())
                     throw "Unexpected size"; // TODO: Add proper exception
-
-                std :: vector <optional <buffer>> responses;
-                responses.reserve(values.size());
 
                 log << "Looping over responses" << std :: endl;
 
-                for(size_t i = 0; i < values.size(); i++)
+                for(size_t i = 0; i < responses.size(); i++)
                 {
                     try
                     {
-                        if(values[i])
+                        if(responses[i])
                         {
-                            log << i << ": " << indexes[i].identifier() << " / " << indexes[i].sequence() << ": " << values[i]->value << std :: endl;
-                            statement statement(indexes[i], values[i]->value, values[i]->signature);
+                            log << i << ": " << indexes[i].identifier() << " / " << indexes[i].sequence() << ": " << responses[i]->value << std :: endl;
+                            statement statement(indexes[i], responses[i]->value, responses[i]->signature); // TODO: Make even more compact constructor with (index, value)
 
                             log << "Verifying statement" << std :: endl;
                             statement.verify();
-
-                            log << "Statement verified, pushing in responses" << std :: endl;
-                            responses.push_back(statement.value());
-                        }
-                        else
-                        {
-                            log << i << ": (no value)" << std :: endl;
-                            responses.push_back(null);
                         }
                     }
                     catch(...)
                     {
                         log << "Exception here" << std :: endl;
-                        responses.push_back(null);
+                        responses[i] = null;
                     }
                 }
 
@@ -228,6 +217,23 @@ namespace poseidon
             }
 
             co_await this->_crontab.wait(settings :: intervals :: check);
+
+            log << "Time's up, evaluating checkpool" << std :: endl;
+
+            this->_mutex.lock();
+
+            this->_checkpool.evaluate <settings :: accept :: threshold> ([&](const statement & accept)
+            {
+                log << "Accepting " << accept.identifier() << " / " << accept.sequence() << ": " << accept.value() << std :: endl;
+                this->_logs[accept.index()] = entry{.value = accept.value(), .signature = accept.signature(), .timestamp = 0, .accepted = true};
+                this->_checklist.erase(accept.index());
+            }, [&](const index & reject)
+            {
+                log << "Rejecting " << reject.identifier() << " / " << reject.sequence() << std :: endl;
+                this->_checklist.erase(reject);
+            });
+
+            this->_mutex.unlock();
         }
     }
 };

@@ -38,6 +38,15 @@ namespace poseidon
         return (this->_identifier == rho._identifier) && (this->_sequence == rho._sequence);
     }
 
+    // value
+
+    // Operators
+
+    bool value :: operator == (const struct value & rho) const
+    {
+        return (this->value == rho.value) && (this->signature == rho.signature);
+    }
+
     // statement
 
     // Signatures

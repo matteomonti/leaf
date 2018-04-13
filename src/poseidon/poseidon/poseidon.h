@@ -40,6 +40,11 @@ namespace poseidon
                 static constexpr interval vote = 5_m;
                 static constexpr interval check = 1_m;
             };
+
+            struct accept
+            {
+                static constexpr size_t threshold = 6;
+            };
         };
 
         // Friends
@@ -47,19 +52,6 @@ namespace poseidon
         friend class gossiper;
 
         // Service nested classes
-
-        struct value
-        {
-            // Members
-
-            buffer value;
-            signature signature;
-
-            // Methods
-
-            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
-            template <typename vtype> void accept(bytewise :: writer <vtype> &);
-        };
 
         struct entry
         {

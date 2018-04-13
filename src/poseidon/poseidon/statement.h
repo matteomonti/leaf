@@ -51,6 +51,23 @@ namespace poseidon
         bool operator == (const index &) const;
     };
 
+    struct value
+    {
+        // Members
+
+        buffer value;
+        signature signature;
+
+        // Methods
+
+        template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+        template <typename vtype> void accept(bytewise :: writer <vtype> &);
+
+        // Operators
+
+        bool operator == (const struct value &) const;
+    };
+
     class statement
     {
         // Signatures

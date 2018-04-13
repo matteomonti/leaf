@@ -25,7 +25,7 @@ namespace poseidon
         return this->_version;
     }
 
-    template <size_t size> void checkpool <size> :: set(const size_t & version, const size_t & slot, const std :: vector <optional <buffer>> & responses)
+    template <size_t size> void checkpool <size> :: set(const size_t & version, const size_t & slot, const std :: vector <optional <value>> & responses)
     {
         if(version != this->_version)
             return;
@@ -37,7 +37,7 @@ namespace poseidon
     {
         for(size_t index = 0; index < this->_indexes.size(); index++)
         {
-            std :: unordered_map <buffer, size_t, shorthash> scores;
+            std :: unordered_map <value, size_t, shorthash> scores;
 
             for(size_t slot = 0; slot < size; slot++)
             {
@@ -46,18 +46,18 @@ namespace poseidon
                     try
                     {
                         size_t score = scores.at(*(this->_slots[slot][index]));
-                        scores[this->_slots[slot][index]] = score + 1;
+                        scores[*(this->_slots[slot][index])] = score + 1;
                     }
                     catch(...)
                     {
-                        scores[this->_slots[slot][index]] = 1;
+                        scores[*(this->_slots[slot][index])] = 1;
                     }
                 }
             }
 
             struct
             {
-                buffer buffer;
+                value value;
                 size_t score = 0;
             } best;
 
@@ -67,14 +67,17 @@ namespace poseidon
             {
                 if(score.second > best.score)
                 {
-                    best.buffer = score.first;
+                    best.value = score.first;
                     best.score = score.second;
                 }
 
                 total += score.second;
             }
 
-            // TODO: Do checks and call callbacks.
+            if(best.score > threshold)
+                accept(statement(this->_indexes[index], best.value.value, best.value.signature)); // TODO: Use improved constructor.
+            else if((total - best.score) > (size - threshold))
+                reject(this->_indexes[index]);
         }
     }
 };

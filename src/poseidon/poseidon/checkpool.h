@@ -39,14 +39,14 @@ namespace poseidon
         // Members
 
         std :: vector <index> _indexes;
-        std :: vector <optional <buffer>> _slots[size];
+        std :: vector <optional <value>> _slots[size];
 
         size_t _version;
 
         // Methods
 
         size_t init(const std :: unordered_set <index, shorthash> &);
-        void set(const size_t &, const size_t &, const std :: vector <optional <buffer>> &);
+        void set(const size_t &, const size_t &, const std :: vector <optional <value>> &);
 
         template <size_t threshold, typename alambda, typename rlambda> void evaluate(const alambda &, const rlambda &);
     };
