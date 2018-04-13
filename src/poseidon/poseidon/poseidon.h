@@ -18,6 +18,7 @@ namespace poseidon
 #include "crawler.h"
 #include "gossiper.h"
 #include "drop/crypto/shorthash.hpp"
+#include "drop/data/varint.hpp"
 
 namespace poseidon
 {
@@ -32,6 +33,11 @@ namespace poseidon
         {
             typedef multiplexer <dialers :: local :: client, 3> dialer;
             static constexpr size_t channel = 2;
+
+            struct intervals
+            {
+                static constexpr interval vote = 5_m;    
+            };
         };
 
         // Friends
@@ -50,10 +56,24 @@ namespace poseidon
             // Methods
 
             template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+            template <typename vtype> void accept(bytewise :: writer <vtype> &);
 
             // Operators
 
             bool operator == (const index &) const;
+        };
+
+        struct value
+        {
+            // Members
+
+            buffer value;
+            signature signature;
+
+            // Methods
+
+            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+            template <typename vtype> void accept(bytewise :: writer <vtype> &);
         };
 
         struct entry
@@ -98,6 +118,8 @@ namespace poseidon
         // Private methods
 
         void gossip(const statement &);
+
+        promise <void> serve(pool :: connection);
     };
 };
 

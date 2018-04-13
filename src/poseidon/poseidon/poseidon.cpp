@@ -28,6 +28,11 @@ namespace poseidon
 
     void poseidon :: start()
     {
+        this->_dialer.on <settings :: channel> ([=](const connection & connection)
+        {
+            this->serve(this->_pool.bind(connection));
+        });
+
         this->_crawler.start();
     }
 
@@ -61,5 +66,34 @@ namespace poseidon
         }
 
         this->_mutex.unlock();
+    }
+
+    promise <void> poseidon :: serve(pool :: connection connection)
+    {
+        std :: vector <index> queries = co_await connection.receive <std :: vector <index>> ();
+
+        std :: vector <optional <value>> responses;
+        responses.reserve(queries.size());
+
+        this->_mutex.lock();
+
+        for(size_t i = 0; i < queries.size(); i++)
+            try
+            {
+                entry entry = this->_logs.at(queries[i]);
+
+                if(entry.timestamp - timestamp(now) > settings :: intervals :: vote)
+                    responses.push_back(value{.value = entry.value, .signature = entry.signature});
+                else
+                    responses.push_back(null);
+            }
+            catch(...)
+            {
+                responses.push_back(null);
+            }
+
+        this->_mutex.unlock();
+
+        // co_await connection.send(responses); TODO: Implement serialization for optionals.
     }
 };
