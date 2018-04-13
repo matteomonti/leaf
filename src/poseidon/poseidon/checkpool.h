@@ -13,6 +13,12 @@ namespace poseidon
 #include <vector>
 #include <unordered_set>
 
+// Forward includes
+
+#define __forward__
+#include "poseidon.h"
+#undef __forward__
+
 // Includes
 
 #include "statement.hpp"
@@ -26,6 +32,10 @@ namespace poseidon
 
     template <size_t size> class checkpool
     {
+        // Friends
+
+        friend class poseidon;
+
         // Members
 
         std :: vector <index> _indexes;
@@ -33,12 +43,12 @@ namespace poseidon
 
         size_t _version;
 
-    public:
-
         // Methods
 
         size_t init(const std :: unordered_set <index, shorthash> &);
         void set(const size_t &, const size_t &, const std :: vector <optional <buffer>> &);
+
+        template <size_t threshold, typename alambda, typename rlambda> void evaluate(const alambda &, const rlambda &);
     };
 };
 
