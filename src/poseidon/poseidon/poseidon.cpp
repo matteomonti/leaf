@@ -56,7 +56,7 @@ namespace poseidon
         }
         catch(...)
         {
-            this->_logs[index] = entry{.value = statement.value(), .timestamp = now, .accepted = false};
+            this->_logs[index] = entry{.value = statement.value(), .signature = statement.signature(), .timestamp = now, .accepted = false};
             this->_checklist.insert(index);
         }
 

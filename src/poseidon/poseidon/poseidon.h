@@ -59,6 +59,7 @@ namespace poseidon
         struct entry
         {
             buffer value;
+            signature signature;
             timestamp timestamp;
             bool accepted;
         };
