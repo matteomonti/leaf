@@ -55,7 +55,7 @@ int main()
         clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab, ((i == 0) ? std :: cout : mute));
     }
 
-    std :: cout << "Seeding gossip" << std :: endl;
+    std :: cout << "------------> " << timestamp(now) << ": seeding gossip" << std :: endl;
 
     clients[44]->publish("I love apples!");
 
@@ -65,7 +65,6 @@ int main()
     {
         std :: cout << "Starting node " << i << std :: endl;
         clients[i]->start();
-        sleep(200_ms);
     }
 
     std :: cout << "Started" << std :: endl;

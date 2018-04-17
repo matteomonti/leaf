@@ -45,7 +45,7 @@ namespace poseidon
     {
         this->_mutex.lock();
 
-        log << "Received statement from gossip: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
+        log << "------------> " << timestamp(now) << "Received statement from gossip: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
 
         try
         {
@@ -224,7 +224,7 @@ namespace poseidon
 
             this->_checkpool.evaluate <settings :: accept :: threshold> ([&](const statement & accept)
             {
-                log << "Accepting " << accept.identifier() << " / " << accept.sequence() << ": " << accept.value() << std :: endl;
+                log << "------------> " << timestamp(now) << "Accepting " << accept.identifier() << " / " << accept.sequence() << ": " << accept.value() << std :: endl;
                 this->_logs[accept.index()] = entry{.value = accept.value(), .signature = accept.signature(), .timestamp = 0, .accepted = true};
                 this->_checklist.erase(accept.index());
             }, [&](const index & reject)

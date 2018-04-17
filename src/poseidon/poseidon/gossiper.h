@@ -41,11 +41,11 @@ namespace poseidon
         struct settings
         {
             typedef poseidon handler;
-            
+
             struct intervals
             {
-                static constexpr interval merge = 1_m;
-                static constexpr interval retry = 1_s;
+                static constexpr interval merge = 0.5_s;
+                static constexpr interval retry = 0.02_s;
             };
         };
 

@@ -77,35 +77,38 @@ namespace poseidon
 
         try
         {
-            if(this->merging())
-                throw exceptions :: merge_in_progress();
-
-            if(this->_identifier < identifier)
-                co_await connection.send(this->_statements.sync().view);
-
-            while(true)
+            for(size_t round = 0; round < 5; round++)
             {
-                syncset <statement> :: view view = co_await connection.receive <syncset <statement> :: view> ();
+                if(this->merging())
+                    throw exceptions :: merge_in_progress();
 
-                if(view.size() == 0)
-                    break;
+                if(this->_identifier < identifier)
+                    co_await connection.send(this->_statements.sync().view);
 
-                syncset <statement> :: round round = this->_statements.sync(view);
+                while(true)
+                {
+                    syncset <statement> :: view view = co_await connection.receive <syncset <statement> :: view> ();
 
-                this->_mutex.lock();
+                    if(view.size() == 0)
+                        break;
 
-                for(const statement & statement : round.add)
-                    this->_addbuffer.insert(statement);
+                    syncset <statement> :: round round = this->_statements.sync(view);
 
-                this->_mutex.unlock();
+                    this->_mutex.lock();
 
-                co_await connection.send(round.view);
+                    for(const statement & statement : round.add)
+                        this->_addbuffer.insert(statement);
 
-                if(round.view.size() == 0)
-                    break;
+                    this->_mutex.unlock();
+
+                    co_await connection.send(round.view);
+
+                    if(round.view.size() == 0)
+                        break;
+                }
+
+                co_await this->_crontab.wait(0.01_s); // TODO: Find better strategy: maybe sync on the fly for thirty seconds?
             }
-
-            co_await this->_crontab.wait(30_s); // TODO: Find better strategy: maybe sync on the fly for thirty seconds?
         }
         catch(...)
         {
