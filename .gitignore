@@ -6,6 +6,10 @@ bin
 dep
 obj
 
+### Atom ###
+
+.ftpconfig
+
 ### C++ ###
 # Prerequisites
 *.d
