@@ -52,8 +52,13 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab, ((i == 0) ? std :: cout : mute));
+        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab);
     }
+
+    clients[0]->on <statement> ([](const statement & statement)
+    {
+        std :: cout << "------------> " << timestamp(now) << ": accepted statement " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
+    });
 
     std :: cout << "------------> " << timestamp(now) << ": seeding gossip" << std :: endl;
 

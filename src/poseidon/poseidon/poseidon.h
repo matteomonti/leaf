@@ -20,13 +20,14 @@ namespace poseidon
 #include "checkpool.hpp"
 #include "drop/crypto/shorthash.hpp"
 #include "drop/data/varint.hpp"
+#include "drop/async/eventemitter.hpp"
 
 namespace poseidon
 {
     using namespace drop;
     using namespace vine;
 
-    class poseidon
+    class poseidon : public eventemitter <statement, statement>
     {
         // Settings
 
@@ -80,13 +81,11 @@ namespace poseidon
         pool & _pool;
         crontab & _crontab;
 
-        std :: ostream & log;
-
     public:
 
         // Constructors
 
-        poseidon(const signer &, const std :: array <identifier, brahms :: settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &, std :: ostream &);
+        poseidon(const signer &, const std :: array <identifier, brahms :: settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &);
 
         // Methods
 
