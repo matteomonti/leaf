@@ -57,21 +57,20 @@ int main()
 
     clients[0]->on <statement> ([](const statement & statement)
     {
-        std :: cout << "------------> " << timestamp(now) << ": accepted statement " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
+        std :: cout << timestamp(now) << ": accepted statement " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
     });
-
-    std :: cout << "------------> " << timestamp(now) << ": seeding gossip" << std :: endl;
-
-    clients[44]->publish("I love apples!");
 
     std :: cout << "Starting nodes" << std :: endl;
 
     for(size_t i = 0; i < nodes; i++)
-    {
-        std :: cout << "Starting node " << i << std :: endl;
         clients[i]->start();
-    }
 
     std :: cout << "Started" << std :: endl;
+
+    sleep(2_s);
+
+    std :: cout << timestamp(now) << ": seeding gossip" << std :: endl;
+    clients[44]->publish("I love apples!");
+
     sleep(10_h);
 }

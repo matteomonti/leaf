@@ -101,7 +101,7 @@ namespace poseidon
         bool locked();
         bool merging();
 
-        promise <void> serve(identifier, pool :: connection);
+        promise <void> serve(identifier, pool :: connection, bool);
         promise <void> run();
     };
 };

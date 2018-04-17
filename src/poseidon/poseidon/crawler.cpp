@@ -71,12 +71,12 @@ namespace poseidon
 
         this->_brahms.on <events :: view :: join> ([=](const vine :: identifier & identifier)
         {
-            this->maintain(identifier);
+            this->maintain(identifier, true);
         });
 
         this->_brahms.on <events :: sample :: join> ([=](const vine :: identifier & identifier)
         {
-            this->maintain(identifier);
+            this->maintain(identifier, false);
         });
 
         this->_brahms.on <events :: view :: leave> ([=](const vine :: identifier & identifier)
@@ -136,7 +136,7 @@ namespace poseidon
             this->_scores.erase(identifier);
     }
 
-    promise <void> crawler :: serve(vine :: identifier identifier)
+    promise <void> crawler :: serve(vine :: identifier identifier, bool push)
     {
         this->_mutex.lock();
         bool duplicate = this->_connections.count(identifier);
@@ -149,7 +149,8 @@ namespace poseidon
         try
         {
             pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <settings :: channel> (identifier));
-            co_await this->_server.serve(identifier, connection);
+            co_await connection.send(push);
+            co_await this->_server.serve(identifier, connection, true);
 
             this->_mutex.lock();
             this->increment(identifier);
@@ -178,7 +179,8 @@ namespace poseidon
 
         try
         {
-            co_await this->_server.serve(identifier, connection);
+            bool pull = co_await connection.receive <bool> ();
+            co_await this->_server.serve(identifier, connection, pull);
 
             this->_mutex.lock();
             this->increment(identifier);
@@ -195,7 +197,7 @@ namespace poseidon
         }
     }
 
-    promise <void> crawler :: maintain(vine :: identifier identifier)
+    promise <void> crawler :: maintain(vine :: identifier identifier, bool push)
     {
         this->_mutex.lock();
         this->_neighborhood.insert(identifier);
@@ -214,7 +216,7 @@ namespace poseidon
 
             try
             {
-                co_await this->serve(identifier);
+                co_await this->serve(identifier, push);
                 exception = false;
             }
             catch(...)

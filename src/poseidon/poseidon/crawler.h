@@ -107,11 +107,11 @@ namespace poseidon
         void increment(const vine :: identifier &);
         void decrement(const vine :: identifier &);
 
-        promise <void> serve(vine :: identifier);
+        promise <void> serve(vine :: identifier, bool);
         promise <void> serve(vine :: identifier, pool :: connection);
         promise <void> poll(vine :: identifier);
 
-        promise <void> maintain(vine :: identifier);
+        promise <void> maintain(vine :: identifier, bool);
         void drop(const vine :: identifier &);
     };
 };

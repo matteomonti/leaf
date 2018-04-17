@@ -71,7 +71,7 @@ namespace poseidon
         return merging;
     }
 
-    promise <void> gossiper :: serve(identifier identifier, pool :: connection connection)
+    promise <void> gossiper :: serve(identifier identifier, pool :: connection connection, bool pull)
     {
         this->lock();
 
@@ -94,12 +94,15 @@ namespace poseidon
 
                     syncset <statement> :: round round = this->_statements.sync(view);
 
-                    this->_mutex.lock();
+                    if(pull)
+                    {
+                        this->_mutex.lock();
 
-                    for(const statement & statement : round.add)
-                        this->_addbuffer.insert(statement);
+                        for(const statement & statement : round.add)
+                            this->_addbuffer.insert(statement);
 
-                    this->_mutex.unlock();
+                        this->_mutex.unlock();
+                    }
 
                     co_await connection.send(round.view);
 
