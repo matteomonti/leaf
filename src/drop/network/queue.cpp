@@ -48,9 +48,9 @@ namespace drop
         #endif
 
         #ifdef __linux__
-        if(this->events == EPOLLOUT)
+        if(this->events & EPOLLOUT)
             return write;
-        else if(this->events == EPOLLIN)
+        else if(this->events & EPOLLIN)
             return read;
         else
             assert(false);
@@ -62,7 +62,10 @@ namespace drop
         #ifdef __APPLE__
         return (this->flags & EV_ERROR);
         #endif
-        // TODO: Implement for Linux
+
+        #ifdef __linux__
+        return (this->events & (EPOLLERR | EPOLLUP));
+        #endif
     }
 
     // queue
