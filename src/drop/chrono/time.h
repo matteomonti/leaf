@@ -99,18 +99,18 @@ namespace drop
 
     // Literals
 
-    constexpr interval operator "" _us(uint64_t);
+    constexpr interval operator "" _us(unsigned long long int);
 
-    constexpr interval operator "" _ms(uint64_t);
+    constexpr interval operator "" _ms(unsigned long long int);
     constexpr interval operator "" _ms(long double);
 
-    constexpr interval operator "" _s(uint64_t);
+    constexpr interval operator "" _s(unsigned long long int);
     constexpr interval operator "" _s(long double);
 
-    constexpr interval operator "" _m(uint64_t);
+    constexpr interval operator "" _m(unsigned long long int);
     constexpr interval operator "" _m(long double);
 
-    constexpr interval operator "" _h(uint64_t);
+    constexpr interval operator "" _h(unsigned long long int);
     constexpr interval operator "" _h(long double);
 
     class now

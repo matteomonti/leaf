@@ -44,12 +44,12 @@ namespace drop
 
     // Literals
 
-    constexpr interval operator "" _us(uint64_t value)
+    constexpr interval operator "" _us(unsigned long long int value)
     {
         return interval(value);
     }
 
-    constexpr interval operator "" _ms(uint64_t value)
+    constexpr interval operator "" _ms(unsigned long long int value)
     {
         value *= 1000ull;
         return interval(value);
@@ -61,7 +61,7 @@ namespace drop
         return interval(value);
     }
 
-    constexpr interval operator "" _s(uint64_t value)
+    constexpr interval operator "" _s(unsigned long long int value)
     {
         value *= 1000000ull;
         return interval(value);
@@ -73,7 +73,7 @@ namespace drop
         return interval(value);
     }
 
-    constexpr interval operator "" _m(uint64_t value)
+    constexpr interval operator "" _m(unsigned long long int value)
     {
         value *= 60000000ull;
         return interval(value);
@@ -85,7 +85,7 @@ namespace drop
         return interval(value);
     }
 
-    constexpr interval operator "" _h(uint64_t value)
+    constexpr interval operator "" _h(unsigned long long int value)
     {
         value *= 3600000000ull;
         return interval(value);
