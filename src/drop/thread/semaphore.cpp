@@ -59,6 +59,10 @@ namespace drop
         #endif
 
         #ifdef __linux__
+
+        if((__time_t) timeout < 0)
+            return true;
+
     	struct timeval now;
 		gettimeofday(&now, 0);
 

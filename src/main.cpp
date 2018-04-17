@@ -52,7 +52,7 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab);
+        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab, std :: cout);
     }
 
     clients[0]->on <statement> ([](const statement & statement)
@@ -63,7 +63,11 @@ int main()
     std :: cout << "Starting nodes" << std :: endl;
 
     for(size_t i = 0; i < nodes; i++)
+    {
+        std :: cout << "Starting node " << i << std :: endl;
         clients[i]->start();
+        sleep(0.2_s);
+    }
 
     std :: cout << "Started" << std :: endl;
 

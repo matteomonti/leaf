@@ -110,7 +110,7 @@ namespace poseidon
                         break;
                 }
 
-                co_await this->_crontab.wait(0.01_s); // TODO: Find better strategy: maybe sync on the fly for thirty seconds?
+                co_await this->_crontab.wait(5_s); // TODO: Find better strategy: maybe sync on the fly for thirty seconds?
             }
         }
         catch(...)

@@ -38,7 +38,7 @@ namespace poseidon
 
             struct intervals
             {
-                static constexpr interval check = 0.2_s;
+                static constexpr interval check = 20_s;
             };
 
             struct accept
@@ -80,11 +80,13 @@ namespace poseidon
         pool & _pool;
         crontab & _crontab;
 
+        std :: ostream & log;
+
     public:
 
         // Constructors
 
-        poseidon(const signer &, const std :: array <identifier, brahms :: settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &);
+        poseidon(const signer &, const std :: array <identifier, brahms :: settings :: view :: size> &, typename settings :: dialer &, pool &, crontab &, std :: ostream &);
 
         // Methods
 
