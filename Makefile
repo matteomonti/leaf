@@ -27,7 +27,7 @@ SCPPFLAGS  = -MMD -MP -MF $(@:$(SOBJDIR)/%.o=$(SDEPDIR)/%.d)
 TCPPFLAGS  = -MMD -MP -MF $(@:$(TOBJDIR)/%.o=$(TDEPDIR)/%.d)
 
 BCXXFLAGS = -I$(SRCDIR) -I$(TESTDIR) `pkg-config --cflags libsodium` -O3 -std=c++2a -fcoroutines-ts -stdlib=libc++
-BLINKERFLAGS = `pkg-config --libs libsodium` -stdlib=libc++
+BLINKERFLAGS = `pkg-config --libs libsodium` -stdlib=libc++ -lc++abi
 
 all: CXXFLAGS = $(BCXXFLAGS) -D __main__
 test: CXXFLAGS = $(BCXXFLAGS) -D __test__
