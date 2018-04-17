@@ -64,7 +64,7 @@ namespace drop
         #endif
 
         #ifdef __linux__
-        return (this->events & (EPOLLERR | EPOLLUP));
+        return (this->events & (EPOLLERR | EPOLLHUP));
         #endif
     }
 
