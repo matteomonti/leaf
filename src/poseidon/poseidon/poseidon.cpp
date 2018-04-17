@@ -71,11 +71,7 @@ namespace poseidon
             try
             {
                 entry entry = this->_logs.at(queries[i]);
-
-                if(timestamp(now) - entry.timestamp > settings :: intervals :: vote)
-                    responses.push_back(value{.value = entry.value, .signature = entry.signature});
-                else
-                    responses.push_back(null);
+                responses.push_back(value{.value = entry.value, .signature = entry.signature});
             }
             catch(...)
             {
