@@ -33,8 +33,15 @@ namespace poseidon
 
         this->_mutex.lock();
 
-        if(!(this->_checkpool.find(statement.index())))
+        try
         {
+            this->_votes.at(statement.index());
+            log << "Statement collision!" << std :: endl;
+        }
+        catch(...)
+        {
+            log << "Adding statement to votes and checkpool" << std :: endl;
+            this->_votes[statement.index()] = vote{.value = {statement.value(), statement.signature()}, .accepted = false};
             this->_checkpool.add(statement.index());
         }
 

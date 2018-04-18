@@ -73,6 +73,14 @@ namespace poseidon
 
         friend class gossiper;
 
+        // Service nested classes
+
+        struct vote
+        {
+            value value;
+            bool accepted;
+        };
+
         // Members
 
         signer _signer;
@@ -80,6 +88,7 @@ namespace poseidon
         gossiper _gossiper;
         crawler _crawler;
 
+        std :: unordered_map <index, vote, shorthash> _votes;
         checkpool <brahms :: settings :: sample :: size> _checkpool;
 
         std :: mutex _mutex;
