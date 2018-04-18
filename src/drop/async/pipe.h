@@ -22,6 +22,20 @@ namespace drop
 {
     template <typename type> class pipe
     {
+    public:
+
+        // Exceptions
+
+        struct exceptions
+        {
+            class pipe_closing : public std :: exception
+            {
+                const char * what() const throw();
+            };
+        };
+
+    private:
+
         // Members
 
         optional <drop :: promise <type>> _promise;
@@ -29,6 +43,10 @@ namespace drop
         std :: mutex _mutex;
 
     public:
+
+        // Destructor
+
+        ~pipe();
 
         // Methods
 

@@ -9,11 +9,17 @@ pipe <int> my_pipe;
 
 promise <void> f()
 {
-    while(true)
+    try
     {
-        int value = co_await my_pipe.pop();
-        if(value % 1000000 == 0)
+        while(true)
+        {
+            int value = co_await my_pipe.pop();
             std :: cout << value << std :: endl;
+        }
+    }
+    catch(const pipe <int> :: exceptions :: pipe_closing &)
+    {
+        std :: cout << "Good night!" << std :: endl;
     }
 }
 
@@ -21,6 +27,6 @@ int main()
 {
     f();
 
-    for(int i = 0;; i++)
+    for(int i = 0; i < 1000; i++)
         my_pipe.push(i);
 }

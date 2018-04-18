@@ -7,6 +7,21 @@
 
 namespace drop
 {
+    // Exceptions
+
+    template <typename type> const char * pipe <type> :: exceptions :: pipe_closing :: what() const throw()
+    {
+        return "Pipe closing.";
+    }
+
+    // Destructor
+
+    template <typename type> pipe <type> :: ~pipe()
+    {
+        if(this->_promise)
+            this->_promise->reject((class exceptions :: pipe_closing){});
+    }
+
     // Methods
 
     template <typename type> void pipe <type> :: push(const type & element)
