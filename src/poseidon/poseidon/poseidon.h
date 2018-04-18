@@ -38,7 +38,7 @@ namespace poseidon
 
             struct intervals
             {
-                static constexpr interval check = 20_s;
+                static constexpr interval check = 1_s;
             };
 
             struct accept
