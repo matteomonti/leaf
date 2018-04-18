@@ -43,8 +43,7 @@ namespace poseidon
 
     void poseidon :: gossip(const statement & statement)
     {
-        log << "------------> " << timestamp(now) << " Received statement from gossip: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
-
+        this->emit <events :: gossip> (statement);
         this->_mutex.lock();
 
         try
@@ -214,7 +213,7 @@ namespace poseidon
 
             this->_checkpool.evaluate <settings :: accept :: threshold> ([&](const statement & accept)
             {
-                log << "------------> " << timestamp(now) << "Accepting " << accept.identifier() << " / " << accept.sequence() << ": " << accept.value() << std :: endl;
+                this->emit <events :: accept> (accept);
                 this->_logs[accept.index()] = entry{.value = accept.value(), .signature = accept.signature(), .timestamp = 0, .accepted = true};
                 this->_checklist.erase(accept.index());
             }, [&](const index & reject)

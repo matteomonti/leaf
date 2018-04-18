@@ -2,6 +2,12 @@
 
 namespace poseidon
 {
+    namespace events
+    {
+        struct gossip;
+        struct accept;
+    };
+
     class poseidon;
 };
 
@@ -27,7 +33,14 @@ namespace poseidon
     using namespace drop;
     using namespace vine;
 
-    class poseidon : public eventemitter <statement, statement>
+    namespace events
+    {
+        struct gossip {};
+        struct accept {};
+    };
+
+    class poseidon : public eventemitter <events :: gossip, statement>,
+                     public eventemitter <events :: accept, statement>
     {
         // Settings
 
@@ -46,6 +59,20 @@ namespace poseidon
                 static constexpr size_t threshold = 6;
             };
         };
+
+    public:
+        
+        // Using
+
+        using eventemitter <events :: gossip, statement> :: on;
+        using eventemitter <events :: accept, statement> :: on;
+
+    private:
+
+        // Private using
+
+        using eventemitter <events :: gossip, statement> :: emit;
+        using eventemitter <events :: accept, statement> :: emit;
 
         // Friends
 

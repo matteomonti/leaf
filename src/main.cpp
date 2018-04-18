@@ -52,8 +52,20 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab, ((i == 0) ? std :: cout : mute));
+        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab, ((i == 0 && false) ? std :: cout : mute));
     }
+
+    std :: cout << "Registering handlers" << std :: endl;
+
+    clients[0]->on <events :: gossip> ([](const statement & statement)
+    {
+        std :: cout << timestamp(now) << " Statement gossiped: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
+    });
+
+    clients[0]->on <events :: accept> ([](const statement & statement)
+    {
+        std :: cout << timestamp(now) << " Statement accepted: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
+    });
 
     std :: cout << "Starting nodes" << std :: endl;
 
@@ -68,7 +80,7 @@ int main()
 
     sleep(2_s);
 
-    std :: cout << "------------> " << timestamp(now) << ": seeding gossip" << std :: endl;
+    std :: cout << timestamp(now) << " Seeding gossip" << std :: endl;
     clients[44]->publish("I love apples!");
 
     sleep(10_h);
