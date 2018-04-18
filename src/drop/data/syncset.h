@@ -14,6 +14,7 @@ namespace drop
 #include "drop/crypto/hash.h"
 #include "variant.h"
 #include "varint.h"
+#include "optional.hpp"
 
 namespace drop
 {
@@ -336,6 +337,8 @@ namespace drop
 
         void add(const type &);
         void remove(const type &);
+
+        bool find(const type &);
 
         round sync();
         round sync(const view &);
