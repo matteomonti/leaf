@@ -77,40 +77,35 @@ namespace poseidon
 
         try
         {
-            for(size_t round = 0; round < 5; round++)
+            if(this->merging())
+                throw exceptions :: merge_in_progress();
+
+            if(this->_identifier < identifier)
+                co_await connection.send(this->_statements.sync().view);
+
+            while(true)
             {
-                if(this->merging())
-                    throw exceptions :: merge_in_progress();
+                syncset <statement> :: view view = co_await connection.receive <syncset <statement> :: view> ();
 
-                if(this->_identifier < identifier)
-                    co_await connection.send(this->_statements.sync().view);
+                if(view.size() == 0)
+                    break;
 
-                while(true)
+                syncset <statement> :: round round = this->_statements.sync(view);
+
+                if(pull)
                 {
-                    syncset <statement> :: view view = co_await connection.receive <syncset <statement> :: view> ();
+                    this->_mutex.lock();
 
-                    if(view.size() == 0)
-                        break;
+                    for(const statement & statement : round.add)
+                        this->_addbuffer.insert(statement);
 
-                    syncset <statement> :: round round = this->_statements.sync(view);
-
-                    if(pull)
-                    {
-                        this->_mutex.lock();
-
-                        for(const statement & statement : round.add)
-                            this->_addbuffer.insert(statement);
-
-                        this->_mutex.unlock();
-                    }
-
-                    co_await connection.send(round.view);
-
-                    if(round.view.size() == 0)
-                        break;
+                    this->_mutex.unlock();
                 }
 
-                co_await this->_crontab.wait(5_s); // TODO: Find better strategy: maybe sync on the fly for thirty seconds?
+                co_await connection.send(round.view);
+
+                if(round.view.size() == 0)
+                    break;
             }
         }
         catch(...)
@@ -120,6 +115,8 @@ namespace poseidon
         }
 
         this->unlock();
+
+        co_await this->_crontab.wait(5_s); // TODO: Find better strategy: maybe sync on the fly for thirty seconds?
     }
 
     promise <void> gossiper :: run()
