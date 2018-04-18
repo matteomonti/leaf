@@ -80,6 +80,8 @@ namespace poseidon
         gossiper _gossiper;
         crawler _crawler;
 
+        std :: mutex _mutex;
+
         settings :: dialer & _dialer;
         pool & _pool;
         crontab & _crontab;

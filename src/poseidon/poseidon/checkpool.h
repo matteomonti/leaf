@@ -35,6 +35,23 @@ namespace poseidon
         // Friends
 
         friend class poseidon;
+
+        // Members
+
+        std :: unordered_set <index, shorthash> _indexes;
+        std :: unordered_map <index, value, shorthash> _values[size];
+
+        size_t _version;
+
+        // Getters
+
+        std :: vector <index> indexes() const;
+
+        // Methods
+
+        void check(const index &);
+        template <size_t threshold, typename atype, typename rtype> void set(const size_t &, const size_t &, const index &, const value &, const atype &, const rtype &);
+        size_t clear();
     };
 };
 
