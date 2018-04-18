@@ -110,6 +110,15 @@ namespace poseidon
 
     // Methods
 
+    void gossiper :: publish(const statement & statement)
+    {
+        this->_mutex.lock();
+        this->add(statement);
+        this->_mutex.unlock();
+    }
+
+    // Private methods
+
     void gossiper :: add(const statement & statement)
     {
         // log << "[gossiper] Adding statement" << std :: endl;
@@ -127,8 +136,6 @@ namespace poseidon
                 pair.second->push(statement);
         }
     }
-
-    // Private methods
 
     void gossiper :: lock()
     {

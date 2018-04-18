@@ -80,8 +80,14 @@ int main()
 
     sleep(2_s);
 
-    std :: cout << timestamp(now) << " Seeding gossip" << std :: endl;
-    clients[44]->publish("I love apples!");
+    for(size_t i = 0;; i++)
+    {
+        char message[1024];
+        sprintf(message, "Message number %zu", i);
+        clients[44]->publish(message);
+
+        sleep(1_s);
+    }
 
     sleep(10_h);
 }

@@ -129,11 +129,13 @@ namespace poseidon
 
         // Methods
 
-        void add(const statement &);
+        void publish(const statement &);
 
     private:
 
         // Private methods
+
+        void add(const statement &);
 
         void lock();
         void unlock();

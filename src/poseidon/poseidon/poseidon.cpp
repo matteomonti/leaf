@@ -33,7 +33,7 @@ namespace poseidon
         this->_mutex.lock();
 
         class statement statement(this->_signer, this->_sequence, value);
-        this->_gossiper.add(statement);
+        this->_gossiper.publish(statement);
         this->_sequence++;
 
         this->_mutex.unlock();
