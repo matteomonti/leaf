@@ -25,9 +25,14 @@ namespace poseidon
 
     // Methods
 
-    template <size_t size> void checkpool <size> :: check(const index & index)
+    template <size_t size> void checkpool <size> :: add(const index & index)
     {
         this->_indexes.insert(index);
+    }
+
+    template <size_t size> bool checkpool <size> :: find(const index & index)
+    {
+        return this->_indexes.count(index);
     }
 
     template <size_t size> template <size_t threshold, typename atype, typename rtype> void checkpool <size> :: set(const size_t & version, const size_t & slot, const index & index, const value & value, const atype & accept, const rtype & reject)

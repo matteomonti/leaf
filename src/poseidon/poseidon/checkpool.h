@@ -49,8 +49,11 @@ namespace poseidon
 
         // Methods
 
-        void check(const index &);
+        void add(const index &);
+        bool find(const index &);
+
         template <size_t threshold, typename atype, typename rtype> void set(const size_t &, const size_t &, const index &, const value &, const atype &, const rtype &);
+
         size_t clear();
     };
 };

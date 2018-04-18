@@ -30,5 +30,14 @@ namespace poseidon
     void poseidon :: gossip(const statement & statement)
     {
         this->emit <events :: gossip> (statement);
+
+        this->_mutex.lock();
+
+        if(!(this->_checkpool.find(statement.index())))
+        {
+            this->_checkpool.add(statement.index());
+        }
+
+        this->_mutex.unlock();
     }
 };

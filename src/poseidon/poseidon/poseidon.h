@@ -80,6 +80,8 @@ namespace poseidon
         gossiper _gossiper;
         crawler _crawler;
 
+        checkpool <brahms :: settings :: sample :: size> _checkpool;
+
         std :: mutex _mutex;
 
         settings :: dialer & _dialer;
