@@ -5,25 +5,22 @@
 
 using namespace drop;
 
+pipe <int> my_pipe;
+
+promise <void> f()
+{
+    while(true)
+    {
+        int value = co_await my_pipe.pop();
+        if(value % 1000000 == 0)
+            std :: cout << value << std :: endl;
+    }
+}
+
 int main()
 {
-    pipe <int> my_pipe;
+    f();
 
-    my_pipe.push(99);
-    my_pipe.push(100);
-
-    my_pipe.pop().then([&](const int & value)
-    {
-        std :: cout << value << std :: endl;
-        return my_pipe.pop();
-    }).then([&](const int & value)
-    {
-        std :: cout << value << std :: endl;
-        return my_pipe.pop();
-    }).then([&](const int & value)
-    {
-        std :: cout << value << std :: endl;
-    });
-
-    my_pipe.push(101);
+    for(int i = 0;; i++)
+        my_pipe.push(i);
 }
