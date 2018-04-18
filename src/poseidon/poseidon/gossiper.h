@@ -113,7 +113,7 @@ namespace poseidon
         std :: unordered_map <identifier, syncer *, shorthash> _syncers;
 
         size_t _locks;
-        std :: mutex _mutex;
+        std :: recursive_mutex _mutex;
 
         typename settings :: handler & _handler;
 

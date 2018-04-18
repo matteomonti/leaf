@@ -43,7 +43,7 @@ namespace poseidon
 
     void poseidon :: gossip(const statement & statement)
     {
-        log << "------------> " << timestamp(now) << "Received statement from gossip: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
+        log << "------------> " << timestamp(now) << " Received statement from gossip: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
 
         return; // REMOVE ME
 

@@ -108,12 +108,21 @@ namespace drop
 
             this->_wakepipe.wake();
 
-            return request.promise.then([=]()
+            promise <void> promise;
+
+            request.promise.then([=]()
             {
                 arc->block(true);
                 arc->send_unlock();
-                return promise <void> :: resolved();
+                promise.resolve();
+            }).except([=](const std :: exception_ptr & exception)
+            {
+                arc->block(true);
+                arc->send_unlock();
+                promise.reject(exception);
             });
+
+            return promise;
         }
     }
 
@@ -150,6 +159,8 @@ namespace drop
                 promise.resolve(message);
             }).except([=](const std :: exception_ptr & exception)
             {
+                arc->block(true);
+                arc->receive_unlock();
                 promise.reject(exception);
             });
 
