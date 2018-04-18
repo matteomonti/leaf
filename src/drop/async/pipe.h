@@ -44,14 +44,12 @@ namespace drop
 
     public:
 
-        // Destructor
-
-        ~pipe();
-
         // Methods
 
         void push(const type &);
         promise <type> pop();
+
+        void close();
     };
 };
 

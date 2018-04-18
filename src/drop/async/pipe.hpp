@@ -14,14 +14,6 @@ namespace drop
         return "Pipe closing.";
     }
 
-    // Destructor
-
-    template <typename type> pipe <type> :: ~pipe()
-    {
-        if(this->_promise)
-            this->_promise->reject((class exceptions :: pipe_closing){});
-    }
-
     // Methods
 
     template <typename type> void pipe <type> :: push(const type & element)
@@ -61,6 +53,12 @@ namespace drop
         this->_mutex.unlock();
 
         return promise;
+    }
+
+    template <typename type> void pipe <type> :: close()
+    {
+        if(this->_promise)
+            this->_promise->reject((class exceptions :: pipe_closing){});
     }
 };
 

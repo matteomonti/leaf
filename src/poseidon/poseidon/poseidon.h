@@ -74,7 +74,7 @@ namespace poseidon
         std :: unordered_set <index, shorthash> _checklist;
         checkpool <brahms :: settings :: sample :: size> _checkpool;
 
-        std :: mutex _mutex;
+        std :: recursive_mutex _mutex;
 
         typename settings :: dialer & _dialer;
         pool & _pool;

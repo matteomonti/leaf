@@ -12,6 +12,7 @@ namespace poseidon
 
 #include <mutex>
 #include <unordered_set>
+#include <unordered_map>
 #include <exception>
 
 // Forward includes
@@ -29,6 +30,7 @@ namespace poseidon
 #include "drop/data/syncset.hpp"
 #include "drop/crypto/shorthash.hpp"
 #include "statement.hpp"
+#include "drop/async/pipe.hpp"
 
 namespace poseidon
 {
@@ -46,6 +48,7 @@ namespace poseidon
             {
                 static constexpr interval merge = 1_m;
                 static constexpr interval retry = 2_s;
+                static constexpr interval sync = 30_s;
             };
         };
 
@@ -63,6 +66,42 @@ namespace poseidon
             };
         };
 
+        // Service nested classes
+
+        class syncer
+        {
+            // Members
+
+            gossiper & _gossiper;
+            pool :: connection _connection;
+            pipe <statement> _pipe;
+
+            const std :: vector <statement> & _addbuffer;
+
+            volatile bool _alive;
+            promise <void> _close;
+
+            std :: ostream & log;
+
+        public:
+
+            // Constructors
+
+            syncer(gossiper &, const pool :: connection &, const std :: vector <statement> &, std :: ostream &);
+
+            // Methods
+
+            void push(const statement &);
+            promise <void> close();
+
+        private:
+
+            // Private methods
+
+            promise <void> send();
+            promise <void> receive();
+        };
+
         // Members
 
         identifier _identifier;
@@ -71,19 +110,22 @@ namespace poseidon
         std :: unordered_set <statement, shorthash> _addbuffer;
         timestamp _nextmerge;
 
-        size_t _locks;
+        std :: unordered_map <identifier, syncer *, shorthash> _syncers;
 
+        size_t _locks;
         std :: mutex _mutex;
 
         typename settings :: handler & _handler;
 
         crontab & _crontab;
 
+        std :: ostream & log;
+
     public:
 
         // Constructors
 
-        gossiper(const identifier &, typename settings :: handler &, crontab &);
+        gossiper(const identifier &, typename settings :: handler &, crontab &, std :: ostream &);
 
         // Methods
 
