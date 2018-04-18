@@ -19,13 +19,13 @@ namespace poseidon
 
     void poseidon :: start()
     {
-        this->_dialer.on <settings :: channel> ([=](const connection & connection)
+        /*this->_dialer.on <settings :: channel> ([=](const connection & connection)
         {
             this->serve(this->_pool.bind(connection));
-        });
+        });*/
 
         this->_crawler.start();
-        this->run();
+        // this->run();
     }
 
     void poseidon :: publish(const buffer & value)
@@ -43,9 +43,11 @@ namespace poseidon
 
     void poseidon :: gossip(const statement & statement)
     {
-        this->_mutex.lock();
-
         log << "------------> " << timestamp(now) << "Received statement from gossip: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
+
+        return; // REMOVE ME
+
+        this->_mutex.lock();
 
         try
         {

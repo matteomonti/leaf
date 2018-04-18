@@ -61,7 +61,7 @@ int main()
     {
         std :: cout << "Starting node " << i << std :: endl;
         clients[i]->start();
-        sleep(200_ms);
+        sleep(20_ms);
     }
 
     std :: cout << "Started" << std :: endl;

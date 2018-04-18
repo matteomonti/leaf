@@ -19,7 +19,7 @@ namespace poseidon
     gossiper :: syncer :: syncer(gossiper & gossiper, const pool :: connection & connection, const std :: vector <statement> & addbuffer, std :: ostream & log) : _gossiper(gossiper), _connection(connection), _addbuffer(addbuffer), _alive(true), log(log)
     {
         this->send();
-        this->receive();
+        // this->receive();
     }
 
     // Methods
@@ -31,8 +31,10 @@ namespace poseidon
 
     promise <void> gossiper :: syncer :: close()
     {
-        this->_alive = false;
-        return this->_close;
+        /*this->_alive = false;
+        return this->_close;*/
+
+        return promise <void> :: resolved();
     }
 
     // Private methods
@@ -82,17 +84,20 @@ namespace poseidon
                 }
                 catch(const sockets :: exceptions :: receive_timeout &)
                 {
+                    log << "[syncer] Receive timeout!" << std :: endl;
                 }
 
                 if(!(this->_alive))
                 {
+                    log << "[syncer] Closing syncer" << std :: endl;
                     this->_close.resolve();
                     co_return;
                 }
             }
         }
-        catch(...)
+        catch(const std :: exception & exception)
         {
+            log << "[syncer] Exception: " << exception.what() << std :: endl;
         }
     }
 
@@ -162,7 +167,9 @@ namespace poseidon
     bool gossiper :: merging()
     {
         this->_mutex.lock();
+        log << "Next merge should be " << this->_nextmerge << std :: endl;
         bool merging = timestamp(now) > this->_nextmerge;
+        if(merging) log << "Should be merging!" << std :: endl;
         this->_mutex.unlock();
 
         return merging;
@@ -184,11 +191,20 @@ namespace poseidon
 
             log << "[gossiper] Starting sync with " << identifier << std :: endl;
             if(this->_identifier < identifier)
+            {
+                log << "[gossiper] I should be sending first" << std :: endl;
                 co_await connection.send(this->_statements.sync().view);
+            }
+            else
+                log << "[gossiper] He should be sending first" << std :: endl;
 
             while(true)
             {
+                log << "[gossiper] Syncing with " << identifier << std :: endl;
+
                 syncset <statement> :: view view = co_await connection.receive <syncset <statement> :: view> ();
+
+                log << "[gossiper] Obtained view from " << identifier << std :: endl;
 
                 if(view.size() == 0)
                     break;
@@ -211,8 +227,9 @@ namespace poseidon
                     break;
             }
         }
-        catch(...)
+        catch(const std :: exception & exception)
         {
+            log << "[gossiper] Sync with " << identifier << " failed: " << exception.what() << std :: endl;
             this->unlock();
             std :: rethrow_exception(std :: current_exception());
         }
@@ -220,9 +237,6 @@ namespace poseidon
         this->unlock();
 
         log << "[gossiper] Sync completed with " << identifier << std :: endl;
-
-        co_await this->_crontab.wait(settings :: intervals :: sync); // REMOVE ME
-        co_return; // REMOVE ME
 
         log << "[gossiper] Copying addbuffer" << std :: endl;
         std :: vector <statement> addbuffer;
