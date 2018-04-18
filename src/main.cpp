@@ -52,7 +52,7 @@ int main()
     {
         auto view = :: view(signers, i);
         dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab, ((i == 0 && false) ? std :: cout : mute));
+        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab, ((i == 0) ? std :: cout : mute));
     }
 
     std :: cout << "Registering handlers" << std :: endl;
@@ -80,11 +80,13 @@ int main()
 
     sleep(2_s);
 
-    for(size_t i = 0;; i++)
+    for(uint64_t i = 0;; i++)
     {
         char message[1024];
-        sprintf(message, "Message number %zu", i);
-        clients[44]->publish(message);
+        sprintf(message, "Message number %llu", i);
+
+        std :: cout << "Seeding " << message << std :: endl;
+        clients[44]->publish(i, message);
 
         sleep(1_s);
     }

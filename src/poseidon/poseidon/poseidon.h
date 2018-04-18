@@ -49,11 +49,6 @@ namespace poseidon
             typedef multiplexer <dialers :: local :: client, 3> dialer;
             static constexpr size_t channel = 2;
 
-            struct intervals
-            {
-                static constexpr interval check = 1_s;
-            };
-
             struct accept
             {
                 static constexpr size_t threshold = 6;
@@ -61,7 +56,7 @@ namespace poseidon
         };
 
     public:
-        
+
         // Using
 
         using eventemitter <events :: gossip, statement> :: on;
@@ -78,16 +73,6 @@ namespace poseidon
 
         friend class gossiper;
 
-        // Service nested classes
-
-        struct entry
-        {
-            buffer value;
-            signature signature;
-            timestamp timestamp;
-            bool accepted;
-        };
-
         // Members
 
         signer _signer;
@@ -95,15 +80,7 @@ namespace poseidon
         gossiper _gossiper;
         crawler _crawler;
 
-        uint64_t _sequence;
-
-        std :: unordered_map <index, entry, shorthash> _logs;
-        std :: unordered_set <index, shorthash> _checklist;
-        checkpool <brahms :: settings :: sample :: size> _checkpool;
-
-        std :: recursive_mutex _mutex;
-
-        typename settings :: dialer & _dialer;
+        settings :: dialer & _dialer;
         pool & _pool;
         crontab & _crontab;
 
@@ -118,17 +95,13 @@ namespace poseidon
         // Methods
 
         void start();
-        void publish(const buffer &);
+        void publish(const uint64_t &, const buffer &);
 
     private:
 
         // Private methods
 
         void gossip(const statement &);
-
-        promise <void> serve(pool :: connection);
-        promise <void> check(size_t, size_t, optional <identifier>, std :: vector <index>);
-        promise <void> run();
     };
 };
 
