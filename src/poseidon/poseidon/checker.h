@@ -95,6 +95,7 @@ namespace poseidon
 
             // Methods
 
+            void push(const index &);
             promise <void> close();
 
             // Private methods

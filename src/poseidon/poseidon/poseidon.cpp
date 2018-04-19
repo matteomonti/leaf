@@ -17,13 +17,13 @@ namespace poseidon
 
     void poseidon :: start()
     {
-        this->_dialer.on <settings :: channel> ([=](const connection & connection)
+        /*this->_dialer.on <settings :: channel> ([=](const connection & connection)
         {
             this->serve(this->_pool.bind(connection));
-        });
+        });*/
 
         this->_crawler.start();
-        this->check();
+        // this->check();
     }
 
     void poseidon :: publish(const uint64_t & sequence, const buffer & value)
@@ -42,6 +42,8 @@ namespace poseidon
     void poseidon :: gossip(const statement & statement)
     {
         this->emit <events :: gossip> (statement);
+
+        return; // REMOVE ME
 
         this->_mutex.lock();
 
@@ -72,6 +74,12 @@ namespace poseidon
                 delete server;
                 this->_servers.erase(server);
             }
+
+            log << "Dispatching to all clients" << std :: endl;
+
+            for(checker :: client * client : this->_clients)
+                if(client)
+                    client->push(statement.index());
         }
 
         this->_mutex.unlock();
@@ -91,10 +99,13 @@ namespace poseidon
 
         while(true)
         {
+            log << "Resetting checkers" << std :: endl;
             this->_mutex.lock();
 
+            log << "Clearing checkpool" << std :: endl;
             size_t version = this->_checkpool.clear();
 
+            log << "Closing clients" << std :: endl;
             for(size_t slot = 0; slot < brahms :: settings :: sample :: size; slot++)
             {
                 checker :: client * client = this->_clients[slot];
@@ -107,13 +118,16 @@ namespace poseidon
                     });
             }
 
+            log << "Obtaining current sample" << std :: endl;
             std :: array <optional <identifier>, brahms :: settings :: sample :: size> sample = this->_crawler.sample();
 
+            log << "Initializing new clients" << std :: endl;
             for(size_t slot = 0; slot < brahms :: settings :: sample :: size; slot++)
             {
                 if(sample[slot])
                     this->_dialer.connect <settings :: channel> (*(sample[slot])).then([=](const connection & connection)
                     {
+                        log << "Connection established. Creating client." << std :: endl;
                         this->_mutex.lock();
                         this->_clients[slot] = new checker :: client(this->_pool.bind(connection), version, slot, this->_checkpool.indexes(), this->_checkpool, this->_mutex);
                         this->_mutex.unlock();

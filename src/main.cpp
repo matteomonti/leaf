@@ -57,12 +57,12 @@ int main()
 
     std :: cout << "Registering handlers" << std :: endl;
 
-    clients[0]->on <events :: gossip> ([](const statement & statement)
+    clients[0]->on <events :: gossip> ([&](const statement & statement)
     {
         std :: cout << timestamp(now) << " Statement gossiped: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
     });
 
-    clients[0]->on <events :: accept> ([](const statement & statement)
+    clients[0]->on <events :: accept> ([&](const statement & statement)
     {
         std :: cout << timestamp(now) << " Statement accepted: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
     });
@@ -79,6 +79,10 @@ int main()
     std :: cout << "Started" << std :: endl;
 
     sleep(2_s);
+
+    /*std :: cout << "Seeding gossip" << std :: endl;
+    seed = timestamp(now);
+    clients[44]->publish(0, "I love apples!");*/
 
     for(uint64_t i = 0;; i++)
     {

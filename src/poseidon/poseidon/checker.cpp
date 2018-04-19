@@ -120,6 +120,13 @@ namespace poseidon
 
     // Methods
 
+    void checker :: client :: push(const index & index)
+    {
+        this->_mutex.lock();
+        this->_pipe.push(index);
+        this->_mutex.unlock();
+    }
+
     promise <void> checker :: client :: close()
     {
         this->_pipe.close();
