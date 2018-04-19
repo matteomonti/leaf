@@ -182,7 +182,7 @@ namespace poseidon
 
     promise <void> gossiper :: serve(identifier identifier, pool :: connection connection, bool pull)
     {
-        // log << "[gossiper] Serving connection from " << identifier << std :: endl;
+        log << "[gossiper] Serving connection from " << identifier << std :: endl;
 
         this->lock();
 
@@ -190,26 +190,26 @@ namespace poseidon
         {
             if(this->merging())
             {
-                // log << "[gossiper] Merge in progress" << std :: endl;
+                log << "[gossiper] Merge in progress" << std :: endl;
                 throw exceptions :: merge_in_progress();
             }
 
-            // log << "[gossiper] Starting sync with " << identifier << std :: endl;
+            log << "[gossiper] Starting sync with " << identifier << std :: endl;
             if(this->_identifier < identifier)
             {
-                // log << "[gossiper] I should be sending first" << std :: endl;
+                log << "[gossiper] I should be sending first" << std :: endl;
                 co_await connection.send(this->_statements.sync().view);
             }
-            // else
-                // log << "[gossiper] He should be sending first" << std :: endl;
+            else
+                log << "[gossiper] He should be sending first" << std :: endl;
 
             while(true)
             {
-                // log << "[gossiper] Syncing with " << identifier << std :: endl;
+                log << "[gossiper] Syncing with " << identifier << std :: endl;
 
                 syncset <statement> :: view view = co_await connection.receive <syncset <statement> :: view> ();
 
-                // log << "[gossiper] Obtained view from " << identifier << std :: endl;
+                log << "[gossiper] Obtained view from " << identifier << std :: endl;
 
                 if(view.size() == 0)
                     break;
@@ -234,16 +234,16 @@ namespace poseidon
         }
         catch(const std :: exception & exception)
         {
-            // log << "[gossiper] Sync with " << identifier << " failed: " << exception.what() << std :: endl;
+            log << "[gossiper] Sync with " << identifier << " failed: " << exception.what() << std :: endl;
             this->unlock();
             std :: rethrow_exception(std :: current_exception());
         }
 
         this->unlock();
 
-        // log << "[gossiper] Sync completed with " << identifier << std :: endl;
+        log << "[gossiper] Sync completed with " << identifier << std :: endl;
 
-        // log << "[gossiper] Copying addbuffer" << std :: endl;
+        log << "[gossiper] Copying addbuffer" << std :: endl;
         std :: vector <statement> addbuffer;
 
         this->_mutex.lock();
@@ -252,24 +252,24 @@ namespace poseidon
         for(const statement & statement : this->_addbuffer)
             addbuffer.push_back(statement);
 
-        // log << "[gossiper] Creating syncer" << std :: endl;
+        log << "[gossiper] Creating syncer" << std :: endl;
         syncer syncer(*this, connection, addbuffer, log);
         this->_syncers[identifier] = &syncer;
 
         this->_mutex.unlock();
 
-        // log << "[gossiper] Waiting for sync interval" << std :: endl;
+        log << "[gossiper] Waiting for sync interval" << std :: endl;
         co_await this->_crontab.wait(settings :: intervals :: sync);
 
         this->_mutex.lock();
-        // log << "[gossiper] Removing syncer from syncers pool" << std :: endl;
+        log << "[gossiper] Removing syncer from syncers pool" << std :: endl;
         this->_syncers.erase(identifier);
         this->_mutex.unlock();
 
-        // log << "[gossiper] Closing syncer" << std :: endl;
+        log << "[gossiper] Closing syncer" << std :: endl;
         co_await syncer.close();
 
-        // log << "[gossiper] Syncer closed" << std :: endl;
+        log << "[gossiper] Syncer closed" << std :: endl;
     }
 
     promise <void> gossiper :: run()

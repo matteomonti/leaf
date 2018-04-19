@@ -9,7 +9,7 @@ namespace poseidon
 
     // Constructors
 
-    poseidon :: poseidon(const signer & signer, const std :: array <identifier, brahms :: settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _gossiper(this->_signer.publickey(), (*this), crontab, log), _crawler(this->_signer, view, this->_gossiper, dialer, pool, crontab), _checkpool(*this, settings :: accept :: threshold), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
+    poseidon :: poseidon(const signer & signer, const std :: array <identifier, brahms :: settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _gossiper(this->_signer.publickey(), (*this), crontab, log), _crawler(this->_signer, view, this->_gossiper, dialer, pool, crontab, log), _checkpool(*this, settings :: accept :: threshold), _dialer(dialer), _clients{}, _pool(pool), _crontab(crontab), log(log)
     {
     }
 
@@ -17,13 +17,13 @@ namespace poseidon
 
     void poseidon :: start()
     {
-        /*this->_dialer.on <settings :: channel> ([=](const connection & connection)
+        this->_dialer.on <settings :: channel> ([=](const connection & connection)
         {
             this->serve(this->_pool.bind(connection));
-        });*/
+        });
 
         this->_crawler.start();
-        // this->check();
+        this->check();
     }
 
     void poseidon :: publish(const uint64_t & sequence, const buffer & value)
@@ -42,8 +42,6 @@ namespace poseidon
     void poseidon :: gossip(const statement & statement)
     {
         this->emit <events :: gossip> (statement);
-
-        return; // REMOVE ME
 
         this->_mutex.lock();
 
@@ -88,7 +86,7 @@ namespace poseidon
     void poseidon :: serve(const pool :: connection & connection)
     {
         this->_mutex.lock();
-        checker :: server * server = new checker :: server(connection, this->_votes, this->_mutex);
+        checker :: server * server = new checker :: server(connection, this->_votes, this->_mutex, log);
         this->_servers.insert(server);
         this->_mutex.unlock();
     }
@@ -129,7 +127,7 @@ namespace poseidon
                     {
                         log << "Connection established. Creating client." << std :: endl;
                         this->_mutex.lock();
-                        this->_clients[slot] = new checker :: client(this->_pool.bind(connection), version, slot, this->_checkpool.indexes(), this->_checkpool, this->_mutex);
+                        this->_clients[slot] = new checker :: client(this->_pool.bind(connection), version, slot, this->_checkpool.indexes(), this->_checkpool, this->_mutex, log);
                         this->_mutex.unlock();
                     }).except([](const std :: exception_ptr &)
                     {

@@ -11,7 +11,7 @@ namespace poseidon
 
     // Constructors
 
-    checker :: server :: server(const pool :: connection & connection, std :: unordered_map <index, vote, shorthash> & votes, std :: recursive_mutex & mutex) : _connection(connection), _votes(votes), _sending(true), _receiving(true), _mutex(mutex)
+    checker :: server :: server(const pool :: connection & connection, std :: unordered_map <index, vote, shorthash> & votes, std :: recursive_mutex & mutex, std :: ostream & log) : _connection(connection), _votes(votes), _sending(true), _receiving(true), _mutex(mutex), log(log)
     {
         this->send();
         this->receive();
@@ -32,10 +32,14 @@ namespace poseidon
 
     void checker :: server :: push(const statement & statement)
     {
+        log << "[server] Pushing statement " << statement.identifier() << " / " << statement.sequence() << std :: endl;
         this->_mutex.lock();
 
         if(this->_indexes.count(statement.index()))
+        {
+            log << "[server] It is part of the indexes, pushing it to the pipe" << std :: endl;
             this->_pipe.push(statement);
+        }
 
         this->_mutex.unlock();
     }
@@ -45,14 +49,16 @@ namespace poseidon
     void checker :: server :: serve(const index & index)
     {
         this->_mutex.lock();
-
+        log << "[server] Serving " << index.identifier() << " / " << index.sequence() << std :: endl;
         try
         {
             const vote & vote = this->_votes.at(index);
+            log << "[server] I already have the vote, pushing value to the pipe" << std :: endl;
             this->_pipe.push(statement(index, vote.value));
         }
         catch(...)
         {
+            log << "[server] Inserting it into my indexes" << std :: endl;
             this->_indexes.insert(index);
         }
 
@@ -65,13 +71,17 @@ namespace poseidon
         {
             while(true)
             {
+                log << "[server] Waiting for statement from the pipe" << std :: endl;
                 statement statement = co_await this->_pipe.pop();
-                this->_connection.send(statement);
+                log << "[server] Sending statement: " << statement.identifier() << " / " << statement.sequence() << std :: endl;
+                co_await this->_connection.send(statement);
             }
         }
         catch(...)
         {
         }
+
+        log << "[server] Shutting down send" << std :: endl;
 
         this->_mutex.lock();
         this->_sending = false;
@@ -82,7 +92,10 @@ namespace poseidon
     {
         try
         {
+            log << "[server] Waiting for the initial vector" << std :: endl;
             std :: vector <index> indexes = co_await this->_connection.receive <std :: vector <index>> ();
+
+            log << "[server] Received " << indexes.size() << " indexes" << std :: endl;
 
             for(const index & index : indexes)
                 this->serve(index);
@@ -91,17 +104,22 @@ namespace poseidon
             {
                 try
                 {
+                    log << "[server] Waiting for indexes" << std :: endl;
                     index index = co_await this->_connection.receive <class index> ();
+                    log << "[server] Received " << index.identifier() << " / " << index.sequence() << std :: endl;
                     this->serve(index);
                 }
                 catch(const sockets :: exceptions :: receive_timeout &)
                 {
+                    log << "[server] Receive timeout" << std :: endl;
                 }
             }
         }
         catch(...)
         {
         }
+
+        log << "[server] Shutting down receive" << std :: endl;
 
         this->_mutex.lock();
         this->_receiving = false;
@@ -112,7 +130,7 @@ namespace poseidon
 
     // Constructors
 
-    checker :: client :: client(const pool :: connection & connection, const size_t & version, const size_t & slot, const std :: vector <index> & indexes, checkpool <brahms :: settings :: sample :: size> & checkpool, std :: recursive_mutex & mutex) : _connection(connection), _version(version), _slot(slot), _checkpool(checkpool), _mutex(mutex)
+    checker :: client :: client(const pool :: connection & connection, const size_t & version, const size_t & slot, const std :: vector <index> & indexes, checkpool <brahms :: settings :: sample :: size> & checkpool, std :: recursive_mutex & mutex, std :: ostream & log) : _connection(connection), _version(version), _slot(slot), _checkpool(checkpool), _mutex(mutex), log(log)
     {
         this->send(indexes);
         this->receive();
@@ -145,7 +163,7 @@ namespace poseidon
             while(true)
             {
                 index index = co_await this->_pipe.pop();
-                this->_connection.send(index);
+                co_await this->_connection.send(index);
             }
         }
         catch(...)

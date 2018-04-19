@@ -31,14 +31,29 @@ std :: array <identifier, brahms :: settings :: view :: size> view(std :: array 
     return sample;
 }
 
+void seppuku()
+{
+    while(true)
+    {
+        char buffer[1024];
+        std :: cin >> buffer;
+
+        if(strcmp("seppuku", buffer) == 0)
+            *((int *) nullptr) = 99;
+    }
+}
+
 int main()
 {
+    std :: thread seppuku_thread(seppuku);
+    seppuku_thread.detach();
+
     std :: ofstream mute;
     mute.open("/dev/null", std :: ios :: out);
 
     connectors :: tcp :: async connector;
-    pool pool;
-    crontab crontab;
+    pool pools[8];
+    crontab crontabs[8];
 
     dialers :: local :: server server;
 
@@ -51,8 +66,8 @@ int main()
     for(size_t i = 0; i < nodes; i++)
     {
         auto view = :: view(signers, i);
-        dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pool);
-        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pool, crontab, ((i == 0) ? std :: cout : mute));
+        dialers[i] = new multiplexer <dialers :: local :: client, 3> (server, signers[i], pools[i % 8]);
+        clients[i] = new class poseidon(signers[i], view, *(dialers[i]), pools[i % 8], crontabs[i % 8], ((i == 0 && false) ? std :: cout : mute));
     }
 
     std :: cout << "Registering handlers" << std :: endl;
@@ -78,11 +93,7 @@ int main()
 
     std :: cout << "Started" << std :: endl;
 
-    sleep(2_s);
-
-    /*std :: cout << "Seeding gossip" << std :: endl;
-    seed = timestamp(now);
-    clients[44]->publish(0, "I love apples!");*/
+    sleep(1_m);
 
     for(uint64_t i = 0;; i++)
     {

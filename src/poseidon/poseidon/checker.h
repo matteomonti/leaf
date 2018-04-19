@@ -46,11 +46,13 @@ namespace poseidon
             pipe <statement> _pipe;
             std :: recursive_mutex & _mutex;
 
+            std :: ostream & log;
+
         public:
 
             // Constructors
 
-            server(const pool :: connection &, std :: unordered_map <index, vote, shorthash> &, std :: recursive_mutex &);
+            server(const pool :: connection &, std :: unordered_map <index, vote, shorthash> &, std :: recursive_mutex &, std :: ostream &);
 
             // Getters
 
@@ -87,11 +89,13 @@ namespace poseidon
             pipe <index> _pipe;
             std :: recursive_mutex & _mutex;
 
+            std :: ostream & log;
+
         public:
 
             // Constructors
 
-            client(const pool :: connection &, const size_t &, const size_t &, const std :: vector <index> &, checkpool <brahms :: settings :: sample :: size> &, std :: recursive_mutex &);
+            client(const pool :: connection &, const size_t &, const size_t &, const std :: vector <index> &, checkpool <brahms :: settings :: sample :: size> &, std :: recursive_mutex &, std :: ostream &);
 
             // Methods
 

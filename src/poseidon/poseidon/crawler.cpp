@@ -17,11 +17,11 @@ namespace poseidon
 
     // Constructors
 
-    crawler :: crawler(const std :: array <vine :: identifier, brahms :: settings :: view :: size> & view, settings :: server & server, typename settings :: dialer & dialer, pool & pool, crontab & crontab) : _brahms(this->_signer, view, dialer, pool, crontab), _server(server), _dialer(dialer), _pool(pool), _crontab(crontab)
+    crawler :: crawler(const std :: array <vine :: identifier, brahms :: settings :: view :: size> & view, settings :: server & server, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _brahms(this->_signer, view, dialer, pool, crontab), _server(server), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
     }
 
-    crawler :: crawler(const class signer & signer, const std :: array <vine :: identifier, brahms :: settings :: view :: size> & view, settings :: server & server, typename settings :: dialer & dialer, pool & pool, crontab & crontab) : _signer(signer), _brahms(this->_signer, view, dialer, pool, crontab), _server(server), _dialer(dialer), _pool(pool), _crontab(crontab)
+    crawler :: crawler(const class signer & signer, const std :: array <vine :: identifier, brahms :: settings :: view :: size> & view, settings :: server & server, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _brahms(this->_signer, view, dialer, pool, crontab), _server(server), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
     }
 
@@ -138,19 +138,30 @@ namespace poseidon
 
     promise <void> crawler :: serve(vine :: identifier identifier, bool push)
     {
+        log << "[crawler] Establishing connection to " << identifier << std :: endl;
+
         this->_mutex.lock();
         bool duplicate = this->_connections.count(identifier);
         if(!duplicate) this->_connections.insert(identifier);
         this->_mutex.unlock();
 
         if(duplicate)
-            throw exceptions :: already_serving();
+        {
+            log << "[crawler] It would be a duplicate, forget about it" << std :: endl;
+            // throw exceptions :: already_serving();
+        }
 
         try
         {
+            log << "[crawler] Connecting" << std :: endl;
             pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <settings :: channel> (identifier));
+            log << "[crawler] Connected" << std :: endl;
+
             co_await connection.send(push);
+
+            log << "[crawler] (Established) serving" << std :: endl;
             co_await this->_server.serve(identifier, connection, true);
+            log << "[crawler] (Established) served successfully" << std :: endl;
 
             this->_mutex.lock();
             this->increment(identifier);
@@ -159,6 +170,7 @@ namespace poseidon
         }
         catch(const std :: exception & exception)
         {
+            log << "[crawler] (Established serve) there was an exception: " << exception.what() << std :: endl;
             this->_mutex.lock();
             this->_connections.erase(identifier);
             this->_mutex.unlock();
@@ -169,18 +181,26 @@ namespace poseidon
 
     promise <void> crawler :: serve(vine :: identifier identifier, pool :: connection connection)
     {
+        log << "[crawler] Serving connection from " << identifier << std :: endl;
+
         this->_mutex.lock();
         bool duplicate = this->_connections.count(identifier);
         if(!duplicate) this->_connections.insert(identifier);
         this->_mutex.unlock();
 
         if(duplicate)
-            throw exceptions :: already_serving();
+        {
+            log << "[crawler] It's a duplicate, throw it away!" << std :: endl;
+            // throw exceptions :: already_serving();
+        }
 
         try
         {
             bool pull = co_await connection.receive <bool> ();
+
+            log << "[crawler] (Incoming) serving" << std :: endl;
             co_await this->_server.serve(identifier, connection, pull);
+            log << "[crawler] (Incoming) served successfully" << std :: endl;
 
             this->_mutex.lock();
             this->increment(identifier);
@@ -189,6 +209,7 @@ namespace poseidon
         }
         catch(const std :: exception & exception)
         {
+            log << "[crawler] (Incoming) exception: " << exception.what() << std :: endl;
             this->_mutex.lock();
             this->_connections.erase(identifier);
             this->_mutex.unlock();
