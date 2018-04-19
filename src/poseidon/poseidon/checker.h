@@ -19,6 +19,7 @@ namespace poseidon
 #include "checkpool.hpp"
 #include "drop/async/pipe.hpp"
 #include "drop/network/pool.hpp"
+#include "poseidon/brahms/brahms.h"
 
 namespace poseidon
 {
@@ -63,12 +64,37 @@ namespace poseidon
 
             // Private methods
 
+            void serve(const index &);
+
             promise <void> send();
             promise <void> receive();
         };
 
         class client
         {
+            // Members
+
+            pool :: connection _connection;
+            size_t _version;
+
+            volatile bool _alive;
+            promise <void> _close;
+
+            checkpool <brahms :: settings :: sample :: size> & _checkpool;
+
+            pipe <index> _pipe;
+            std :: recursive_mutex & _mutex;
+
+        public:
+
+            // Constructors
+
+            client(const pool :: connection &, const size_t &, const std :: vector <index> &, checkpool <brahms :: settings :: sample :: size> &, std :: recursive_mutex &);
+
+            // Private methods
+
+            promise <void> send(const std :: vector <index> &);
+            promise <void> receive();
         };
     };
 };

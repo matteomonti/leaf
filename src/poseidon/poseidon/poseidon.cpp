@@ -17,6 +17,11 @@ namespace poseidon
 
     void poseidon :: start()
     {
+        this->_dialer.on <settings :: channel> ([=](const connection & connection)
+        {
+            this->serve(this->_pool.bind(connection));
+        });
+
         this->_crawler.start();
     }
 

@@ -41,6 +41,23 @@ namespace poseidon
 
     // Private methods
 
+    void checker :: server :: serve(const index & index)
+    {
+        this->_mutex.lock();
+
+        try
+        {
+            const vote & vote = this->_votes.at(index);
+            this->_pipe.push(statement(index, vote.value));
+        }
+        catch(...)
+        {
+            this->_indexes.insert(index);
+        }
+
+        this->_mutex.unlock();
+    }
+
     promise <void> checker :: server :: send()
     {
         try
@@ -64,25 +81,17 @@ namespace poseidon
     {
         try
         {
+            std :: vector <index> indexes = co_await this->_connection.receive <std :: vector <index>> ();
+
+            for(const index & index : indexes)
+                this->serve(index);
+
             while(true)
             {
                 try
                 {
                     index index = co_await this->_connection.receive <class index> ();
-
-                    this->_mutex.lock();
-
-                    try
-                    {
-                        const vote & vote = this->_votes.at(index);
-                        this->_pipe.push(statement(index, vote.value));
-                    }
-                    catch(...)
-                    {
-                        this->_indexes.insert(index);
-                    }
-
-                    this->_mutex.unlock();
+                    this->serve(index);
                 }
                 catch(const sockets :: exceptions :: receive_timeout &)
                 {
@@ -96,5 +105,60 @@ namespace poseidon
         this->_mutex.lock();
         this->_receiving = false;
         this->_mutex.unlock();
+    }
+
+    // client
+
+    // Constructors
+
+    checker :: client :: client(const pool :: connection & connection, const size_t & version, const std :: vector <index> & indexes, checkpool <brahms :: settings :: sample :: size> & checkpool, std :: recursive_mutex & mutex) : _connection(connection), _version(version), _checkpool(checkpool), _mutex(mutex)
+    {
+        this->send(indexes);
+        this->receive();
+    }
+
+    // Private methods
+
+    promise <void> checker :: client :: send(const std :: vector <index> & indexes)
+    {
+        try
+        {
+            co_await this->_connection.send(indexes);
+
+            while(true)
+            {
+                index index = co_await this->_pipe.pop();
+                this->_connection.send(index);
+            }
+        }
+        catch(...)
+        {
+        }
+    }
+
+    promise <void> checker :: client :: receive()
+    {
+        try
+        {
+            while(true)
+            {
+                try
+                {
+                    statement statement = co_await this->_connection.receive <class statement> ();
+                    // TODO: Dispatch to checkpool
+                }
+                catch(const sockets :: exceptions :: receive_timeout &)
+                {
+                }
+
+                if(!(this->_alive))
+                    break;
+            }
+        }
+        catch(...)
+        {
+        }
+
+        this->_close.resolve();
     }
 };
