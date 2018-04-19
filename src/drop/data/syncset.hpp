@@ -601,14 +601,25 @@ namespace drop
 
         for(; navigator; navigator++)
         {
+            bool collision = false;
+
             navigator->match([&](empty & empty)
             {
                 (*navigator) = empty.fill(element);
             }, [&](single & single)
             {
+                if(single.element() == element)
+                {
+                    collision = true;
+                    return;
+                }
+
                 class prefix singleprefix(single.label());
                 (*navigator) = single.push(singleprefix[navigator.depth()] ? right : left);
             });
+
+            if(collision)
+                return;
         }
 
         navigator--;
@@ -633,7 +644,8 @@ namespace drop
         {
             navigator->match([&](single & single)
             {
-                (*navigator) = single.empty();
+                if(single.element() == element)
+                    (*navigator) = single.empty();
             });
         }
 
@@ -651,6 +663,26 @@ namespace drop
             else
                 navigator->template reinterpret <multiple> ().refresh();
         }
+    }
+
+    template <typename type> bool syncset <type> :: find(const type & element)
+    {
+        for(navigator navigator(prefix(element), this->_root); navigator; navigator++)
+        {
+            optional <bool> found;
+            navigator->match([&](single & single)
+            {
+                if(single.element() == element)
+                    found = true;
+                else
+                    found = false;
+            });
+
+            if(found)
+                return (*found);
+        }
+
+        return false;
     }
 
     template <typename type> typename syncset <type> :: round syncset <type> :: sync()
