@@ -706,17 +706,17 @@ namespace drop
                         if(remotehash < localhash)
                         {
                             round.add.push_back(remote[i++]);
-                            remotehash = hash(remote[i]);
+                            if(i < remote.size()) remotehash = hash(remote[i]);
                         }
                         else if(localhash < remotehash)
                         {
                             round.remove.push_back(local[j++]);
-                            localhash = hash(local[j]);
+                            if(j < local.size()) localhash = hash(local[j]);
                         }
                         else
                         {
-                            remotehash = hash(remote[++i]);
-                            localhash = hash(local[++j]);
+                            if(++i < remote.size()) remotehash = hash(remote[i]);
+                            if(++j < local.size()) localhash = hash(local[j]);
                         }
                     }
 
@@ -773,6 +773,9 @@ namespace drop
     // Static declarations
 
     template <typename type> hash syncset <type> :: empty :: _label = hasher().finalize();
+
+
+    template <typename type> std :: mutex syncset <type> :: fuckingmutex; // REMOVE ME
 };
 
 #endif

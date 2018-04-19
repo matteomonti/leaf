@@ -90,6 +90,7 @@ namespace poseidon
             }
             catch(...)
             {
+                log << " (entry not found)" << std :: endl;
                 responses.push_back(null);
             }
 
