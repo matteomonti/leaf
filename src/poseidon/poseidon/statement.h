@@ -3,6 +3,8 @@
 namespace poseidon
 {
     class index;
+    class value;
+    class vote;
     class statement;
 };
 
@@ -68,6 +70,12 @@ namespace poseidon
         bool operator == (const struct value &) const;
     };
 
+    struct vote
+    {
+        value value;
+        bool accepted;
+    };
+
     class statement
     {
         // Signatures
@@ -89,6 +97,7 @@ namespace poseidon
 
         statement();
         statement(signer &, const uint64_t &, const buffer &);
+        statement(const index &, const value &);
         statement(const index &, const buffer &, const signature &);
         statement(const identifier &, const uint64_t &, const buffer &, const signature &);
 

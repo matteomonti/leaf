@@ -63,6 +63,10 @@ namespace poseidon
     {
     }
 
+    statement :: statement(const class index & index, const class value & value) : _index(index), _value(value.value), _signature(value.signature)
+    {
+    }
+
     statement :: statement(const class index & index, const buffer & value, const class signature & signature) : _index(index), _value(value), _signature(signature)
     {
     }

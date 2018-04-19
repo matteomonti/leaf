@@ -73,14 +73,6 @@ namespace poseidon
 
         friend class gossiper;
 
-        // Service nested classes
-
-        struct vote
-        {
-            value value;
-            bool accepted;
-        };
-
         // Members
 
         signer _signer;
