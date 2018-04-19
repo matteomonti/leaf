@@ -118,6 +118,15 @@ namespace poseidon
         this->receive();
     }
 
+    // Methods
+
+    promise <void> checker :: client :: close()
+    {
+        this->_pipe.close();
+        this->_alive = false;
+        return this->_close;
+    }
+
     // Private methods
 
     promise <void> checker :: client :: send(const std :: vector <index> & indexes)

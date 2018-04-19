@@ -93,6 +93,10 @@ namespace poseidon
 
             client(const pool :: connection &, const size_t &, const size_t &, const std :: vector <index> &, checkpool <brahms :: settings :: sample :: size> &, std :: recursive_mutex &);
 
+            // Methods
+
+            promise <void> close();
+
             // Private methods
 
             promise <void> send(const std :: vector <index> &);

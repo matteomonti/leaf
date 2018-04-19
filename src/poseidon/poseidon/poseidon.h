@@ -50,6 +50,11 @@ namespace poseidon
             typedef multiplexer <dialers :: local :: client, 3> dialer;
             static constexpr size_t channel = 2;
 
+            struct intervals
+            {
+                static constexpr interval check = 1_m;
+            };
+
             struct accept
             {
                 static constexpr size_t threshold = 6;
@@ -74,7 +79,7 @@ namespace poseidon
 
         friend class gossiper;
         template <size_t> friend class checkpool;
-        
+
         // Members
 
         signer _signer;
@@ -86,6 +91,7 @@ namespace poseidon
         checkpool <brahms :: settings :: sample :: size> _checkpool;
 
         std :: unordered_set <checker :: server *> _servers;
+        std :: array <checker :: client *, brahms :: settings :: sample :: size> _clients;
 
         std :: recursive_mutex _mutex;
 
@@ -115,6 +121,8 @@ namespace poseidon
 
         void gossip(const statement &);
         void serve(const pool :: connection &);
+
+        promise <void> check();
     };
 };
 

@@ -23,6 +23,7 @@ namespace poseidon
         });
 
         this->_crawler.start();
+        this->check();
     }
 
     void poseidon :: publish(const uint64_t & sequence, const buffer & value)
@@ -82,5 +83,48 @@ namespace poseidon
         checker :: server * server = new checker :: server(connection, this->_votes, this->_mutex);
         this->_servers.insert(server);
         this->_mutex.unlock();
+    }
+
+    promise <void> poseidon :: check()
+    {
+        co_await this->_crontab.wait(settings :: intervals :: check);
+
+        while(true)
+        {
+            this->_mutex.lock();
+
+            size_t version = this->_checkpool.clear();
+
+            for(size_t slot = 0; slot < brahms :: settings :: sample :: size; slot++)
+            {
+                checker :: client * client = this->_clients[slot];
+                this->_clients[slot] = nullptr;
+
+                if(client)
+                    client->close().then([=]()
+                    {
+                        delete client;
+                    });
+            }
+
+            std :: array <optional <identifier>, brahms :: settings :: sample :: size> sample = this->_crawler.sample();
+
+            for(size_t slot = 0; slot < brahms :: settings :: sample :: size; slot++)
+            {
+                if(sample[slot])
+                    this->_dialer.connect <settings :: channel> (*(sample[slot])).then([=](const connection & connection)
+                    {
+                        this->_mutex.lock();
+                        this->_clients[slot] = new checker :: client(this->_pool.bind(connection), version, slot, this->_checkpool.indexes(), this->_checkpool, this->_mutex);
+                        this->_mutex.unlock();
+                    }).except([](const std :: exception_ptr &)
+                    {
+                    });
+            }
+
+            this->_mutex.unlock();
+
+            co_await this->_crontab.wait(settings :: intervals :: check);
+        }
     }
 };
