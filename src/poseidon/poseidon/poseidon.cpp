@@ -43,8 +43,33 @@ namespace poseidon
             log << "Adding statement to votes and checkpool" << std :: endl;
             this->_votes[statement.index()] = vote{.value = {statement.value(), statement.signature()}, .accepted = false};
             this->_checkpool.add(statement.index());
+
+            log << "Dispatching to all servers" << std :: endl;
+
+            std :: vector <checker :: server *> garbage;
+            for(checker :: server * server : this->_servers)
+            {
+                if(server->alive())
+                    server->push(statement);
+                else
+                    garbage.push_back(server);
+            }
+
+            for(checker :: server * server : garbage)
+            {
+                delete server;
+                this->_servers.erase(server);
+            }
         }
 
+        this->_mutex.unlock();
+    }
+
+    void poseidon :: serve(const pool :: connection & connection)
+    {
+        this->_mutex.lock();
+        checker :: server * server = new checker :: server(connection, this->_votes, this->_mutex);
+        this->_servers.insert(server);
         this->_mutex.unlock();
     }
 };

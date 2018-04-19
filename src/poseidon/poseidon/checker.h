@@ -39,14 +39,21 @@ namespace poseidon
 
             std :: unordered_set <index, shorthash> _indexes;
 
+            bool _sending;
+            bool _receiving;
+
             pipe <statement> _pipe;
-            std :: mutex & _mutex;
+            std :: recursive_mutex & _mutex;
 
         public:
 
             // Constructors
 
-            server(const pool :: connection &, std :: unordered_map <index, vote, shorthash> &, std :: mutex &);
+            server(const pool :: connection &, std :: unordered_map <index, vote, shorthash> &, std :: recursive_mutex &);
+
+            // Getters
+
+            bool alive();
 
             // Methods
 

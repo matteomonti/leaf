@@ -23,6 +23,7 @@ namespace poseidon
 
 #include "crawler.h"
 #include "gossiper.h"
+#include "checker.h"
 #include "checkpool.hpp"
 #include "drop/crypto/shorthash.hpp"
 #include "drop/data/varint.hpp"
@@ -83,7 +84,9 @@ namespace poseidon
         std :: unordered_map <index, vote, shorthash> _votes;
         checkpool <brahms :: settings :: sample :: size> _checkpool;
 
-        std :: mutex _mutex;
+        std :: unordered_set <checker :: server *> _servers;
+
+        std :: recursive_mutex _mutex;
 
         settings :: dialer & _dialer;
         pool & _pool;
@@ -107,6 +110,7 @@ namespace poseidon
         // Private methods
 
         void gossip(const statement &);
+        void serve(const pool :: connection &);
     };
 };
 
