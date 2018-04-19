@@ -773,9 +773,6 @@ namespace drop
     // Static declarations
 
     template <typename type> hash syncset <type> :: empty :: _label = hasher().finalize();
-
-
-    template <typename type> std :: mutex syncset <type> :: fuckingmutex; // REMOVE ME
 };
 
 #endif
