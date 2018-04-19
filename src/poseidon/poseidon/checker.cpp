@@ -1,6 +1,7 @@
 // Includes
 
 #include "checker.h"
+#include "checkpool.hpp"
 
 namespace poseidon
 {
@@ -111,7 +112,7 @@ namespace poseidon
 
     // Constructors
 
-    checker :: client :: client(const pool :: connection & connection, const size_t & version, const std :: vector <index> & indexes, checkpool <brahms :: settings :: sample :: size> & checkpool, std :: recursive_mutex & mutex) : _connection(connection), _version(version), _checkpool(checkpool), _mutex(mutex)
+    checker :: client :: client(const pool :: connection & connection, const size_t & version, const size_t & slot, const std :: vector <index> & indexes, checkpool <brahms :: settings :: sample :: size> & checkpool, std :: recursive_mutex & mutex) : _connection(connection), _version(version), _slot(slot), _checkpool(checkpool), _mutex(mutex)
     {
         this->send(indexes);
         this->receive();
@@ -145,7 +146,10 @@ namespace poseidon
                 try
                 {
                     statement statement = co_await this->_connection.receive <class statement> ();
-                    // TODO: Dispatch to checkpool
+
+                    this->_mutex.lock();
+                    this->_checkpool.set(this->_version, this->_slot, statement.index(), {statement.value(), statement.signature()});
+                    this->_mutex.unlock();
                 }
                 catch(const sockets :: exceptions :: receive_timeout &)
                 {

@@ -4,11 +4,18 @@
 // Includes
 
 #include "checkpool.h"
+#include "poseidon.h"
 
 namespace poseidon
 {
     using namespace drop;
     using namespace vine;
+
+    // Constructors
+
+    template <size_t size> checkpool <size> :: checkpool(poseidon & poseidon, const size_t & threshold) : _poseidon(poseidon), _threshold(threshold)
+    {
+    }
 
     // Getters
 
@@ -35,7 +42,7 @@ namespace poseidon
         return this->_indexes.count(index);
     }
 
-    template <size_t size> template <size_t threshold, typename atype, typename rtype> void checkpool <size> :: set(const size_t & version, const size_t & slot, const index & index, const value & value, const atype & accept, const rtype & reject)
+    template <size_t size> void checkpool <size> :: set(const size_t & version, const size_t & slot, const index & index, const value & value)
     {
         if(version != this->_version || !(this->_indexes.count(index)))
             return;
@@ -59,10 +66,13 @@ namespace poseidon
             }
         }
 
-        if(pro >= threshold)
-            accept();
+        if(pro >= this->_threshold)
+        {
+            this->_poseidon.accept(statement(index, value));
+            this->_indexes.erase(index);
+        }
 
-        if(total < threshold)
+        if(total < this->_threshold)
             return;
 
         std :: unordered_map <class value, size_t, shorthash> histogram;
@@ -103,8 +113,8 @@ namespace poseidon
             }
         }
 
-        if((total - best.score) > (size - threshold))
-            reject();
+        if((total - best.score) > (size - this->_threshold))
+            this->_indexes.erase(index);
     }
 
     template <size_t size> size_t checkpool <size> :: clear()

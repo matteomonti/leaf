@@ -9,7 +9,7 @@ namespace poseidon
 
     // Constructors
 
-    poseidon :: poseidon(const signer & signer, const std :: array <identifier, brahms :: settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _gossiper(this->_signer.publickey(), (*this), crontab, log), _crawler(this->_signer, view, this->_gossiper, dialer, pool, crontab), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
+    poseidon :: poseidon(const signer & signer, const std :: array <identifier, brahms :: settings :: view :: size> & view, typename settings :: dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _gossiper(this->_signer.publickey(), (*this), crontab, log), _crawler(this->_signer, view, this->_gossiper, dialer, pool, crontab), _checkpool(*this, settings :: accept :: threshold), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
     }
 
@@ -31,6 +31,12 @@ namespace poseidon
     }
 
     // Private methods
+
+    void poseidon :: accept(const statement & statement)
+    {
+        this->_votes[statement.index()] = {.value = {statement.value(), statement.signature()}, .accepted = true};
+        this->emit <events :: accept> (statement);
+    }
 
     void poseidon :: gossip(const statement & statement)
     {

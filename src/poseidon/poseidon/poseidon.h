@@ -73,7 +73,8 @@ namespace poseidon
         // Friends
 
         friend class gossiper;
-
+        template <size_t> friend class checkpool;
+        
         // Members
 
         signer _signer;
@@ -108,6 +109,9 @@ namespace poseidon
     private:
 
         // Private methods
+
+        void accept(const statement &);
+        void reject(const index &);
 
         void gossip(const statement &);
         void serve(const pool :: connection &);

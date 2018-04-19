@@ -18,6 +18,7 @@ namespace poseidon
 
 #define __forward__
 #include "poseidon.h"
+#include "checker.h"
 #undef __forward__
 
 // Includes
@@ -36,6 +37,7 @@ namespace poseidon
         // Friends
 
         friend class poseidon;
+        friend class checker;
 
         // Members
 
@@ -43,6 +45,13 @@ namespace poseidon
         std :: unordered_map <index, value, shorthash> _values[size];
 
         size_t _version;
+
+        size_t _threshold;
+        poseidon & _poseidon;
+
+        // Constructors
+
+        checkpool(poseidon &, const size_t &);
 
         // Getters
 
@@ -53,7 +62,7 @@ namespace poseidon
         void add(const index &);
         bool find(const index &);
 
-        template <size_t threshold, typename atype, typename rtype> void set(const size_t &, const size_t &, const index &, const value &, const atype &, const rtype &);
+        void set(const size_t &, const size_t &, const index &, const value &);
 
         size_t clear();
     };
