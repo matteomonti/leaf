@@ -30,6 +30,7 @@ namespace poseidon
             if(!(this->_identifiers.vector.size()))
             {
                 this->_identifiers.set.insert(identifier);
+                std :: cout << "There are " << this->_identifiers.set.size() << " nodes connected." << std :: endl;
                 if(this->_identifiers.set.size() == this->_nodes)
                     for(const vine :: identifier & identifier : this->_identifiers.set)
                         this->_identifiers.vector.push_back(identifier);
