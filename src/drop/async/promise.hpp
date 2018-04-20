@@ -121,7 +121,7 @@ namespace drop
             std :: cout << "Unforwardable reject: " << exception.what();
         }
 
-        throw (class exceptions :: unforwardable_reject){};
+        // throw (class exceptions :: unforwardable_reject){}; REMOVE ME (comment)
     }
 
     // resolver <lambda, true>
@@ -208,7 +208,7 @@ namespace drop
                         std :: cout << "Unforwardable reject: " << exception.what();
                     }
 
-                    throw (class exceptions :: unforwardable_reject){};
+                    // throw (class exceptions :: unforwardable_reject){}; REMOVE ME (comment)
                 }
             }
 

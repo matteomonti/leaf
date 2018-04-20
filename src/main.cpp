@@ -18,7 +18,7 @@ struct ports
 
 struct intervals
 {
-    static constexpr interval initial = 30_s;
+    static constexpr interval initial = 2_m;
 
     static constexpr interval total = 5_m;
     static constexpr interval publish = 5_s;

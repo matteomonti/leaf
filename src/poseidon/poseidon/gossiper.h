@@ -48,7 +48,7 @@ namespace poseidon
             {
                 static constexpr interval merge = 1_m;
                 static constexpr interval retry = 2_s;
-                static constexpr interval sync = 5_m;
+                static constexpr interval sync = 10_m;
             };
         };
 
