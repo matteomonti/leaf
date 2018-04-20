@@ -44,7 +44,7 @@ namespace vine :: dialers
                 verifier verifier(identifier);
                 verifier.verify(signature, signatures :: entry, publickey, timestamp);
 
-                connection.authenticate(this->_keyexchanger, publickey);
+                co_await connection.authenticate(this->_keyexchanger, publickey);
                 handler(dial(identifier, sync_connection));
             }
             catch(...)
