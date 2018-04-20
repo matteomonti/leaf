@@ -83,7 +83,7 @@ int main(int argc, char ** args)
 
         multiplexer <dialers :: directory :: client, 3> dialer(diraddr, signer, connector, pool, crontab);
 
-        class poseidon poseidon(signer, view, dialer, pool, crontab, mute);
+        class poseidon poseidon(signer, view, dialer, pool, crontab, std :: cout);
 
         poseidon.on <events :: gossip> ([](const statement & statement)
         {

@@ -41,25 +41,25 @@ namespace poseidon
     {
         try
         {
-            // log << "[syncer] Sending addbuffer" << std :: endl;
+            log << "[syncer] Sending addbuffer" << std :: endl;
             for(size_t i = 0; i < this->_addbuffer.size(); i++)
                 co_await this->_connection.send(this->_addbuffer[i]);
 
             while(true)
             {
                 statement statement = co_await this->_pipe.pop();
-                // log << "[syncer] Statement pushed through pipe!" << std :: endl;
+                log << "[syncer] Statement pushed through pipe!" << std :: endl;
                 co_await this->_connection.send(statement);
-                // log << "[syncer] Statement sent" << std :: endl;
+                log << "[syncer] Statement sent" << std :: endl;
             }
         }
         catch(const pipe <statement> :: exceptions :: pipe_closing &)
         {
-            // log << "[gossiper] Pipe closing" << std :: endl;
+            log << "[gossiper] Pipe closing" << std :: endl;
         }
         catch(...)
         {
-            // log << "[gossiper] Exception!" << std :: endl;
+            log << "[gossiper] Exception!" << std :: endl;
         }
     }
 
@@ -73,21 +73,21 @@ namespace poseidon
                 {
                     statement statement = co_await this->_connection.receive <class statement> ();
 
-                    // log << "[syncer] Received statement! " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value();
+                    log << "[syncer] Received statement! " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value();
 
                     this->_gossiper._mutex.lock();
-                    // log << "[syncer] Adding to gossiper" << std :: endl;
+                    log << "[syncer] Adding to gossiper" << std :: endl;
                     this->_gossiper.add(statement);
                     this->_gossiper._mutex.unlock();
                 }
                 catch(const sockets :: exceptions :: receive_timeout &)
                 {
-                    // log << "[syncer] Receive timeout!" << std :: endl;
+                    log << "[syncer] Receive timeout!" << std :: endl;
                 }
 
                 if(!(this->_alive))
                 {
-                    // log << "[syncer] Closing syncer" << std :: endl;
+                    log << "[syncer] Closing syncer" << std :: endl;
                     this->_close.resolve();
                     co_return;
                 }
@@ -95,7 +95,7 @@ namespace poseidon
         }
         catch(const std :: exception & exception)
         {
-            // log << "[syncer] Exception: " << exception.what() << std :: endl;
+            log << "[syncer] Exception: " << exception.what() << std :: endl;
         }
     }
 
@@ -121,17 +121,17 @@ namespace poseidon
 
     void gossiper :: add(const statement & statement)
     {
-        // log << "[gossiper] Adding statement" << std :: endl;
+        log << "[gossiper] Adding statement" << std :: endl;
 
         if(!(this->_addbuffer.count(statement)) && !(this->_statements.find(statement)))
         {
-            // log << "[gossiper] It's new: inserting into addbuffer" << std :: endl;
+            log << "[gossiper] It's new: inserting into addbuffer" << std :: endl;
             this->_addbuffer.insert(statement);
 
-            // log << "[gossiper] Sending to handler" << std :: endl;
+            log << "[gossiper] Sending to handler" << std :: endl;
             this->_handler.gossip(statement);
 
-            // log << "[gossiper] Pushing to syncers" << std :: endl;
+            log << "[gossiper] Pushing to syncers" << std :: endl;
             for(const auto & pair : this->_syncers)
                 pair.second->push(statement);
         }
@@ -172,9 +172,9 @@ namespace poseidon
     bool gossiper :: merging()
     {
         this->_mutex.lock();
-        // log << "Next merge should be " << this->_nextmerge << std :: endl;
+        log << "Next merge should be " << this->_nextmerge << std :: endl;
         bool merging = timestamp(now) > this->_nextmerge;
-        // if(merging) // log << "Should be merging!" << std :: endl;
+        if(merging) log << "Should be merging!" << std :: endl;
         this->_mutex.unlock();
 
         return merging;
