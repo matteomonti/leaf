@@ -98,6 +98,8 @@ int main(int argc, char ** args)
         std :: cout << brahms :: settings :: view :: size << " " << brahms :: settings :: sample :: size << " " << (decltype(poseidon) :: settings :: accept :: threshold) << std :: endl;
         poseidon.start();
 
+        sleep(intervals :: initial);
+
         timestamp start = now;
         for(uint64_t round = 0; (timestamp(now) - start) < intervals :: total; round++)
         {
