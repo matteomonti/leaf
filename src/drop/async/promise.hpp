@@ -112,6 +112,15 @@ namespace drop
 
     template <typename type> template <typename lambda> void promise <type> :: resolver <lambda, false> :: reject(const std :: exception_ptr & exception)
     {
+        try
+        {
+            std :: rethrow_exception(exception);
+        }
+        catch(const std :: exception & exception)
+        {
+            std :: cout << "Unforwardable reject: " << exception.what();
+        }
+
         throw (class exceptions :: unforwardable_reject){};
     }
 
@@ -189,7 +198,18 @@ namespace drop
                         this->_resolvers[i]->reject(this->_exception);
                 }
                 else
+                {
+                    try
+                    {
+                        std :: rethrow_exception(this->_exception);
+                    }
+                    catch(const std :: exception & exception)
+                    {
+                        std :: cout << "Unforwardable reject: " << exception.what();
+                    }
+
                     throw (class exceptions :: unforwardable_reject){};
+                }
             }
 
             if(!(this->_value))
