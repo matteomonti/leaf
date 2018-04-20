@@ -1,7 +1,10 @@
 #include <iostream>
+#include <fstream>
 
 #include "poseidon/benchmark/coordinator.h"
 #include "drop/crypto/signature.hpp"
+#include "poseidon/poseidon/poseidon.h"
+#include "vine/dialers/directory.h"
 
 using namespace drop;
 using namespace vine;
@@ -11,6 +14,14 @@ struct ports
 {
     static constexpr uint16_t coordinator = 7777;
     static constexpr uint16_t directory = 7778;
+};
+
+struct intervals
+{
+    static constexpr interval initial = 30_s;
+
+    static constexpr interval total = 5_m;
+    static constexpr interval publish = 5_s;
 };
 
 int main(int argc, char ** args)
@@ -38,6 +49,7 @@ int main(int argc, char ** args)
         }
 
         coordinator coordinator(ports :: coordinator, nodes);
+        dialers :: directory :: server directory(ports :: directory);
         sleep(10_h);
     }
     else if(!strcmp(args[1], "peer"))
@@ -48,14 +60,57 @@ int main(int argc, char ** args)
             return -1;
         }
 
-        signer signer;
+        if(argc < 4)
+        {
+            std :: cout << "Please insert the ID of the current instance." << std :: endl;
+            return -1;
+        }
+
+        size_t instanceid = atoi(args[3]);
+
+        std :: ofstream mute;
+        mute.open("/dev/null", std :: ios :: out);
 
         address coordaddr(args[2], ports :: coordinator);
         address diraddr(args[2], ports :: directory);
 
+        signer signer;
         std :: array <identifier, brahms :: settings :: view :: size> view = coordinator :: await(coordaddr, signer.publickey());
 
-        for(size_t i = 0; i < brahms :: settings :: view :: size; i++)
-            std :: cout << view[i] << std :: endl;
+        connectors :: tcp :: async connector;
+        pool pool;
+        crontab crontab;
+
+        multiplexer <dialers :: directory :: client, 3> dialer(diraddr, signer, connector, pool, crontab);
+
+        class poseidon poseidon(signer, view, dialer, pool, crontab, mute);
+
+        poseidon.on <events :: gossip> ([](const statement & statement)
+        {
+            std :: cout << (uint64_t) timestamp(now) << " gossip " << statement.identifier() << " " << statement.sequence() << " " << statement.value() << std :: endl;
+        });
+
+        poseidon.on <events :: accept> ([](const statement & statement)
+        {
+            std :: cout << (uint64_t) timestamp(now) << " accept " << statement.identifier() << " " << statement.sequence() << " " << statement.value() << std :: endl;
+        });
+
+        std :: cout << brahms :: settings :: view :: size << " " << brahms :: settings :: sample :: size << " " << (decltype(poseidon) :: settings :: accept :: threshold) << std :: endl;
+        poseidon.start();
+
+        timestamp start = now;
+        for(uint64_t round = 0; (timestamp(now) - start) < intervals :: total; round++)
+        {
+            if(instanceid == 0)
+            {
+                char message[1024];
+                sprintf(message, "message-%llu", round);
+
+                std :: cout << (uint64_t) timestamp(now) << " seed " << signer.publickey() << " " << round << " " << message << std :: endl;
+                poseidon.publish(round, message);
+            }
+
+            sleep(intervals :: publish);
+        }
     }
 }

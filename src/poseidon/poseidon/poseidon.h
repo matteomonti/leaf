@@ -43,11 +43,13 @@ namespace poseidon
     class poseidon : public eventemitter <events :: gossip, statement>,
                      public eventemitter <events :: accept, statement>
     {
+    public:
+
         // Settings
 
         struct settings
         {
-            typedef multiplexer <dialers :: local :: client, 3> dialer;
+            typedef multiplexer <dialers :: directory :: client, 3> dialer;
             static constexpr size_t channel = 2;
 
             struct intervals
@@ -60,8 +62,6 @@ namespace poseidon
                 static constexpr size_t threshold = 6;
             };
         };
-
-    public:
 
         // Using
 
