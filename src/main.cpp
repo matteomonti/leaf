@@ -8,28 +8,51 @@ using namespace drop;
 int main()
 {
     {
-        promise <int> d;
+        promise <void> d;
         {
-            promise <int> c;
+            promise <void> c;
             {
-                promise <int> b;
+                promise <void> b;
                 {
-                    promise <int> a;
+                    promise <void> a;
 
-                    all(a, b, c, d).then([](const std :: array <int, 4> & values)
+                    first(std :: array <promise <void>, 4> {a, b, c, d}).then([]()
                     {
                         std :: cout << "Completed!" << std :: endl;
                     }).except([](const std :: exception_ptr & exception)
                     {
-                        std :: cout << "There was an exception!" << std :: endl;
+                        try
+                        {
+                            std :: rethrow_exception(exception);
+                        }
+                        catch(const exceptions :: multiple & multiple)
+                        {
+                            std :: cout << "There was a multiple exception:" << std :: endl;
+                            for(const std :: exception_ptr & single : multiple.exceptions)
+                                try
+                                {
+                                    std :: rethrow_exception(single);
+                                }
+                                catch(const char * message)
+                                {
+                                    std :: cout << message << std :: endl;
+                                }
+                        }
                     });
 
-                    a.resolve(1);
+                    std :: cout << "Rejecting first" << std :: endl;
+                    a.reject("First reject");
                 }
-                b.resolve(2);
+
+                std :: cout << "Rejecting second" << std :: endl;
+                b.reject("Second reject");
             }
-            c.resolve(3);
+
+            std :: cout << "Rejecting third" << std :: endl;
+            c.reject("Third reject");
         }
-        d.resolve(4);
+
+        std :: cout << "Resolving fourth" << std :: endl;
+        d.reject("Fourth reject");
     }
 }

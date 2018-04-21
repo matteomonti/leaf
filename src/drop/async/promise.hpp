@@ -744,6 +744,66 @@ namespace drop
     {
         return all(std :: array <promise <type>, 1 + sizeof...(ptypes)> {head, tail...});
     }
+
+    template <size_t size> promise <void> first(const std :: array <promise <void>, size> & promises)
+    {
+        struct context
+        {
+            optional <promise <void>> promise;
+            exceptions :: multiple exception;
+            size_t count;
+
+            std :: mutex mutex;
+        };
+
+        context * context = new (class context){.promise = def, .count = 0};
+
+        for(size_t i = 0;i < size; i++)
+            promises[i].then([=]()
+            {
+                context->mutex.lock();
+                context->count++;
+
+                if(context->promise)
+                {
+                    context->promise->resolve();
+                    context->promise = null;
+                }
+
+                if(context->count == size)
+                {
+                    context->mutex.unlock();
+                    delete context;
+                }
+                else
+                    context->mutex.unlock();
+            }).except([=](const std :: exception_ptr & exception)
+            {
+                context->mutex.lock();
+
+                if(context->promise)
+                    context->exception.exceptions.push_back(exception);
+
+                context->count++;
+
+                if(context->count == size)
+                {
+                    if(context->promise)
+                        context->promise->reject(context->exception);
+
+                    context->mutex.unlock();
+                    delete context;
+                }
+                else
+                    context->mutex.unlock();
+            });
+
+        return *(context->promise);
+    }
+
+    template <typename type, size_t size, std :: enable_if_t <!(std :: is_same <type, void> :: value)> *> promise <type> first(const std :: array <promise <type>, size> & promises)
+    {
+    }
 };
 
 #endif
