@@ -8,15 +8,15 @@ using namespace drop;
 int main()
 {
     {
-        promise <void> d;
+        promise <int> d;
         {
-            promise <void> c;
+            promise <int> c;
             {
-                promise <void> b;
+                promise <int> b;
                 {
-                    promise <void> a;
+                    promise <int> a;
 
-                    all(a, b, c, d).then([]()
+                    all(a, b, c, d).then([](const std :: array <int, 4> & values)
                     {
                         std :: cout << "Completed!" << std :: endl;
                     }).except([](const std :: exception_ptr & exception)
@@ -24,12 +24,12 @@ int main()
                         std :: cout << "There was an exception!" << std :: endl;
                     });
 
-                    a.resolve();
+                    a.resolve(1);
                 }
-                b.resolve();
+                b.resolve(2);
             }
-            c.resolve();
+            c.resolve(3);
         }
-        d.resolve();
+        d.resolve(4);
     }
 }

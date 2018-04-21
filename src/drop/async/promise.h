@@ -3,6 +3,11 @@
 namespace drop
 {
     template <typename> class promise;
+
+    namespace exceptions
+    {
+        class multiple;
+    };
 };
 
 #if !defined(__forward__) && !defined(__drop__async__promise__h)
@@ -348,11 +353,30 @@ namespace drop
         inline void return_value(const type &);
     };
 
+    // Exceptions
+
+    namespace exceptions
+    {
+        class multiple : public std :: exception
+        {
+        public:
+
+            // Public members
+
+            std :: vector <std :: exception_ptr> exceptions;
+
+            // Getters
+
+            const char * what() const throw();
+        };
+    }
+
     // Functions
 
     template <size_t size> promise <void> all(const std :: array <promise <void>, size> &);
     template <typename... types, std :: enable_if_t <(... && (std :: is_same <types, promise <void>> :: value))> * = nullptr> promise <void> all(const types & ...);
     template <typename type, size_t size, std :: enable_if_t <!(std :: is_same <type, void> :: value)> * = nullptr> promise <std :: array <type, size>> all(const std :: array <promise <type>, size> &);
+    template <typename type, typename... ptypes, std :: enable_if_t <(... && (std :: is_same <ptypes, promise <type>> :: value))> * = nullptr> promise <std :: array <type, 1 + sizeof...(ptypes)>> all(const promise <type> &, const ptypes & ...);
 }
 
 #endif

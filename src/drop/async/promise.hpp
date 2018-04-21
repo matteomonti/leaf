@@ -739,6 +739,11 @@ namespace drop
 
         return *(context->promise);
     }
+
+    template <typename type, typename... ptypes, std :: enable_if_t <(... && (std :: is_same <ptypes, promise <type>> :: value))> *> promise <std :: array <type, 1 + sizeof...(ptypes)>> all(const promise <type> & head, const ptypes & ... tail)
+    {
+        return all(std :: array <promise <type>, 1 + sizeof...(ptypes)> {head, tail...});
+    }
 };
 
 #endif
