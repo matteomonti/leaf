@@ -11,35 +11,9 @@ template <typename type> void print()
 
 int main()
 {
-    print <typename collector <> :: traits :: storage <promise <void>>> ();
-    print <typename collector <> :: traits :: storage <std :: array <promise <void>, 4>>> ();
-    print <typename collector <> :: traits :: storage <promise <int>>> ();
-    print <typename collector <> :: traits :: storage <std :: array <promise <int>, 4>>> ();
+    collector <promise <void>, promise <int>, std :: array <promise <double>, 44>> my_collector;
 
-    std :: cout << std :: endl;
-
-    print <typename collector <> :: traits :: exception <promise <void>>> ();
-    print <typename collector <> :: traits :: exception <std :: array <promise <void>, 4>>> ();
-    print <typename collector <> :: traits :: exception <promise <int>>> ();
-    print <typename collector <> :: traits :: exception <std :: array <promise <int>, 4>>> ();
-
-    std :: cout << std :: endl;
-
-    std :: cout << collector <> :: traits :: is_valid <promise <void>> () << std :: endl;
-    std :: cout << collector <> :: traits :: is_valid <std :: array <promise <void>, 4>> () << std :: endl;
-    std :: cout << collector <> :: traits :: is_valid <promise <int>> () << std :: endl;
-    std :: cout << collector <> :: traits :: is_valid <std :: array <promise <int>, 4>> () << std :: endl;
-
-
-    std :: cout << collector <> :: traits :: is_valid <void> () << std :: endl;
-    std :: cout << collector <> :: traits :: is_valid <std :: array <void, 4>> () << std :: endl;
-    std :: cout << collector <> :: traits :: is_valid <int> () << std :: endl;
-    std :: cout << collector <> :: traits :: is_valid <std :: array <int, 4>> () << std :: endl;
-
-    std :: cout << std :: endl;
-
-    std :: cout << collector <> :: constraints :: valid() << std :: endl;
-    std :: cout << collector <promise <void>> :: constraints :: valid() << std :: endl;
-    std :: cout << collector <promise <int>, std :: array <promise <void>, 4>> :: constraints :: valid() << std :: endl;
-    std :: cout << collector <promise <int>, std :: array <promise <void>, 4>, int> :: constraints :: valid() << std :: endl;
+    // my_collector.get <0> ();
+    // my_collector.get <1> ();
+    my_collector.get <2> ()[33];
 }

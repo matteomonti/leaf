@@ -13,6 +13,7 @@ namespace drop
 #include <type_traits>
 #include <array>
 #include <exception>
+#include <memory>
 
 // Includes
 
@@ -22,8 +23,6 @@ namespace drop
 {
     template <typename... types> class collector
     {
-    public: // REMOVE ME
-
         // Traits
 
         struct traits
@@ -63,6 +62,8 @@ namespace drop
 
             template <typename type> using storage = decltype(declstorage <type> ());
             template <typename type> using exception = decltype(declexception <type> ());
+
+            template <size_t index> using subscript = typename std :: tuple_element <index, std::tuple <types...>> :: type;
         };
 
         // Constraints
@@ -70,7 +71,59 @@ namespace drop
         struct constraints
         {
             static constexpr bool valid();
+
+            template <size_t index> static constexpr bool get_void();
+            template <size_t index> static constexpr bool get_element();
+            template <size_t index> static constexpr bool get_array();
         };
+
+        // Static asserts
+
+        static_assert(constraints :: valid(), "Template parameters for a collector must be either promises or arrays of promises.");
+
+        // Exceptions
+
+        struct exceptions
+        {
+            class collection_pending : public std :: exception
+            {
+                const char * what() const throw();
+            };
+        };
+
+        // Service nested classes
+
+        struct arc
+        {
+            // Public members
+
+            bool completed ;
+
+            std :: tuple <typename traits :: template storage <types>...> values;
+            std :: tuple <typename traits :: template exception <types>...> exceptions;
+
+            std :: mutex mutex;
+
+            // Constructors
+
+            arc();
+        };
+
+        // Members
+
+        std :: shared_ptr <arc> _arc;
+
+    public:
+
+        // Constructors
+
+        collector();
+
+        // Getters
+
+        template <size_t index, std :: enable_if_t <constraints :: template get_void <index> ()> * = nullptr> void get() const;
+        template <size_t index, std :: enable_if_t <constraints :: template get_element <index> ()> * = nullptr> const auto & get() const;
+        template <size_t index, std :: enable_if_t <constraints :: template get_array <index> ()> * = nullptr> auto get() const;
     };
 };
 
