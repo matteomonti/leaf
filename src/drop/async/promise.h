@@ -351,6 +351,7 @@ namespace drop
     // Functions
 
     template <size_t size> promise <void> all(const std :: array <promise <void>, size> &);
+    template <typename... types, std :: enable_if_t <(... && (std :: is_same <types, promise <void>> :: value))> * = nullptr> promise <void> all(const types & ...);
     template <typename type, size_t size, std :: enable_if_t <!(std :: is_same <type, void> :: value)> * = nullptr> promise <std :: array <type, size>> all(const std :: array <promise <type>, size> &);
 }
 

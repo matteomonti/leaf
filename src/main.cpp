@@ -15,9 +15,8 @@ int main()
                 promise <void> b;
                 {
                     promise <void> a;
-                    std :: array <promise <void>, 4> promises = {a, b, c, d};
 
-                    all(promises).then([]()
+                    all(a, b, c, d).then([]()
                     {
                         std :: cout << "Completed!" << std :: endl;
                     }).except([](const std :: exception_ptr & exception)

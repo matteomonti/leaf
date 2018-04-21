@@ -672,6 +672,11 @@ namespace drop
         return *(context->promise);
     }
 
+    template <typename... types, std :: enable_if_t <(... && (std :: is_same <types, promise <void>> :: value))> *> promise <void> all(const types & ... promises)
+    {
+        return all(std :: array <promise <void>, sizeof...(types)> {promises...});
+    }
+
     template <typename type, size_t size, std :: enable_if_t <!(std :: is_same <type, void> :: value)> *> promise <std :: array <type, size>> all(const std :: array <promise <type>, size> & promises)
     {
         struct context
