@@ -8,17 +8,17 @@ using namespace drop;
 int main()
 {
     {
-        promise <void> d;
+        promise <int> d;
         {
-            promise <void> c;
+            promise <int> c;
             {
-                promise <void> b;
+                promise <int> b;
                 {
-                    promise <void> a;
+                    promise <int> a;
 
-                    first(std :: array <promise <void>, 4> {a, b, c, d}).then([]()
+                    first(std :: array <promise <int>, 4> {a, b, c, d}).then([](const int & value)
                     {
-                        std :: cout << "Completed!" << std :: endl;
+                        std :: cout << "Completed: " << value << "!" << std :: endl;
                     }).except([](const std :: exception_ptr & exception)
                     {
                         try
@@ -48,11 +48,11 @@ int main()
                 b.reject("Second reject");
             }
 
-            std :: cout << "Rejecting third" << std :: endl;
-            c.reject("Third reject");
+            std :: cout << "Resolving third" << std :: endl;
+            c.resolve(3);
         }
 
-        std :: cout << "Resolving fourth" << std :: endl;
+        std :: cout << "Rejecting fourth" << std :: endl;
         d.reject("Fourth reject");
     }
 }
