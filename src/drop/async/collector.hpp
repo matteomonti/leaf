@@ -11,23 +11,48 @@ namespace drop
 
     template <typename... types> template <typename type> constexpr bool collector <types...> :: traits :: is_valid()
     {
-        if constexpr (is_promise <type> :: value)
+        typedef unmark <type> utype;
+
+        if constexpr (is_promise <utype> :: value)
             return true;
-        else if constexpr(is_array <type> :: value)
+        else if constexpr(is_array <utype> :: value)
         {
-            typedef typename is_array <type> :: type ptype;
+            typedef typename is_array <utype> :: type ptype;
             return is_promise <ptype> :: value;
         }
         else
             return false;
     }
 
+    template <typename... types> template <typename type> auto collector <types...> :: traits :: declremoverequired()
+    {
+        if constexpr (is_required <type> :: value)
+            return std :: declval <typename is_required <type> :: type> ();
+        else
+            return std :: declval <type> ();
+    }
+
+    template <typename... types> template <typename type> auto collector <types...> :: traits :: declremoveuntil()
+    {
+        if constexpr (is_until <type> :: value)
+            return std :: declval <typename is_until <type> :: type> ();
+        else
+            return std :: declval <type> ();
+    }
+
+    template <typename... types> template <typename type> auto collector <types...> :: traits :: declunmark()
+    {
+        return declremoveuntil <decltype(declremoverequired <decltype(declremoveuntil <type> ())> ())> ();
+    }
+
     template <typename... types> template <typename type> auto collector <types...> :: traits :: declstorage()
     {
-        if constexpr (is_array <type> :: value)
+        typedef unmark <type> utype;
+
+        if constexpr (is_array <utype> :: value)
         {
-            typedef typename is_array <type> :: type ptype;
-            static constexpr size_t size = is_array <type> :: size;
+            typedef typename is_array <utype> :: type ptype;
+            static constexpr size_t size = is_array <utype> :: size;
 
             if constexpr (std :: is_same <ptype, promise <void>> :: value)
                 return std :: declval <std :: array <bool, size>> ();
@@ -39,7 +64,7 @@ namespace drop
         }
         else
         {
-            typedef typename is_promise <type> :: type ttype;
+            typedef typename is_promise <utype> :: type ttype;
             if constexpr (std :: is_same <ttype, void> :: value)
                 return std :: declval <bool> ();
             else
@@ -49,13 +74,45 @@ namespace drop
 
     template <typename... types> template <typename type> auto collector <types...> :: traits :: declexception()
     {
-        if constexpr (is_array <type> :: value)
+        typedef unmark <type> utype;
+
+        if constexpr (is_array <utype> :: value)
         {
-            static constexpr size_t size = is_array <type> :: size;
+            static constexpr size_t size = is_array <utype> :: size;
             return std :: declval <std :: array <std :: exception_ptr, size>> ();
         }
         else
             return std :: declval <std :: exception_ptr> ();
+    }
+
+    template <typename... types> template <typename type> constexpr bool collector <types...> :: traits :: has_required()
+    {
+        return is_required <type> :: value || is_required <decltype(declremoveuntil <type> ())> :: value;
+    }
+
+    template <typename... types> template <typename type> constexpr bool collector <types...> :: traits :: has_until()
+    {
+        return is_until <type> :: value || is_until <decltype(declremoverequired <type> ())> :: value;
+    }
+
+    template <typename... types> template <size_t index> constexpr bool collector <types...> :: traits :: index_has_required()
+    {
+        return has_required <subscript <index>> ();
+    }
+
+    template <typename... types> template <size_t index> constexpr bool collector <types...> :: traits :: index_has_until()
+    {
+        return has_until <subscript <index>> ();
+    }
+
+    template <typename... types> constexpr size_t collector <types...> :: traits :: required_count()
+    {
+        return (... + (size_t(has_required <types> ())));
+    }
+
+    template <typename... types> constexpr size_t collector <types...> :: traits :: until_count()
+    {
+        return (... + (size_t(has_until <types> ())));
     }
 
     // Constraints
@@ -68,7 +125,7 @@ namespace drop
     template <typename... types> template <size_t index> constexpr bool collector <types...> :: constraints :: get_void()
     {
         if constexpr (index < sizeof...(types))
-            return std :: is_same <typename traits :: template subscript <index>, promise <void>> :: value;
+            return std :: is_same <typename traits :: template unmark <typename traits :: template subscript <index>>, promise <void>> :: value;
         else
             return false;
     }
@@ -76,7 +133,7 @@ namespace drop
     template <typename... types> template <size_t index> constexpr bool collector <types...> :: constraints :: get_element()
     {
         if constexpr (index < sizeof...(types))
-            return !(std :: is_same <typename traits :: template subscript <index>, promise <void>> :: value) && !(traits :: template is_array <typename traits :: template subscript <index>> :: value);
+            return !(std :: is_same <typename traits :: template unmark <typename traits :: template subscript <index>>, promise <void>> :: value) && !(traits :: template is_array <typename traits :: template subscript <index>> :: value);
         else
             return false;
     }
@@ -85,7 +142,7 @@ namespace drop
     {
         if constexpr (index < sizeof...(types))
         {
-            typedef typename traits :: template subscript <index> type;
+            typedef typename traits :: template unmark <typename traits :: template subscript <index>> type;
             if constexpr (traits :: template is_array <type> :: value)
             {
                 typedef typename traits :: template is_array <type> :: type ptype;
@@ -102,7 +159,7 @@ namespace drop
     {
         if constexpr (index < sizeof...(types))
         {
-            typedef typename traits :: template subscript <index> type;
+            typedef typename traits :: template unmark <typename traits :: template subscript <index>> type;
             if constexpr (traits :: template is_array <type> :: value)
             {
                 typedef typename traits :: template is_array <type> :: type ptype;

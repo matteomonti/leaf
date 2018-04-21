@@ -3,6 +3,9 @@
 namespace drop
 {
     template <typename...> class collector;
+
+    template <typename> class required;
+    template <typename> class until;
 };
 
 #if !defined(__forward__) && !defined(__drop__async__collector__h)
@@ -23,10 +26,38 @@ namespace drop
 {
     template <typename... types> class collector
     {
+    public: // REMOVE ME
+
         // Traits
 
         struct traits
         {
+            template <typename> struct is_required;
+
+            template <typename ttype> struct is_required <required <ttype>>
+            {
+                static constexpr bool value = true;
+                typedef ttype type;
+            };
+
+            template <typename ttype> struct is_required
+            {
+                static constexpr bool value = false;
+            };
+
+            template <typename> struct is_until;
+
+            template <typename ttype> struct is_until <until <ttype>>
+            {
+                static constexpr bool value = true;
+                typedef ttype type;
+            };
+
+            template <typename ttype> struct is_until
+            {
+                static constexpr bool value = false;
+            };
+
             template <typename> struct is_promise;
 
             template <typename ttype> struct is_promise <promise <ttype>>
@@ -57,13 +88,27 @@ namespace drop
 
             template <typename type> static constexpr bool is_valid();
 
+            template <typename type> static auto declremoverequired();
+            template <typename type> static auto declremoveuntil();
+            template <typename type> static auto declunmark();
+
             template <typename type> static auto declstorage();
             template <typename type> static auto declexception();
 
+            template <typename type> using unmark = decltype(declunmark <type> ());
             template <typename type> using storage = decltype(declstorage <type> ());
             template <typename type> using exception = decltype(declexception <type> ());
 
             template <size_t index> using subscript = typename std :: tuple_element <index, std::tuple <types...>> :: type;
+
+            template <typename type> static constexpr bool has_required();
+            template <typename type> static constexpr bool has_until();
+
+            template <size_t index> static constexpr bool index_has_required();
+            template <size_t index> static constexpr bool index_has_until();
+
+            static constexpr size_t required_count();
+            static constexpr size_t until_count();
         };
 
         // Constraints
@@ -127,6 +172,9 @@ namespace drop
         template <size_t index, std :: enable_if_t <constraints :: template get_void_array <index> ()> * = nullptr> void get(const size_t &) const;
         template <size_t index, std :: enable_if_t <constraints :: template get_element_array <index> ()> * = nullptr> const auto & get(const size_t &) const;
     };
+
+    template <typename type> class required {};
+    template <typename type> class until {};
 };
 
 #endif

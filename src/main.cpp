@@ -11,7 +11,7 @@ template <typename type> void print()
 
 int main()
 {
-    collector <promise <void>, promise <int>, std :: array <promise <double>, 44>> my_collector;
+    collector <required <promise <void>>, until <promise <int>>, until <required <std :: array <promise <double>, 44>>>> my_collector;
 
     // my_collector.get <0> ();
     // my_collector.get <1> ();
