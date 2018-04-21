@@ -74,7 +74,8 @@ namespace drop
 
             template <size_t index> static constexpr bool get_void();
             template <size_t index> static constexpr bool get_element();
-            template <size_t index> static constexpr bool get_array();
+            template <size_t index> static constexpr bool get_void_array();
+            template <size_t index> static constexpr bool get_element_array();
         };
 
         // Static asserts
@@ -123,7 +124,8 @@ namespace drop
 
         template <size_t index, std :: enable_if_t <constraints :: template get_void <index> ()> * = nullptr> void get() const;
         template <size_t index, std :: enable_if_t <constraints :: template get_element <index> ()> * = nullptr> const auto & get() const;
-        template <size_t index, std :: enable_if_t <constraints :: template get_array <index> ()> * = nullptr> auto get() const;
+        template <size_t index, std :: enable_if_t <constraints :: template get_void_array <index> ()> * = nullptr> void get(const size_t &) const;
+        template <size_t index, std :: enable_if_t <constraints :: template get_element_array <index> ()> * = nullptr> const auto & get(const size_t &) const;
     };
 };
 

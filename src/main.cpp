@@ -15,5 +15,5 @@ int main()
 
     // my_collector.get <0> ();
     // my_collector.get <1> ();
-    my_collector.get <2> ()[33];
+    my_collector.get <2> (33);
 }

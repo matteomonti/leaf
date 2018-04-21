@@ -81,10 +81,36 @@ namespace drop
             return false;
     }
 
-    template <typename... types> template <size_t index> constexpr bool collector <types...> :: constraints :: get_array()
+    template <typename... types> template <size_t index> constexpr bool collector <types...> :: constraints :: get_void_array()
     {
         if constexpr (index < sizeof...(types))
-            return traits :: template is_array <typename traits :: template subscript <index>> :: value;
+        {
+            typedef typename traits :: template subscript <index> type;
+            if constexpr (traits :: template is_array <type> :: value)
+            {
+                typedef typename traits :: template is_array <type> :: type ptype;
+                return std :: is_same <ptype, promise <void>> :: value;
+            }
+            else
+                return false;
+        }
+        else
+            return false;
+    }
+
+    template <typename... types> template <size_t index> constexpr bool collector <types...> :: constraints :: get_element_array()
+    {
+        if constexpr (index < sizeof...(types))
+        {
+            typedef typename traits :: template subscript <index> type;
+            if constexpr (traits :: template is_array <type> :: value)
+            {
+                typedef typename traits :: template is_array <type> :: type ptype;
+                return !(std :: is_same <ptype, promise <void>> :: value);
+            }
+            else
+                return false;
+        }
         else
             return false;
     }
@@ -154,89 +180,43 @@ namespace drop
         }
     }
 
-    template <typename... types> template <size_t index, std :: enable_if_t <collector <types...> :: constraints :: template get_array <index> ()> *> auto collector <types...> :: get() const
+    template <typename... types> template <size_t index, std :: enable_if_t <collector <types...> :: constraints :: template get_void_array <index> ()> *> void collector <types...> :: get(const size_t & arrindex) const
     {
-        if constexpr (std :: is_same <typename traits :: template is_array <typename traits :: template subscript <index>> :: type, promise <void>> :: value)
+        this->_arc->mutex.lock();
+
+        if(std :: exception_ptr exception = std :: get <index> (this->_arc->exceptions)[arrindex])
         {
-            class iterator
-            {
-                // Members
+            this->_arc->mutex.unlock();
+            std :: rethrow_exception(exception);
+        }
+        else if(!(std :: get <index> (this->_arc->values)[arrindex]))
+        {
+            this->_arc->mutex.unlock();
+            throw (class exceptions :: collection_pending){};
+        }
+        else
+            this->_arc->mutex.unlock();
+    }
 
-                std :: shared_ptr <arc> _arc;
+    template <typename... types> template <size_t index, std :: enable_if_t <collector <types...> :: constraints :: template get_element_array <index> ()> *> const auto & collector <types...> :: get(const size_t & arrindex) const
+    {
+        this->_arc->mutex.lock();
 
-            public:
-
-                // Constructors
-
-                iterator(const std :: shared_ptr <arc> arc) : _arc(arc)
-                {
-                }
-
-                // Operators
-
-                void operator [] (const size_t arrindex) const
-                {
-                    this->_arc->mutex.lock();
-
-                    if(std :: exception_ptr exception = std :: get <index> (this->_arc->exceptions)[arrindex])
-                    {
-                        this->_arc->mutex.unlock();
-                        std :: rethrow_exception(exception);
-                    }
-                    else if(!(std :: get <index> (this->_arc->values[arrindex])))
-                    {
-                        this->_arc->mutex.unlock();
-                        throw (class exceptions :: collection_pending){};
-                    }
-                    else
-                        this->_arc->mutex.unlock();
-                }
-            };
-
-            return iterator(this->_arc);
+        if(std :: exception_ptr exception = std :: get <index> (this->_arc->exceptions)[arrindex])
+        {
+            this->_arc->mutex.unlock();
+            std :: rethrow_exception(exception);
+        }
+        else if(!(std :: get <index> (this->_arc->values)[arrindex]))
+        {
+            this->_arc->mutex.unlock();
+            throw (class exceptions :: collection_pending){};
         }
         else
         {
-            class iterator
-            {
-                // Members
-
-                std :: shared_ptr <arc> _arc;
-
-            public:
-
-                // Constructors
-
-                iterator(const std :: shared_ptr <arc> arc) : _arc(arc)
-                {
-                }
-
-                // Operators
-
-                const auto & operator [] (const size_t arrindex) const
-                {
-                    this->_arc->mutex.lock();
-
-                    if(std :: exception_ptr exception = std :: get <index> (this->_arc->exceptions)[arrindex])
-                    {
-                        this->_arc->mutex.unlock();
-                        std :: rethrow_exception(exception);
-                    }
-                    else if(!(std :: get <index> (this->_arc->values)[arrindex]))
-                    {
-                        this->_arc->mutex.unlock();
-                        throw (class exceptions :: collection_pending){};
-                    }
-                    else
-                    {
-                        const auto & value = *(std :: get <index> (this->_arc->values)[arrindex]);
-                        this->_arc->mutex.unlock();
-                        return value;
-                    }
-                }
-            };
-
-            return iterator(this->_arc);
+            const auto & value = *(std :: get <index> (this->_arc->values)[arrindex]);
+            this->_arc->mutex.unlock();
+            return value;
         }
     }
 };
