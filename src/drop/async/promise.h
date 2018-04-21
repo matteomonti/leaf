@@ -347,6 +347,10 @@ namespace drop
 
         inline void return_value(const type &);
     };
+
+    // Functions
+
+    template <typename type, size_t size, std :: enable_if_t <!(std :: is_same <type, void> :: value)> * = nullptr> promise <std :: array <type, size>> all(const std :: array <promise <type>, size> &);
 }
 
 #endif
