@@ -379,7 +379,9 @@ namespace drop
     template <typename type, typename... ptypes, std :: enable_if_t <(... && (std :: is_same <ptypes, promise <type>> :: value))> * = nullptr> promise <std :: array <type, 1 + sizeof...(ptypes)>> all(const promise <type> &, const ptypes & ...);
 
     template <size_t size> promise <void> first(const std :: array <promise <void>, size> &);
+    template <typename... types, std :: enable_if_t <(... && (std :: is_same <types, promise <void>> :: value))> * = nullptr> promise <void> first(const types & ...);
     template <typename type, size_t size, std :: enable_if_t <!(std :: is_same <type, void> :: value)> * = nullptr> promise <type> first(const std :: array <promise <type>, size> &);
+    template <typename type, typename... ptypes, std :: enable_if_t <(... && (std :: is_same <ptypes, promise <type>> :: value))> * = nullptr> promise <type> first(const promise <type> &, const ptypes & ...);
 }
 
 #endif

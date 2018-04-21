@@ -801,6 +801,11 @@ namespace drop
         return *(context->promise);
     }
 
+    template <typename... types, std :: enable_if_t <(... && (std :: is_same <types, promise <void>> :: value))> *> promise <void> first(const types & ... promises)
+    {
+        return first(std :: array <promise <void>, sizeof...(types)> {promises...});
+    }
+
     template <typename type, size_t size, std :: enable_if_t <!(std :: is_same <type, void> :: value)> *> promise <type> first(const std :: array <promise <type>, size> & promises)
     {
         struct context
@@ -855,6 +860,11 @@ namespace drop
             });
 
         return *(context->promise);
+    }
+
+    template <typename type, typename... ptypes, std :: enable_if_t <(... && (std :: is_same <ptypes, promise <type>> :: value))> *> promise <type> first(const promise <type> & head, const ptypes & ... tail)
+    {
+        return first(std :: array <promise <type>, 1 + sizeof...(ptypes)> {head, tail...});
     }
 };
 
