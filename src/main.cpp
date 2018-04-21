@@ -8,29 +8,29 @@ using namespace drop;
 int main()
 {
     {
-        promise <int> d;
+        promise <void> d;
         {
-            promise <int> c;
+            promise <void> c;
             {
-                promise <int> b;
+                promise <void> b;
                 {
-                    promise <int> a;
-                    std :: array <promise <int>, 4> promises = {a, b, c, d};
+                    promise <void> a;
+                    std :: array <promise <void>, 4> promises = {a, b, c, d};
 
-                    all(promises).then([](const std :: array <int, 4> & values)
+                    all(promises).then([]()
                     {
-                        std :: cout << "Completed! Values are " << values[0] << ", " << values[1] << ", " << values[2] << ", " << values[3] << std :: endl;
+                        std :: cout << "Completed!" << std :: endl;
                     }).except([](const std :: exception_ptr & exception)
                     {
                         std :: cout << "There was an exception!" << std :: endl;
                     });
 
-                    a.resolve(33);
+                    a.resolve();
                 }
-                b.resolve(99);
+                b.resolve();
             }
-            c.resolve(66);
+            c.resolve();
         }
-        d.resolve(44);
+        d.resolve();
     }
 }

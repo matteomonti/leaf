@@ -620,6 +620,58 @@ namespace drop
 
     // Functions
 
+    template <size_t size> promise <void> all(const std :: array <promise <void>, size> & promises)
+    {
+        struct context
+        {
+            optional <promise <void>> promise;
+            size_t count;
+
+            std :: mutex mutex;
+        };
+
+        context * context = new (class context){.promise = def, .count = 0};
+
+        for(size_t i = 0;i < size; i++)
+            promises[i].then([=]()
+            {
+                context->mutex.lock();
+                context->count++;
+
+                if(context->count == size)
+                {
+                    if(context->promise)
+                        context->promise->resolve();
+
+                    context->mutex.unlock();
+                    delete context;
+                }
+                else
+                    context->mutex.unlock();
+            }).except([=](const std :: exception_ptr & exception)
+            {
+                context->mutex.lock();
+
+                if(context->promise)
+                {
+                    context->promise->reject(exception);
+                    context->promise = null;
+                }
+
+                context->count++;
+
+                if(context->count == size)
+                {
+                    context->mutex.unlock();
+                    delete context;
+                }
+                else
+                    context->mutex.unlock();
+            });
+
+        return *(context->promise);
+    }
+
     template <typename type, size_t size, std :: enable_if_t <!(std :: is_same <type, void> :: value)> *> promise <std :: array <type, size>> all(const std :: array <promise <type>, size> & promises)
     {
         struct context
