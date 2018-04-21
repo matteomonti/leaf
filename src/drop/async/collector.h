@@ -56,13 +56,20 @@ namespace drop
                 static constexpr bool value = false;
             };
 
-            template <typename type> static constexpr bool valid();
+            template <typename type> static constexpr bool is_valid();
 
             template <typename type> static auto declstorage();
             template <typename type> static auto declexception();
 
             template <typename type> using storage = decltype(declstorage <type> ());
             template <typename type> using exception = decltype(declexception <type> ());
+        };
+
+        // Constraints
+
+        struct constraints
+        {
+            static constexpr bool valid();
         };
     };
 };

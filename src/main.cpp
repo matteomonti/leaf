@@ -25,14 +25,21 @@ int main()
 
     std :: cout << std :: endl;
 
-    std :: cout << collector <> :: traits :: valid <promise <void>> () << std :: endl;
-    std :: cout << collector <> :: traits :: valid <std :: array <promise <void>, 4>> () << std :: endl;
-    std :: cout << collector <> :: traits :: valid <promise <int>> () << std :: endl;
-    std :: cout << collector <> :: traits :: valid <std :: array <promise <int>, 4>> () << std :: endl;
+    std :: cout << collector <> :: traits :: is_valid <promise <void>> () << std :: endl;
+    std :: cout << collector <> :: traits :: is_valid <std :: array <promise <void>, 4>> () << std :: endl;
+    std :: cout << collector <> :: traits :: is_valid <promise <int>> () << std :: endl;
+    std :: cout << collector <> :: traits :: is_valid <std :: array <promise <int>, 4>> () << std :: endl;
 
 
-    std :: cout << collector <> :: traits :: valid <void> () << std :: endl;
-    std :: cout << collector <> :: traits :: valid <std :: array <void, 4>> () << std :: endl;
-    std :: cout << collector <> :: traits :: valid <int> () << std :: endl;
-    std :: cout << collector <> :: traits :: valid <std :: array <int, 4>> () << std :: endl;
+    std :: cout << collector <> :: traits :: is_valid <void> () << std :: endl;
+    std :: cout << collector <> :: traits :: is_valid <std :: array <void, 4>> () << std :: endl;
+    std :: cout << collector <> :: traits :: is_valid <int> () << std :: endl;
+    std :: cout << collector <> :: traits :: is_valid <std :: array <int, 4>> () << std :: endl;
+
+    std :: cout << std :: endl;
+
+    std :: cout << collector <> :: constraints :: valid() << std :: endl;
+    std :: cout << collector <promise <void>> :: constraints :: valid() << std :: endl;
+    std :: cout << collector <promise <int>, std :: array <promise <void>, 4>> :: constraints :: valid() << std :: endl;
+    std :: cout << collector <promise <int>, std :: array <promise <void>, 4>, int> :: constraints :: valid() << std :: endl;
 }

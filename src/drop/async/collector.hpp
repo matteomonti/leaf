@@ -9,7 +9,7 @@ namespace drop
 {
     // Traits
 
-    template <typename... types> template <typename type> constexpr bool collector <types...> :: traits :: valid()
+    template <typename... types> template <typename type> constexpr bool collector <types...> :: traits :: is_valid()
     {
         if constexpr (is_promise <type> :: value)
             return true;
@@ -56,6 +56,13 @@ namespace drop
         }
         else
             return std :: declval <std :: exception_ptr> ();
+    }
+
+    // Constraints
+
+    template <typename... types> constexpr bool collector <types...> :: constraints :: valid()
+    {
+        return (sizeof...(types) > 0) && (... && (traits :: template is_valid <types> ()));
     }
 };
 
