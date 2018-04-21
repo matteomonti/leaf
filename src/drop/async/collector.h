@@ -12,6 +12,7 @@ namespace drop
 
 #include <type_traits>
 #include <array>
+#include <exception>
 
 // Includes
 
@@ -55,10 +56,13 @@ namespace drop
                 static constexpr bool value = false;
             };
 
+            template <typename type> static constexpr bool valid();
+
             template <typename type> static auto declstorage();
             template <typename type> static auto declexception();
 
             template <typename type> using storage = decltype(declstorage <type> ());
+            template <typename type> using exception = decltype(declexception <type> ());
         };
     };
 };

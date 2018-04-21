@@ -9,6 +9,19 @@ namespace drop
 {
     // Traits
 
+    template <typename... types> template <typename type> constexpr bool collector <types...> :: traits :: valid()
+    {
+        if constexpr (is_promise <type> :: value)
+            return true;
+        else if constexpr(is_array <type> :: value)
+        {
+            typedef typename is_array <type> :: type ptype;
+            return is_promise <ptype> :: value;
+        }
+        else
+            return false;
+    }
+
     template <typename... types> template <typename type> auto collector <types...> :: traits :: declstorage()
     {
         if constexpr (is_array <type> :: value)
@@ -32,6 +45,17 @@ namespace drop
             else
                 return std :: declval <optional <ttype>> ();
         }
+    }
+
+    template <typename... types> template <typename type> auto collector <types...> :: traits :: declexception()
+    {
+        if constexpr (is_array <type> :: value)
+        {
+            static constexpr size_t size = is_array <type> :: size;
+            return std :: declval <std :: array <std :: exception_ptr, size>> ();
+        }
+        else
+            return std :: declval <std :: exception_ptr> ();
     }
 };
 
