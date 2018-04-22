@@ -42,7 +42,7 @@ namespace drop
         {
             class messenger_deleted : public std :: exception
             {
-                const char * what() const throw();    
+                const char * what() const throw();
             };
         };
 
@@ -89,6 +89,8 @@ namespace drop
         template <typename type, std :: enable_if_t <(... || (std :: is_same <type, types> :: value))> * = nullptr> void send(const type &);
 
         template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, close> :: value && eventemitter <close> :: constraints :: template callback <lambda> ()> * = nullptr> void on(const lambda &);
+
+        void start();
 
     private:
 

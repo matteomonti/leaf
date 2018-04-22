@@ -31,6 +31,7 @@ int main()
             std :: cout << "[bob] Connection closing!" << std :: endl;
         });
 
+        bob.start();
         co_await crontab.wait(10_h);
     });
 
@@ -44,6 +45,8 @@ int main()
         {
             std :: cout << "[alice] Connection closing!" << std :: endl;
         });
+
+        alice.start();
 
         sleep(17_s);
         for(uint64_t i = 0; i < 10; i++)

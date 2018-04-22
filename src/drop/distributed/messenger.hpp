@@ -28,9 +28,6 @@ namespace drop
 
     template <typename... types> messenger <types...> :: messenger(const pool :: connection & connection, crontab & crontab) : _arc(std :: make_shared <arc> (connection, crontab))
     {
-        send(this->_arc);
-        receive(this->_arc);
-        keepalive(this->_arc);
     }
 
     // Methods
@@ -48,6 +45,13 @@ namespace drop
     template <typename... types> template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, close> :: value && eventemitter <close> :: constraints :: template callback <lambda> ()> *> void messenger <types...> :: on(const lambda & handler)
     {
         this->_arc->eventemitter <close> :: template on <close> (handler);
+    }
+
+    template <typename... types> void messenger <types...> :: start()
+    {
+        send(this->_arc);
+        receive(this->_arc);
+        keepalive(this->_arc);
     }
 
     // Static private methods
