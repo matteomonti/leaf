@@ -107,8 +107,8 @@ namespace drop
             template <size_t index> static constexpr bool index_has_required();
             template <size_t index> static constexpr bool index_has_until();
 
-            static constexpr size_t required_count();
-            static constexpr size_t until_count();
+            template <size_t index = 0> static constexpr size_t total_promises();
+            template <size_t index = 0> static constexpr size_t required_promises();
         };
 
         // Constraints
@@ -135,6 +135,11 @@ namespace drop
             {
                 const char * what() const throw();
             };
+
+            class required_missing : public std :: exception
+            {
+                const char * what() const throw();
+            };
         };
 
         // Service nested classes
@@ -143,7 +148,10 @@ namespace drop
         {
             // Public members
 
-            bool completed ;
+            optional <promise <void>> promise;
+
+            size_t total;
+            size_t required;
 
             std :: tuple <typename traits :: template storage <types>...> values;
             std :: tuple <typename traits :: template exception <types>...> exceptions;
@@ -163,7 +171,7 @@ namespace drop
 
         // Constructors
 
-        collector();
+        collector(const typename traits :: template unmark <types> & ...);
 
         // Getters
 
@@ -171,6 +179,15 @@ namespace drop
         template <size_t index, std :: enable_if_t <constraints :: template get_element <index> ()> * = nullptr> const auto & get() const;
         template <size_t index, std :: enable_if_t <constraints :: template get_void_array <index> ()> * = nullptr> void get(const size_t &) const;
         template <size_t index, std :: enable_if_t <constraints :: template get_element_array <index> ()> * = nullptr> const auto & get(const size_t &) const;
+
+    private:
+
+        // Private methods
+
+        template <size_t index = 0, typename ptype, typename... ptypes> void handle(const ptype &, const ptypes & ...) const;
+
+        template <size_t> void resolve() const;
+        template <size_t> void reject(const std :: exception_ptr &) const;
     };
 
     template <typename type> class required {};
