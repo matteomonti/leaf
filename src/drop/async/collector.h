@@ -6,8 +6,8 @@ namespace drop
 
     namespace markers
     {
-        template <typename> class required;
-        template <typename> class until;
+        template <typename> struct required;
+        template <typename> struct until;
     };
 };
 
@@ -166,6 +166,13 @@ namespace drop
             // Constructors
 
             arc(const drop :: promise <collector <types...>> &);
+
+            // Destructor
+
+            ~arc() // REMOVE ME
+            {
+                std :: cout << "Deleting arc" << std :: endl;
+            }
         };
 
         // Members
@@ -203,16 +210,19 @@ namespace drop
 
     namespace markers
     {
-        template <typename type> class required : public type
+        template <typename type> struct required : public type
         {
             required(const type &);
         };
 
-        template <typename type> class until : public type
+        template <typename type> struct until : public type
         {
             until(const type &);
         };
     };
+
+    template <typename type> auto required(const type &);
+    template <typename type> auto until(const type &);
 };
 
 #endif

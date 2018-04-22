@@ -477,6 +477,16 @@ namespace drop
         {
         }
     };
+
+    template <typename type> auto required(const type & _)
+    {
+        return markers :: required <type> (_);
+    }
+
+    template <typename type> auto until(const type & _)
+    {
+        return markers :: until <type> (_);
+    }
 };
 
 #endif
