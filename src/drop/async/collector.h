@@ -29,8 +29,6 @@ namespace drop
 {
     template <typename... types> class collector
     {
-    public: // REMOVE ME
-
         // Traits
 
         struct traits
@@ -114,11 +112,13 @@ namespace drop
             template <size_t index = 0> static constexpr size_t required_promises();
         };
 
+    public:
+
         // Constraints
 
         struct constraints
         {
-            static constexpr bool valid();
+            template <typename... ptypes> static constexpr bool valid();
 
             template <size_t index> static constexpr bool get_void();
             template <size_t index> static constexpr bool get_element();
@@ -128,7 +128,7 @@ namespace drop
 
         // Static asserts
 
-        static_assert(constraints :: valid(), "Template parameters for a collector must be either promises or arrays of promises.");
+        static_assert(constraints :: template valid <types...> (), "Template parameters for a collector must be either promises or arrays of promises.");
 
         // Exceptions
 
@@ -145,13 +145,15 @@ namespace drop
             };
         };
 
+    private:
+
         // Service nested classes
 
         struct arc
         {
             // Public members
 
-            optional <promise <void>> promise;
+            optional <promise <collector <types...>>> promise;
 
             size_t total;
             size_t required;
@@ -159,11 +161,11 @@ namespace drop
             std :: tuple <typename traits :: template storage <types>...> values;
             std :: tuple <typename traits :: template exception <types>...> exceptions;
 
-            std :: mutex mutex;
+            std :: recursive_mutex mutex;
 
             // Constructors
 
-            arc();
+            arc(const drop :: promise <collector <types...>> &);
         };
 
         // Members
@@ -174,7 +176,7 @@ namespace drop
 
         // Constructors
 
-        collector(const typename traits :: template unmark <types> & ...);
+        collector(const promise <collector <types...>> &, const typename traits :: template unmark <types> & ...);
 
         // Getters
 
@@ -193,10 +195,23 @@ namespace drop
         template <size_t> void reject(const std :: exception_ptr &) const;
     };
 
+    // Functions
+
+    template <typename... types> promise <collector <types...>> collect(const types & ...);
+
+    // Markers
+
     namespace markers
     {
-        template <typename type> class required {};
-        template <typename type> class until {};
+        template <typename type> class required : public type
+        {
+            required(const type &);
+        };
+
+        template <typename type> class until : public type
+        {
+            until(const type &);
+        };
     };
 };
 

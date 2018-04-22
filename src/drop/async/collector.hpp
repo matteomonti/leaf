@@ -142,9 +142,9 @@ namespace drop
 
     // Constraints
 
-    template <typename... types> constexpr bool collector <types...> :: constraints :: valid()
+    template <typename... types> template <typename... ptypes> constexpr bool collector <types...> :: constraints :: valid()
     {
-        return (sizeof...(types) > 0) && (... && (traits :: template is_valid <types> ()));
+        return (sizeof...(ptypes) > 0) && (... && (traits :: template is_valid <ptypes> ()));
     }
 
     template <typename... types> template <size_t index> constexpr bool collector <types...> :: constraints :: get_void()
@@ -213,7 +213,7 @@ namespace drop
 
     // Constructors
 
-    template <typename... types> collector <types...> :: arc :: arc() : promise(def), total(0), required(0)
+    template <typename... types> collector <types...> :: arc :: arc(const drop :: promise <collector <types...>> & promise) : promise(promise), total(0), required(0)
     {
     }
 
@@ -221,7 +221,7 @@ namespace drop
 
     // Constructors
 
-    template <typename... types> collector <types...> :: collector(const typename traits :: template unmark <types> & ... promises) : _arc(std :: make_shared <arc> ())
+    template <typename... types> collector <types...> :: collector(const promise <collector <types...>> & promise, const typename traits :: template unmark <types> & ... promises) : _arc(std :: make_shared <arc> (promise))
     {
         this->handle(promises...);
     }
@@ -416,7 +416,7 @@ namespace drop
         {
             if(this->_arc->required == traits :: required_promises())
             {
-                this->_arc->promise->resolve();
+                this->_arc->promise->resolve(*this);
                 this->_arc->promise = null;
             }
             else
@@ -429,7 +429,7 @@ namespace drop
         {
             if(this->_arc->total == traits :: total_promises())
             {
-                this->_arc->promise->resolve();
+                this->_arc->promise->resolve(*this);
                 this->_arc->promise = null;
             }
         }
@@ -450,11 +450,33 @@ namespace drop
         {
             if(this->_arc->total == traits :: total_promises())
             {
-                this->_arc->promise->resolve();
+                this->_arc->promise->resolve(*this);
                 this->_arc->promise = null;
             }
         }
     }
+
+    // Functions
+
+    template <typename... types> promise <collector <types...>> collect(const types & ... promises)
+    {
+        promise <collector <types...>> promise;
+        collector <types...> collector(promise, promises...);
+        return promise;
+    }
+
+    // Markers
+
+    namespace markers
+    {
+        template <typename type> required <type> :: required(const type & _) : type(_)
+        {
+        }
+
+        template <typename type> until <type> :: until(const type & _) : type(_)
+        {
+        }
+    };
 };
 
 #endif
