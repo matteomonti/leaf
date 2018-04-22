@@ -26,28 +26,32 @@ namespace drop
 
     // Constructors
 
+    template <typename... types> messenger <types...> :: messenger()
+    {
+    }
+
     template <typename... types> messenger <types...> :: messenger(const pool :: connection & connection, crontab & crontab) : _arc(std :: make_shared <arc> (connection, crontab))
     {
     }
 
     // Methods
 
-    template <typename... types> template <typename type, typename lambda, std :: enable_if_t <(... || (std :: is_same <type, types> :: value)) && (eventemitter <type, type> :: constraints :: template callback <lambda> ())> *> void messenger <types...> :: on(const lambda & handler)
+    template <typename... types> template <typename type, typename lambda, std :: enable_if_t <(... || (std :: is_same <type, types> :: value)) && (eventemitter <type, type> :: constraints :: template callback <lambda> ())> *> void messenger <types...> :: on(const lambda & handler) const
     {
         this->_arc->eventemitter <type, type> :: template on <type> (handler);
     }
 
-    template <typename... types> template <typename type, std :: enable_if_t <(... || (std :: is_same <type, types> :: value))> *> void messenger <types...> :: send(const type & message)
+    template <typename... types> template <typename type, std :: enable_if_t <(... || (std :: is_same <type, types> :: value))> *> void messenger <types...> :: send(const type & message) const
     {
         this->_arc->pipe.push(message);
     }
 
-    template <typename... types> template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, close> :: value && eventemitter <close> :: constraints :: template callback <lambda> ()> *> void messenger <types...> :: on(const lambda & handler)
+    template <typename... types> template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, close> :: value && eventemitter <close> :: constraints :: template callback <lambda> ()> *> void messenger <types...> :: on(const lambda & handler) const
     {
         this->_arc->eventemitter <close> :: template on <close> (handler);
     }
 
-    template <typename... types> void messenger <types...> :: start()
+    template <typename... types> void messenger <types...> :: start() const
     {
         send(this->_arc);
         receive(this->_arc);

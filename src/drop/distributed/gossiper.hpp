@@ -40,7 +40,7 @@ namespace drop
         catch(...)
         {
             this->_mutex.unlock();
-            return;
+            co_return;
         }
 
         try
@@ -53,7 +53,7 @@ namespace drop
             this->unlock();
             this->_mutex.unlock();
 
-            return;
+            co_return;
         }
 
         this->_mutex.lock();
@@ -71,7 +71,7 @@ namespace drop
         messenger.template on <type> ([=](const type & element)
         {
             this->_mutex.lock();
-            this->_gossip(element);
+            this->gossip(element);
             this->_mutex.unlock();
         });
 
@@ -90,7 +90,7 @@ namespace drop
     template <typename type> void gossiper <type> :: lock()
     {
         if(this->_addbuffer.size() > settings :: buffer :: failsafe)
-            throw exceptions :: buffer_overflow();
+            throw (class exceptions :: buffer_overflow){};
         else
             this->_locks++;
     }
@@ -109,12 +109,12 @@ namespace drop
 
         while(true)
         {
-            class syncset <type> :: view view = co_await connection.receive <syncset <type> :: view> ();
+            auto view = co_await connection.receive <typename syncset <type> :: view> ();
 
             if(view.size() == 0)
                 break;
 
-            class syncset <type> :: round round = this->_syncset.sync(view);
+            auto round = this->_syncset.sync(view);
 
             this->_mutex.lock();
 

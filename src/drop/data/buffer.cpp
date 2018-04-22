@@ -91,6 +91,11 @@ namespace drop
         return (memcmp(this->_bytes, rho._bytes, this->_size) == 0);
     }
 
+    bool buffer :: operator != (const buffer & rho) const
+    {
+        return !((*this) == rho);
+    }
+
     buffer & buffer :: operator = (const buffer & that)
     {
         this->alloc(that._size);

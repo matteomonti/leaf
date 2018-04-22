@@ -81,16 +81,17 @@ namespace drop
 
         // Constructors
 
+        messenger();
         messenger(const pool :: connection &, crontab &);
 
         // Methods
 
-        template <typename type, typename lambda, std :: enable_if_t <(... || (std :: is_same <type, types> :: value)) && (eventemitter <type, type> :: constraints :: template callback <lambda> ())> * = nullptr> void on(const lambda &);
-        template <typename type, std :: enable_if_t <(... || (std :: is_same <type, types> :: value))> * = nullptr> void send(const type &);
+        template <typename type, typename lambda, std :: enable_if_t <(... || (std :: is_same <type, types> :: value)) && (eventemitter <type, type> :: constraints :: template callback <lambda> ())> * = nullptr> void on(const lambda &) const;
+        template <typename type, std :: enable_if_t <(... || (std :: is_same <type, types> :: value))> * = nullptr> void send(const type &) const;
 
-        template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, close> :: value && eventemitter <close> :: constraints :: template callback <lambda> ()> * = nullptr> void on(const lambda &);
+        template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, close> :: value && eventemitter <close> :: constraints :: template callback <lambda> ()> * = nullptr> void on(const lambda &) const;
 
-        void start();
+        void start() const;
 
     private:
 

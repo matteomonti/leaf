@@ -78,6 +78,7 @@ namespace drop
         const uint8_t & operator [] (const size_t &) const;
 
         bool operator == (const buffer &) const;
+        bool operator != (const buffer &) const;
 
         buffer & operator = (const buffer &);
         buffer & operator = (buffer &&);
