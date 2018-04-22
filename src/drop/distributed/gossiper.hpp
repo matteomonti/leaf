@@ -22,6 +22,13 @@ namespace drop
 
     // Methods
 
+    template <typename type> void gossiper <type> :: publish(const type & element)
+    {
+        this->_mutex.lock();
+        this->gossip(element);
+        this->_mutex.unlock();
+    }
+
     template <typename type> promise <void> gossiper <type> :: serve(pool :: connection connection, bool tiebreaker)
     {
         try

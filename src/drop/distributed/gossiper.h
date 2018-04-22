@@ -73,6 +73,7 @@ namespace drop
 
         // Methods
 
+        void publish(const type &);
         promise <void> serve(pool :: connection, bool);
 
     private:
