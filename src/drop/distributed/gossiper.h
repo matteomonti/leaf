@@ -61,7 +61,7 @@ namespace drop
         size_t _locks;
 
         size_t _nonce;
-        std :: mutex _mutex;
+        std :: recursive_mutex _mutex;
 
         crontab & _crontab;
 

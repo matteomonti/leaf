@@ -36,40 +36,53 @@ namespace drop
             this->_mutex.lock();
             this->lock();
             this->_mutex.unlock();
-
-            co_await this->sync(connection, tiebreaker);
-
-            this->_mutex.lock();
-
-            size_t nonce = this->_nonce++;
-            messenger <type> messenger(connection, this->_crontab);
-
-            messenger.template on <close> ([=]()
-            {
-                this->_mutex.lock();
-                this->_messengers.erase(nonce);
-                this->_mutex.unlock();
-            });
-
-            messenger.template on <type> ([=](const type & element)
-            {
-                this->_mutex.lock();
-                this->_gossip(element);
-                this->_mutex.unlock();
-            });
-
-            for(const type & element : this->_addbuffer)
-                messenger.send(element);
-
-            this->_messengers[nonce] = messenger;
-            this->_messengers[nonce].start();
-
-            this->unlock();
-            this->_mutex.unlock();
         }
         catch(...)
         {
+            this->_mutex.unlock();
+            return;
         }
+
+        try
+        {
+            co_await this->sync(connection, tiebreaker);
+        }
+        catch(...)
+        {
+            this->_mutex.lock();
+            this->unlock();
+            this->_mutex.unlock();
+
+            return;
+        }
+
+        this->_mutex.lock();
+
+        size_t nonce = this->_nonce++;
+        messenger <type> messenger(connection, this->_crontab);
+
+        messenger.template on <close> ([=]()
+        {
+            this->_mutex.lock();
+            this->_messengers.erase(nonce);
+            this->_mutex.unlock();
+        });
+
+        messenger.template on <type> ([=](const type & element)
+        {
+            this->_mutex.lock();
+            this->_gossip(element);
+            this->_mutex.unlock();
+        });
+
+        for(const type & element : this->_addbuffer)
+            messenger.send(element);
+
+        this->_messengers[nonce] = messenger;
+        this->_messengers[nonce].start();
+
+        this->unlock();
+        this->_mutex.unlock();
     }
 
     // Private methods
