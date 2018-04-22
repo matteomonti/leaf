@@ -166,13 +166,6 @@ namespace drop
             // Constructors
 
             arc(const drop :: promise <collector <types...>> &);
-
-            // Destructor
-
-            ~arc() // REMOVE ME
-            {
-                std :: cout << "Deleting arc" << std :: endl;
-            }
         };
 
         // Members
