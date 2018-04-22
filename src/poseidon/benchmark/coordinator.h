@@ -30,6 +30,8 @@ namespace poseidon
 
     class coordinator
     {
+    public:
+
         // Settings
 
         struct settings
@@ -44,6 +46,8 @@ namespace poseidon
                 static constexpr interval poll = 1_s;
             };
         };
+
+    private:
 
         // Members
 

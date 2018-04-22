@@ -1,97 +1,117 @@
 #include <iostream>
 
 #include "drop/distributed/gossiper.hpp"
-#include "drop/network/sockets/local.hpp"
+#include "poseidon/benchmark/coordinator.h"
+#include "drop/crypto/signature.hpp"
+#include "vine/dialers/directory.hpp"
 
 using namespace drop;
+using namespace vine;
+using namespace poseidon;
 
-int main()
+struct ports
 {
-    crontab crontab;
-    pool pool;
+    static constexpr uint16_t coordinator = 7777;
+    static constexpr uint16_t directory = 7778;
+};
 
-    gossiper <uint64_t> alice(crontab);
-    alice.on <uint64_t> ([](const uint64_t & message)
+struct intervals
+{
+    static constexpr interval initial = 2_m;
+
+    static constexpr interval total = 5_m;
+    static constexpr interval publish = 5_s;
+};
+
+int main(int argc, char ** args)
+{
+    if(argc < 2)
     {
-        std :: cout << "[alice] Received: " << message << std :: endl;
-    });
-
-    gossiper <uint64_t> bob(crontab);
-    bob.on <uint64_t> ([](const uint64_t & message)
-    {
-        std :: cout << "[bob] Received: " << message << std :: endl;
-    });
-
-    gossiper <uint64_t> carl(crontab);
-    carl.on <uint64_t> ([](const uint64_t & message)
-    {
-        std :: cout << "[carl] Received: " << message << std :: endl;
-    });
-
-    gossiper <uint64_t> dave(crontab);
-    dave.on <uint64_t> ([](const uint64_t & message)
-    {
-        std :: cout << "[dave] Received: " << message << std :: endl;
-    });
-
-
-    alice.publish(1000);
-    alice.publish(1001);
-    alice.publish(1002);
-
-    {
-        sockets :: socketpair socketpair;
-        alice.serve(pool.bind(connection(socketpair.alpha)), true);
-        bob.serve(pool.bind(connection(socketpair.beta)), false);
+        std :: cout << "Please select a role for the node: master or peer." << std :: endl;
+        return -1;
     }
 
-    sleep(2_s);
-
-    for(uint64_t i = 0; i < 5; i++)
+    if(!strcmp(args[1], "master"))
     {
-        bob.publish(i);
-        sleep(1_s);
-    }
+        if(argc < 3)
+        {
+            std :: cout << "Please insert the number of nodes to coordinate." << std :: endl;
+            return -1;
+        }
 
+        size_t nodes = atoi(args[2]);
+
+        if(nodes == 0)
+        {
+            std :: cout << "The network cannot have zero nodes." << std :: endl;
+            return -1;
+        }
+
+        coordinator coordinator(ports :: coordinator, nodes);
+        dialers :: directory :: server directory(ports :: directory);
+        sleep(10_h);
+    }
+    else if(!strcmp(args[1], "peer"))
     {
-        sockets :: socketpair socketpair;
-        alice.serve(pool.bind(connection(socketpair.alpha)), true);
-        carl.serve(pool.bind(connection(socketpair.beta)), false);
+        if(argc < 3)
+        {
+            std :: cout << "Please insert the IP address of the master." << std :: endl;
+            return -1;
+        }
+
+        if(argc < 4)
+        {
+            std :: cout << "Please insert the ID of the current instance." << std :: endl;
+            return -1;
+        }
+
+        size_t instanceid = atoi(args[3]);
+
+        address coordaddr(args[2], ports :: coordinator);
+        address diraddr(args[2], ports :: directory);
+
+        signer signer;
+        std :: array <identifier, coordinator :: settings :: view :: size> view = coordinator :: await(coordaddr, signer.publickey());
+
+        connectors :: tcp :: async connector;
+        pool pool;
+        crontab crontab;
+
+        gossiper <uint64_t> gossiper(crontab);
+
+        gossiper.on <uint64_t> ([](const uint64_t & value)
+        {
+            std :: cout << (uint64_t) timestamp(now) << " gossip " << value << std :: endl;
+        });
+
+        dialers :: directory :: client dialer(diraddr, signer, connector, pool, crontab);
+
+        dialer.on <dial> ([&](const dial & dial)
+        {
+            gossiper.serve(pool.bind(dial), signer.publickey() < dial.identifier());
+        });
+
+        sleep(intervals :: initial);
+
+        for(const identifier & identifier : view)
+            dialer.connect(identifier).then([&](const dial & dial)
+            {
+                gossiper.serve(pool.bind(dial), signer.publickey() < dial.identifier());
+            }).except([=](const std :: exception_ptr & exception)
+            {
+                std :: cout << "Failed to establish connection to " << identifier << std :: endl;
+            });
+
+        timestamp start = now;
+        for(uint64_t round = 0; (timestamp(now) - start) < intervals :: total; round++)
+        {
+            if(instanceid == 0)
+            {
+                std :: cout << (uint64_t) timestamp(now) << " seed " << round << std :: endl;
+                gossiper.publish(round);
+            }
+
+            sleep(intervals :: publish);
+        }
     }
-
-    sleep(2_s);
-
-    for(uint64_t i = 5; i < 10; i++)
-    {
-        bob.publish(i);
-        sleep(1_s);
-    }
-
-    {
-        sockets :: socketpair socketpair;
-        dave.serve(pool.bind(connection(socketpair.alpha)), true);
-        alice.serve(pool.bind(connection(socketpair.beta)), false);
-    }
-
-    {
-        sockets :: socketpair socketpair;
-        dave.serve(pool.bind(connection(socketpair.alpha)), true);
-        bob.serve(pool.bind(connection(socketpair.beta)), false);
-    }
-
-    {
-        sockets :: socketpair socketpair;
-        dave.serve(pool.bind(connection(socketpair.alpha)), true);
-        carl.serve(pool.bind(connection(socketpair.beta)), false);
-    }
-
-    sleep(2_s);
-
-    for(uint64_t i = 10; i < 15; i++)
-    {
-        dave.publish(i);
-        sleep(1_s);
-    }
-
-    sleep(10_h);
 }
