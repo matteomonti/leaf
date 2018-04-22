@@ -14,7 +14,7 @@ int main()
 
     acceptor.on <connection> ([&](const connection & connection) -> promise <void>
     {
-        messenger <uint64_t, buffer> bob(pool.bind(connection), crontab, "[bob] ");
+        messenger <uint64_t, buffer> bob(pool.bind(connection), crontab);
 
         bob.on <uint64_t> ([](const uint64_t & value)
         {
@@ -38,7 +38,7 @@ int main()
     sleep(0.1_s);
 
     {
-        messenger <uint64_t, buffer> alice(pool.bind(connection), crontab, "[alice] ");
+        messenger <uint64_t, buffer> alice(pool.bind(connection), crontab);
 
         alice.on <drop :: close> ([]()
         {

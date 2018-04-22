@@ -7,20 +7,26 @@
 
 namespace drop
 {
+    // Exceptions
+
+    template <typename... types> const char * messenger <types...> :: exceptions :: messenger_deleted :: what() const throw()
+    {
+        return "Messenger deleted.";
+    }
+
     // arc
 
     // Constructors
 
-    template <typename... types> messenger <types...> :: arc :: arc(const pool :: connection & connection, class crontab & crontab, const char * prefix) : connection(connection), alive(true), lastsend(0), crontab(crontab), prefix(prefix)
+    template <typename... types> messenger <types...> :: arc :: arc(const pool :: connection & connection, class crontab & crontab) : connection(connection), alive(true), lastsend(0), crontab(crontab)
     {
-        std :: cout << prefix << "Creating arc" << std :: endl; // REMOVE ME
     }
 
     // messenger
 
     // Constructors
 
-    template <typename... types> messenger <types...> :: messenger(const pool :: connection & connection, crontab & crontab, const char * prefix) : _arc(std :: make_shared <arc> (connection, crontab, prefix))
+    template <typename... types> messenger <types...> :: messenger(const pool :: connection & connection, crontab & crontab) : _arc(std :: make_shared <arc> (connection, crontab))
     {
         send(this->_arc);
         receive(this->_arc);
@@ -53,27 +59,19 @@ namespace drop
             while(true)
             {
                 variant <types...> message = co_await arc->pipe.pop();
-                std :: cout << arc->prefix << "[send] Out of the pop" << std :: endl;
 
                 arc->mutex.lock();
                 bool alive = arc->alive;
                 arc->lastsend = now;
                 arc->mutex.unlock();
 
-                if(!alive)
-                {
-                    std :: cout << arc->prefix << "[send] Alive is false, breaking" << std :: endl;
-                    break;
-                }
+                if(!alive) break;
 
-                std :: cout << arc->prefix << "[send] Sending something" << std :: endl;
                 co_await arc->connection.send(message);
             }
         }
         catch(...)
         {
-            std :: cout << arc->prefix << "[send] Exception" << std :: endl;
-
             arc->mutex.lock();
             if(arc->alive)
             {
@@ -91,25 +89,15 @@ namespace drop
             while(true)
             {
                 variant <types...> message = co_await arc->connection.template receive <variant <types...>> ();
-                std :: cout << arc->prefix << "[receive] Out of the receive" << std :: endl;
 
                 arc->mutex.lock();
                 bool alive = arc->alive;
                 arc->mutex.unlock();
 
-                if(!alive)
-                {
-                    std :: cout << arc->prefix << "[receive] Alive is false, breaking" << std :: endl;
-                    break;
-                }
+                if(!alive) break;
 
-                std :: cout << arc->prefix << "[receive] Received something" << std :: endl;
-
-                if(message.empty())
-                    std :: cout << arc->prefix << "[receive] Just a keepalive" << std :: endl;
-                else
+                if(!(message.empty()))
                 {
-                    std :: cout << arc->prefix << "[receive] It's an actual message" << std :: endl;
                     message.visit([&](const auto & value)
                     {
                         typedef std :: remove_const_t <std :: remove_reference_t <decltype(value)>> base;
@@ -120,8 +108,6 @@ namespace drop
         }
         catch(...)
         {
-            std :: cout << arc->prefix << "[receive] Exception" << std :: endl;
-
             arc->mutex.lock();
             if(arc->alive)
             {
@@ -143,33 +129,19 @@ namespace drop
                 timestamp lastsend = arc->lastsend;
                 arc->mutex.unlock();
 
-                if(!alive)
-                {
-                    std :: cout << arc->prefix << "[keepalive] Alive is false, breaking" << std :: endl;
-                    break;
-                }
+                if(!alive) break;
 
                 if(arc.use_count() <= 3)
-                {
-                    std :: cout << arc->prefix << "[keepalive] Detected references being under three, throwing" << std :: endl;
-                    throw "messenger deleted";
-                }
+                    throw (class exceptions :: messenger_deleted){};
 
                 if(timestamp(now) - lastsend > settings :: keepalive)
-                {
-                    std :: cout << arc->prefix << "[keepalive] Sending keepalive" << std :: endl;
                     arc->pipe.push(variant <types...> ());
-                }
-                else
-                    std :: cout << arc->prefix << "[keepalive] Last send was recent, no need to keepalive" << std :: endl;
 
                 co_await arc->crontab.wait(settings :: keepalive);
             }
         }
         catch(...)
         {
-            std :: cout << arc->prefix << "[keepalive] Exception" << std :: endl;
-
             arc->mutex.lock();
             if(arc->alive)
             {
@@ -179,7 +151,6 @@ namespace drop
             arc->mutex.unlock();
         }
 
-        std :: cout << arc->prefix << "[keepalive] Before exiting, pushing to make sure send quits as well." << std :: endl;
         arc->pipe.push(variant <types...> ());
     }
 };

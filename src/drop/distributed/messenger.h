@@ -34,6 +34,20 @@ namespace drop
             static constexpr interval keepalive = 5_s;
         };
 
+    public:
+
+        // Exceptions
+
+        struct exceptions
+        {
+            class messenger_deleted : public std :: exception
+            {
+                const char * what() const throw();    
+            };
+        };
+
+    private:
+
         // Service nested classes
 
         struct arc : public eventemitter <types, types>..., public eventemitter <close>
@@ -54,18 +68,9 @@ namespace drop
 
             crontab & crontab;
 
-            const char * prefix;
-
             // Constructors
 
-            arc(const pool :: connection &, class crontab &, const char *);
-
-            // Destructor
-
-            ~arc() // REMOVE ME
-            {
-                std :: cout << "Deleting arc" << std :: endl;
-            }
+            arc(const pool :: connection &, class crontab &);
         };
 
         // Members
@@ -76,7 +81,7 @@ namespace drop
 
         // Constructors
 
-        messenger(const pool :: connection &, crontab &, const char *);
+        messenger(const pool :: connection &, crontab &);
 
         // Methods
 
