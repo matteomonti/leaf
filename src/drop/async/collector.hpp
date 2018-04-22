@@ -421,7 +421,7 @@ namespace drop
             }
             else
             {
-                this->_arc->promise->reject("Required missing!"); // TODO: Replace with appropriate exception
+                this->_arc->promise->reject((class exceptions :: required_missing){});
                 this->_arc->promise = null;
             }
         }
