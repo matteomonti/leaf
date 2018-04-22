@@ -4,8 +4,11 @@ namespace drop
 {
     template <typename...> class collector;
 
-    template <typename> class required;
-    template <typename> class until;
+    namespace markers
+    {
+        template <typename> class required;
+        template <typename> class until;
+    };
 };
 
 #if !defined(__forward__) && !defined(__drop__async__collector__h)
@@ -34,7 +37,7 @@ namespace drop
         {
             template <typename> struct is_required;
 
-            template <typename ttype> struct is_required <required <ttype>>
+            template <typename ttype> struct is_required <markers :: required <ttype>>
             {
                 static constexpr bool value = true;
                 typedef ttype type;
@@ -47,7 +50,7 @@ namespace drop
 
             template <typename> struct is_until;
 
-            template <typename ttype> struct is_until <until <ttype>>
+            template <typename ttype> struct is_until <markers :: until <ttype>>
             {
                 static constexpr bool value = true;
                 typedef ttype type;
@@ -190,8 +193,11 @@ namespace drop
         template <size_t> void reject(const std :: exception_ptr &) const;
     };
 
-    template <typename type> class required {};
-    template <typename type> class until {};
+    namespace markers
+    {
+        template <typename type> class required {};
+        template <typename type> class until {};
+    };
 };
 
 #endif

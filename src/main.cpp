@@ -15,5 +15,5 @@ int main()
     promise <int> my_int_promise;
     std :: array <promise <double>, 2> my_double_promises;
 
-    collector <required <promise <void>>, until <promise <int>>, until <required <std :: array <promise <double>, 2>>>> my_collector(my_void_promise, my_int_promise, my_double_promises);
+    collector <markers :: required <promise <void>>, markers :: until <promise <int>>, markers :: until <markers :: required <std :: array <promise <double>, 2>>>> my_collector(my_void_promise, my_int_promise, my_double_promises);
 }
