@@ -3,6 +3,7 @@
 namespace drop
 {
     template <typename...> class messenger;
+    struct close;
 };
 
 #if !defined(__forward__) && !defined(__drop__distributed__messenger__h)
@@ -20,6 +21,7 @@ namespace drop
 #include "drop/async/pipe.hpp"
 #include "drop/chrono/crontab.h"
 #include "drop/chrono/time.hpp"
+#include "drop/async/eventemitter.hpp"
 
 namespace drop
 {
@@ -34,8 +36,12 @@ namespace drop
 
         // Service nested classes
 
-        struct arc
+        struct arc : public eventemitter <types, types>..., public eventemitter <close>
         {
+            // Friends
+
+            template <typename...> friend class messenger;
+
             // Public members
 
             pool :: connection connection;
@@ -48,9 +54,11 @@ namespace drop
 
             crontab & crontab;
 
+            const char * prefix;
+
             // Constructors
 
-            arc(const pool :: connection &, class crontab &);
+            arc(const pool :: connection &, class crontab &, const char *);
 
             // Destructor
 
@@ -68,7 +76,14 @@ namespace drop
 
         // Constructors
 
-        messenger(const pool :: connection &, crontab &);
+        messenger(const pool :: connection &, crontab &, const char *);
+
+        // Methods
+
+        template <typename type, typename lambda, std :: enable_if_t <(... || (std :: is_same <type, types> :: value)) && (eventemitter <type, type> :: constraints :: template callback <lambda> ())> * = nullptr> void on(const lambda &);
+        template <typename type, std :: enable_if_t <(... || (std :: is_same <type, types> :: value))> * = nullptr> void send(const type &);
+
+        template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, close> :: value && eventemitter <close> :: constraints :: template callback <lambda> ()> * = nullptr> void on(const lambda &);
 
     private:
 
@@ -78,6 +93,10 @@ namespace drop
         static promise <void> receive(std :: shared_ptr <arc>);
         static promise <void> keepalive(std :: shared_ptr <arc>);
     };
+
+    // Events
+
+    struct close {};
 };
 
 #endif
