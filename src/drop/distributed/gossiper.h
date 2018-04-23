@@ -22,7 +22,7 @@ namespace drop
 
 namespace drop
 {
-    template <typename type> class gossiper : public eventemitter <type, type>
+    template <typename type> class gossiper
     {
         // Settings
 
@@ -57,7 +57,15 @@ namespace drop
             // Members
 
             size_t _nonce;
-            gossiper <type> & _gossiper;
+            gossiper <type> * _gossiper;
+
+        public:
+
+            // Constructors
+
+            handle();
+
+        private:
 
             // Private constructors
 
@@ -77,13 +85,26 @@ namespace drop
 
             bool operator == (const handle &) const;
             bool operator != (const handle &) const;
+
+            // Casting
+
+            operator bool () const;
+        };
+
+    private:
+
+        // Service nested classes
+
+        class emitter : public eventemitter <type, handle, type>
+        {
+            // Friends
+
+            template <typename> friend class gossiper;
         };
 
         // Static asserts
 
         static_assert(bytewise :: constraints :: serializable <type> (), "Gossiper can only gossip serializable types.");
-
-    private:
 
         // Members
 
@@ -96,6 +117,7 @@ namespace drop
         size_t _nonce;
         std :: recursive_mutex _mutex;
 
+        emitter _emitter;
         crontab & _crontab;
 
     public:
@@ -109,6 +131,8 @@ namespace drop
         void publish(const type &);
         handle serve(const pool :: connection &, const bool &);
 
+        template <typename etype, typename lambda, std :: enable_if_t <(std :: is_same <etype, type> :: value) && (eventemitter <type, handle, type> :: constraints :: template callback <lambda> ())> * = nullptr> void on(const lambda &);
+
     private:
 
         // Private methods
@@ -117,9 +141,9 @@ namespace drop
         void unlock();
 
         promise <void> serve(size_t, pool :: connection, bool);
-        promise <void> sync(pool :: connection, bool);
+        promise <void> sync(size_t, pool :: connection, bool);
 
-        void gossip(const type &);
+        void gossip(const size_t &, const type &);
         void merge();
     };
 };

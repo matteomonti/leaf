@@ -11,11 +11,17 @@ int main()
     pool pool;
 
     gossiper <uint64_t> alice(crontab);
+
+    alice.on <uint64_t> ([](const auto & handle, const uint64_t & value)
+    {
+        std :: cout << "Alice receives " << value << " (handle is " << (handle ? "non-null" : "null") << ")" << std :: endl;
+    });
+
     gossiper <uint64_t> bob(crontab);
 
-    bob.on <uint64_t> ([](const uint64_t & value)
+    bob.on <uint64_t> ([](const auto & handle, const uint64_t & value)
     {
-        std :: cout << "Bob receives " << value << std :: endl;
+        std :: cout << "Bob receives " << value << "(handle is " << (handle ? "non-null" : "null") << ")" << std :: endl;
     });
 
     sockets :: socketpair socketpair;
