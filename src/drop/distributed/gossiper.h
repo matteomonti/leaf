@@ -94,7 +94,7 @@ namespace drop
 
         // Service nested classes
 
-        struct messenger
+        struct session
         {
             drop :: messenger <type> messenger;
             promise <void> promise;
@@ -108,7 +108,7 @@ namespace drop
 
         syncset <type> _syncset;
         std :: unordered_set <type, shorthash> _addbuffer;
-        std :: unordered_map <id, messenger> _messengers;
+        std :: unordered_map <id, session> _sessions;
 
         size_t _locks;
 

@@ -31,7 +31,7 @@ namespace drop
         this->_gossiper->_mutex.lock();
         try
         {
-            this->_gossiper->_messengers.at(this->_id);
+            this->_gossiper->_sessions.at(this->_id);
             alive = true;
         }
         catch(...)
@@ -136,7 +136,7 @@ namespace drop
 
         this->_mutex.lock();
 
-        drop :: messenger <type> messenger(connection, this->_crontab);
+        messenger <type> messenger(connection, this->_crontab);
 
         messenger.template on <close> ([=]()
         {
@@ -155,8 +155,8 @@ namespace drop
         for(const type & element : this->_addbuffer)
             messenger.send(element);
 
-        this->_messengers[id] = (class messenger){.messenger = messenger, .promise = promise};
-        this->_messengers[id].messenger.start();
+        this->_sessions[id] = session{.messenger = messenger, .promise = promise};
+        this->_sessions[id].messenger.start();
 
         this->unlock();
         this->_mutex.unlock();
@@ -203,8 +203,8 @@ namespace drop
                 else
                     this->_addbuffer.insert(element);
 
-                for(const auto & messenger : this->_messengers)
-                    messenger.second.messenger.send(element);
+                for(const auto & session : this->_sessions)
+                    session.second.messenger.send(element);
             }
     }
 
@@ -220,9 +220,9 @@ namespace drop
     {
         try
         {
-            messenger & messenger = this->_messengers.at(id);
-            messenger.promise.resolve();
-            this->_messengers.erase(id);
+            session & session = this->_sessions.at(id);
+            session.promise.resolve();
+            this->_sessions.erase(id);
         }
         catch(...)
         {
