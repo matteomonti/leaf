@@ -10,24 +10,26 @@ int main()
     crontab crontab;
     pool pool;
 
+    gossiper <uint64_t> :: handle alicehandle, bobhandle;
+
     gossiper <uint64_t> alice(crontab);
 
-    alice.on <uint64_t> ([](const auto & handle, const uint64_t & value)
+    alice.on <uint64_t> ([](const auto & id, const uint64_t & value)
     {
-        std :: cout << "Alice receives " << value << " (handle is " << (handle ? "non-null" : "null") << ")" << std :: endl;
+        std :: cout << "Alice receives " << value << " (id is " << (id ? "non-null" : "null") << ")" << std :: endl;
     });
 
     gossiper <uint64_t> bob(crontab);
 
-    bob.on <uint64_t> ([](const auto & handle, const uint64_t & value)
+    bob.on <uint64_t> ([&](const auto & id, const uint64_t & value)
     {
-        std :: cout << "Bob receives " << value << "(handle is " << (handle ? "non-null" : "null") << ")" << std :: endl;
+        std :: cout << "Bob receives " << value << "(" << (id == alicehandle ? "it is" : "it is not") << " from Alice)" << std :: endl;
     });
 
     sockets :: socketpair socketpair;
 
-    auto alicehandle = alice.serve(pool.bind(socketpair.alpha), true);
-    auto bobhandle = bob.serve(pool.bind(socketpair.beta), false);
+    bobhandle = alice.serve(pool.bind(socketpair.alpha), true);
+    alicehandle = bob.serve(pool.bind(socketpair.beta), false);
 
     for(uint64_t i = 0;; i++)
     {

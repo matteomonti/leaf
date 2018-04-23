@@ -16,15 +16,9 @@ namespace drop
 
     // handle
 
-    // Constructors
-
-    template <typename type> gossiper <type> :: handle :: handle() : _nonce(0), _gossiper(nullptr)
-    {
-    }
-
     // Private constructors
 
-    template <typename type> gossiper <type> :: handle :: handle(const size_t & nonce, gossiper <type> & gossiper) : _nonce(nonce), _gossiper(&gossiper)
+    template <typename type> gossiper <type> :: handle :: handle(const id & id, gossiper <type> & gossiper) : _id(id), _gossiper(&gossiper)
     {
     }
 
@@ -37,7 +31,7 @@ namespace drop
         this->_gossiper->_mutex.lock();
         try
         {
-            this->_gossiper->_messengers.at(this->_nonce);
+            this->_gossiper->_messengers.at(this->_id);
             alive = true;
         }
         catch(...)
@@ -54,27 +48,15 @@ namespace drop
     template <typename type> void gossiper <type> :: handle :: close() const
     {
         this->_gossiper->_mutex.lock();
-        this->_gossiper->_messengers.erase(this->_nonce);
+        this->_gossiper->_messengers.erase(this->_id);
         this->_gossiper->_mutex.unlock();
-    }
-
-    // Operators
-
-    template <typename type> bool gossiper <type> :: handle :: operator == (const handle & rho) const
-    {
-        return (this->_nonce == rho._nonce) && (this->_gossiper == rho._gossiper);
-    }
-
-    template <typename type> bool gossiper <type> :: handle :: operator != (const handle & rho) const
-    {
-        return !((*this) == rho);
     }
 
     // Casting
 
-    template <typename type> gossiper <type> :: handle :: operator bool () const
+    template <typename type> gossiper <type> :: handle :: operator const id & () const
     {
-        return (bool)(this->_nonce);
+        return this->_id;
     }
 
     // gossiper
@@ -97,16 +79,11 @@ namespace drop
     template <typename type> typename gossiper <type> :: handle gossiper <type> :: serve(const pool :: connection & connection, const bool & tiebreaker)
     {
         this->_mutex.lock();
-        size_t nonce = this->_nonce++;
-        this->serve(nonce, connection, tiebreaker);
+        id id = this->_nonce++;
+        this->serve(id, connection, tiebreaker);
         this->_mutex.unlock();
 
-        return handle(nonce, *this);
-    }
-
-    template <typename type> template <typename etype, typename lambda, std :: enable_if_t <(std :: is_same <etype, type> :: value) && (eventemitter <type, typename gossiper <type> :: handle, type> :: constraints :: template callback <lambda> ())> *> void gossiper <type> :: on(const lambda & handler)
-    {
-        this->_emitter.template on <type> (handler);
+        return handle(id, *this);
     }
 
     // Private methods
@@ -126,7 +103,7 @@ namespace drop
             this->merge();
     }
 
-    template <typename type> promise <void> gossiper <type> :: serve(size_t nonce, pool :: connection connection, bool tiebreaker)
+    template <typename type> promise <void> gossiper <type> :: serve(id id, pool :: connection connection, bool tiebreaker)
     {
         try
         {
@@ -142,7 +119,7 @@ namespace drop
 
         try
         {
-            co_await this->sync(nonce, connection, tiebreaker);
+            co_await this->sync(id, connection, tiebreaker);
         }
         catch(...)
         {
@@ -160,28 +137,28 @@ namespace drop
         messenger.template on <close> ([=]()
         {
             this->_mutex.lock();
-            this->_messengers.erase(nonce);
+            this->_messengers.erase(id);
             this->_mutex.unlock();
         });
 
         messenger.template on <type> ([=](const type & element)
         {
             this->_mutex.lock();
-            this->gossip(nonce, element);
+            this->gossip(id, element);
             this->_mutex.unlock();
         });
 
         for(const type & element : this->_addbuffer)
             messenger.send(element);
 
-        this->_messengers[nonce] = messenger;
-        this->_messengers[nonce].start();
+        this->_messengers[id] = messenger;
+        this->_messengers[id].start();
 
         this->unlock();
         this->_mutex.unlock();
     }
 
-    template <typename type> promise <void> gossiper <type> :: sync(size_t nonce, pool :: connection connection, bool tiebreaker)
+    template <typename type> promise <void> gossiper <type> :: sync(id id, pool :: connection connection, bool tiebreaker)
     {
         if(tiebreaker)
             co_await connection.send(this->_syncset.sync().view);
@@ -198,7 +175,7 @@ namespace drop
             this->_mutex.lock();
 
             for(const type & element : round.add)
-                this->gossip(nonce, element);
+                this->gossip(id, element);
 
             this->_mutex.unlock();
 
@@ -209,10 +186,10 @@ namespace drop
         }
     }
 
-    template <typename type> void gossiper <type> :: gossip(const size_t & nonce, const type & element)
+    template <typename type> void gossiper <type> :: gossip(const id & id, const type & element)
     {
         if(!(this->_syncset.find(element)) && !(this->_addbuffer.count(element)))
-            if(this->_emitter.template emit <type> (handle(nonce, *this), element))
+            if(this->template emit <type> (id, element))
             {
                 if(this->_locks == 0)
                 {
