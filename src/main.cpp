@@ -26,7 +26,16 @@ int main()
     for(uint64_t i = 0;; i++)
     {
         alice.publish(i);
+
         std :: cout << "Alice is " << (alicehandle.alive() ? "alive" : "dead") << std :: endl;
+        std :: cout << "Bob is " << (bobhandle.alive() ? "alive" : "dead") << std :: endl;
+
+        if(i == 20)
+        {
+            std :: cout << "Closing Alice's handle" << std :: endl;
+            alicehandle.close();
+        }
+
         sleep(0.1_s);
     }
 }

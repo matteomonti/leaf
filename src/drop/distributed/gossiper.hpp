@@ -43,6 +43,15 @@ namespace drop
         return alive;
     }
 
+    // Methods
+
+    template <typename type> void gossiper <type> :: handle :: close() const
+    {
+        this->_gossiper._mutex.lock();
+        this->_gossiper._messengers.erase(this->_nonce);
+        this->_gossiper._mutex.unlock();
+    }
+
     // Operators
 
     template <typename type> bool gossiper <type> :: handle :: operator == (const handle & rho) const

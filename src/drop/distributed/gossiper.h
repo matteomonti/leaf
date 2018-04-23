@@ -69,6 +69,10 @@ namespace drop
 
             bool alive() const;
 
+            // Methods
+
+            void close() const;
+
             // Operators
 
             bool operator == (const handle &) const;
