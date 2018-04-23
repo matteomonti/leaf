@@ -18,7 +18,7 @@ namespace drop
 
     // Private constructors
 
-    template <typename type> gossiper <type> :: handle :: handle(const id & id, gossiper <type> & gossiper) : _id(id), _gossiper(&gossiper)
+    template <typename type> gossiper <type> :: handle :: handle(const id & id, const promise <void> & promise, gossiper <type> & gossiper) : drop :: promise <void> (promise), _id(id), _gossiper(&gossiper)
     {
     }
 
@@ -48,7 +48,7 @@ namespace drop
     template <typename type> void gossiper <type> :: handle :: close() const
     {
         this->_gossiper->_mutex.lock();
-        this->_gossiper->_messengers.erase(this->_id);
+        this->_gossiper->drop(this->_id);
         this->_gossiper->_mutex.unlock();
     }
 
@@ -79,11 +79,15 @@ namespace drop
     template <typename type> typename gossiper <type> :: handle gossiper <type> :: serve(const pool :: connection & connection, const bool & tiebreaker)
     {
         this->_mutex.lock();
+
         id id = this->_nonce++;
-        this->serve(id, connection, tiebreaker);
+        promise <void> promise;
+
+        this->serve(id, connection, tiebreaker, promise);
+
         this->_mutex.unlock();
 
-        return handle(id, *this);
+        return handle(id, promise, *this);
     }
 
     // Private methods
@@ -103,7 +107,7 @@ namespace drop
             this->merge();
     }
 
-    template <typename type> promise <void> gossiper <type> :: serve(id id, pool :: connection connection, bool tiebreaker)
+    template <typename type> promise <void> gossiper <type> :: serve(id id, pool :: connection connection, bool tiebreaker, promise <void> promise)
     {
         try
         {
@@ -132,12 +136,12 @@ namespace drop
 
         this->_mutex.lock();
 
-        messenger <type> messenger(connection, this->_crontab);
+        drop :: messenger <type> messenger(connection, this->_crontab);
 
         messenger.template on <close> ([=]()
         {
             this->_mutex.lock();
-            this->_messengers.erase(id);
+            this->drop(id);
             this->_mutex.unlock();
         });
 
@@ -151,8 +155,8 @@ namespace drop
         for(const type & element : this->_addbuffer)
             messenger.send(element);
 
-        this->_messengers[id] = messenger;
-        this->_messengers[id].start();
+        this->_messengers[id] = (class messenger){.messenger = messenger, .promise = promise};
+        this->_messengers[id].messenger.start();
 
         this->unlock();
         this->_mutex.unlock();
@@ -200,7 +204,7 @@ namespace drop
                     this->_addbuffer.insert(element);
 
                 for(const auto & messenger : this->_messengers)
-                    messenger.second.send(element);
+                    messenger.second.messenger.send(element);
             }
     }
 
@@ -210,6 +214,19 @@ namespace drop
             this->_syncset.add(element);
 
         this->_addbuffer.clear();
+    }
+
+    template <typename type> void gossiper <type> :: drop(const id & id)
+    {
+        try
+        {
+            messenger & messenger = this->_messengers.at(id);
+            messenger.promise.resolve();
+            this->_messengers.erase(id);
+        }
+        catch(...)
+        {
+        }
     }
 };
 

@@ -52,7 +52,7 @@ namespace drop
 
         // Nested classes
 
-        class handle
+        class handle : public promise <void>
         {
             // Friends
 
@@ -73,7 +73,7 @@ namespace drop
 
             // Private constructors
 
-            handle(const id &, gossiper <type> &);
+            handle(const id &, const promise <void> &, gossiper <type> &);
 
         public:
 
@@ -92,6 +92,14 @@ namespace drop
 
     private:
 
+        // Service nested classes
+
+        struct messenger
+        {
+            drop :: messenger <type> messenger;
+            promise <void> promise;
+        };
+
         // Static asserts
 
         static_assert(bytewise :: constraints :: serializable <type> (), "Gossiper can only gossip serializable types.");
@@ -100,7 +108,7 @@ namespace drop
 
         syncset <type> _syncset;
         std :: unordered_set <type, shorthash> _addbuffer;
-        std :: unordered_map <id, messenger <type>> _messengers;
+        std :: unordered_map <id, messenger> _messengers;
 
         size_t _locks;
 
@@ -127,11 +135,12 @@ namespace drop
         void lock();
         void unlock();
 
-        promise <void> serve(id, pool :: connection, bool);
+        promise <void> serve(id, pool :: connection, bool, promise <void>);
         promise <void> sync(id, pool :: connection, bool);
 
         void gossip(const id &, const type &);
         void merge();
+        void drop(const id &);
     };
 };
 
