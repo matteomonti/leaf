@@ -17,10 +17,10 @@ struct ports
 
 struct intervals
 {
-    static constexpr interval initial = 2_m;
+    static constexpr interval initial = 10_s;
 
-    static constexpr interval total = 5_m;
-    static constexpr interval publish = 5_s;
+    static constexpr interval total = 30_s;
+    static constexpr interval publish = 0.01_s;
 };
 
 int main(int argc, char ** args)
