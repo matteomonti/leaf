@@ -83,6 +83,7 @@ namespace drop
 
             // Methods
 
+            const handle & until(const timestamp &) const;
             void close() const;
 
             // Casting

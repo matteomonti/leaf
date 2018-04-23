@@ -45,6 +45,16 @@ namespace drop
 
     // Methods
 
+    template <typename type> const typename gossiper <type> :: handle & gossiper <type> :: handle :: until(const timestamp & timeout) const
+    {
+        this->_gossiper->_crontab.wait(timeout).then([*this]()
+        {
+            this->close();
+        });
+
+        return (*this);
+    }
+
     template <typename type> void gossiper <type> :: handle :: close() const
     {
         this->_gossiper->drop(this->_id);
