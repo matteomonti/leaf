@@ -101,11 +101,8 @@ int main(int argc, char ** args)
             {
                 for(uint64_t round = 0; (timestamp(now) - start) < intervals :: total; round++)
                 {
-                    if(instanceid == 0)
-                    {
-                        std :: cout << (uint64_t) timestamp(now) << " seed " << round << std :: endl;
-                        gossiper.publish(round);
-                    }
+                    std :: cout << (uint64_t) timestamp(now) << " seed " << round << std :: endl;
+                    gossiper.publish(round);
 
                     co_await crontab.wait(intervals :: publish);
                 }
