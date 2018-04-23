@@ -47,9 +47,7 @@ namespace drop
 
     template <typename type> void gossiper <type> :: handle :: close() const
     {
-        this->_gossiper->_mutex.lock();
         this->_gossiper->drop(this->_id);
-        this->_gossiper->_mutex.unlock();
     }
 
     // Casting
@@ -140,9 +138,7 @@ namespace drop
 
         messenger.template on <close> ([=]()
         {
-            this->_mutex.lock();
             this->drop(id);
-            this->_mutex.unlock();
         });
 
         messenger.template on <type> ([=](const type & element)
@@ -218,14 +214,23 @@ namespace drop
 
     template <typename type> void gossiper <type> :: drop(const id & id)
     {
+        optional <session> session;
+
+        this->_mutex.lock();
         try
         {
-            session & session = this->_sessions.at(id);
-            session.promise.resolve();
+            session = this->_sessions.at(id);
             this->_sessions.erase(id);
         }
         catch(...)
         {
+        }
+        this->_mutex.unlock();
+
+        if(session)
+        {
+            session->messenger.template clear <type> ();
+            session->promise.resolve();
         }
     }
 };

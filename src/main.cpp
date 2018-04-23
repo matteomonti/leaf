@@ -47,8 +47,8 @@ int main()
 
         if(i == 20)
         {
-            std :: cout << "Closing Alice's handle to Bob" << std :: endl;
-            bobhandle.close();
+            std :: cout << "Closing Bob's handle to Alice" << std :: endl;
+            alicehandle.close();
         }
 
         sleep(0.1_s);

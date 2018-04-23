@@ -51,6 +51,14 @@ namespace drop
         this->_arc->eventemitter <close> :: template on <close> (handler);
     }
 
+    template <typename... types> template <typename type, std :: enable_if_t <(std :: is_same <type, close> :: value) || (... || (std :: is_same <type, types> :: value))> *> void messenger <types...> :: clear() const
+    {
+        if constexpr (std :: is_same <type, close> :: value)
+            this->_arc->eventemitter <close> :: clear();
+        else
+            this->_arc->eventemitter <type, type> :: clear();
+    }
+
     template <typename... types> void messenger <types...> :: start() const
     {
         send(this->_arc);

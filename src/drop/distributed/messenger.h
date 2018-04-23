@@ -91,6 +91,8 @@ namespace drop
 
         template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, close> :: value && eventemitter <close> :: constraints :: template callback <lambda> ()> * = nullptr> void on(const lambda &) const;
 
+        template <typename type, std :: enable_if_t <(std :: is_same <type, close> :: value) || (... || (std :: is_same <type, types> :: value))> * = nullptr> void clear() const;
+
         void start() const;
 
     private:
