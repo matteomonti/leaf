@@ -79,7 +79,7 @@ int main(int argc, char ** args)
 
         gossiper <uint64_t> gossiper(crontab);
 
-        gossiper.on <uint64_t> ([](const uint64_t & value)
+        gossiper.on <uint64_t> ([](const auto & id, const uint64_t & value)
         {
             std :: cout << (uint64_t) timestamp(now) << " gossip " << value << std :: endl;
         });
