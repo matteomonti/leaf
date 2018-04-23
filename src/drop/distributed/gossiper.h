@@ -46,6 +46,35 @@ namespace drop
             };
         };
 
+        // Nested classes
+
+        class handle
+        {
+            // Friends
+
+            template <typename> friend class gossiper;
+
+            // Members
+
+            size_t _nonce;
+            gossiper <type> & _gossiper;
+
+            // Private constructors
+
+            handle(const size_t &, gossiper <type> &);
+
+        public:
+
+            // Getters
+
+            bool alive() const;
+
+            // Operators
+
+            bool operator == (const handle &) const;
+            bool operator != (const handle &) const;
+        };
+
         // Static asserts
 
         static_assert(bytewise :: constraints :: serializable <type> (), "Gossiper can only gossip serializable types.");
@@ -74,7 +103,7 @@ namespace drop
         // Methods
 
         void publish(const type &);
-        promise <void> serve(pool :: connection, bool);
+        handle serve(const pool :: connection &, const bool &);
 
     private:
 
@@ -83,6 +112,7 @@ namespace drop
         void lock();
         void unlock();
 
+        promise <void> serve(size_t, pool :: connection, bool);
         promise <void> sync(pool :: connection, bool);
 
         void gossip(const type &);
