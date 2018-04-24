@@ -50,8 +50,6 @@ namespace drop
             enum type {subscribe, unsubscribe, once};
         };
 
-    public: // REMOVE ME
-
         // Service nested structs
 
         struct command
@@ -94,17 +92,29 @@ namespace drop
         {
             // Public members
 
+            ttype topic;
             id id;
             bool once;
 
             // Constructors
 
-            subscription(const publisher :: id &, const bool &);
+            subscription(const ttype &, const publisher :: id &, const bool &);
+
+            // Methods
+
+            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+
+            // Operators
+
+            bool operator == (const subscription &) const;
         };
 
         // Members
 
         std :: unordered_map <id, messenger <command, publication>> _messengers;
+
+        std :: unordered_map <ttype, std :: shared_ptr <std :: unordered_set <subscription, shorthash>>, shorthash> _topics;
+        std :: unordered_map <id, std :: shared_ptr <std :: unordered_set <subscription, shorthash>>, shorthash> _sessions;
 
         id _nonce;
 
@@ -117,6 +127,17 @@ namespace drop
         // Constructors
 
         publisher(crontab &);
+
+    private:
+    public: // REMOVE ME
+
+        // Private methods
+
+        void subscribe(const ttype &, const id &, const bool &);
+        void unsubscribe(const ttype &, const id &, const bool &);
+
+        void remove_from_topic(const ttype &, const id &, const bool &);
+        void remove_from_session(const ttype &, const id &, const bool &);
     };
 };
 
