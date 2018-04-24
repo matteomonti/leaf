@@ -14,6 +14,31 @@ namespace drop
         return bytewise :: constraints :: serializable <ttype> () && bytewise :: constraints :: deserializable <ttype> () && bytewise :: constraints :: serializable <ptype> () && bytewise :: constraints :: deserializable <ptype> ();
     }
 
+    // archive
+
+    // Constructors
+
+    template <typename ttype, typename ptype> publisher <ttype, ptype> :: archive :: archive(const ttype & topic, const messenger <command, publication> & messenger) : _topic(&topic), _messenger(&messenger)
+    {
+    }
+
+    template <typename ttype, typename ptype> publisher <ttype, ptype> :: archive :: archive(const ttype & topic, const messenger <command, publication> & messenger, bool & sent) : _topic(&topic), _messenger(&messenger), _sent(&sent)
+    {
+    }
+
+    // Operators
+
+    template <typename ttype, typename ptype> const typename publisher <ttype, ptype> :: archive & publisher <ttype, ptype> :: archive :: operator << (const ptype & payload) const
+    {
+        if((this->_sent) && !(**(this->_sent)))
+        {
+            this->_messenger->send(publication(*(this->_topic), payload));
+            **sent = true;
+        }
+        else
+            this->_messenger->send(publication(*(this->_topic), payload));
+    }
+
     // command
 
     // Constructors
@@ -99,48 +124,62 @@ namespace drop
 
         messenger <command, publication> messenger(connection, this->_crontab);
 
-        messenger.template on <command> ([=](const command & command)
+        messenger.template on <close> ([=]()
         {
             this->_mutex.lock();
-
-            switch(command.type)
-            {
-                case commands :: subscribe:
-                {
-                    this->add({command.topic, id, false});
-                    break;
-                }
-                case commands :: unsubscribe:
-                {
-                    this->remove({command.topic, id, false});
-                    break;
-                }
-                case commands :: once:
-                {
-                    this->add({command.topic, id, true});
-                    break;
-                }
-            }
-
+            this->drop(id);
             this->_mutex.unlock();
         });
 
-        messenger.template on <drop :: close> ([=]()
+        messenger.template on <command> ([=](const command & command)
         {
             this->_mutex.lock();
-
-            this->clear(id);
-            this->_sessions.erase(id);
-
+            this->command(id, command);
             this->_mutex.unlock();
         });
 
         this->_sessions[id] = messenger;
+        this->_sessions[id]->start();
 
         this->_mutex.unlock();
     }
 
+    template <typename ttype, typename ptype> template <typename type, typename lambda, std :: enable_if_t <(std :: is_same <type, typename publisher <ttype, ptype> :: archive> :: value) && (eventemitter <typename publisher <ttype, ptype> :: archive, typename publisher <ttype, ptype> :: archive> :: constraints :: template callback <lambda> ())> *> void publisher <ttype, ptype> :: on(const lambda & handler)
+    {
+        this->_emitter.template on <archive> (handler);
+    }
+
     // Private methods
+
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: command(const id & id, const command & command)
+    {
+        const messenger <command, publication> & messenger = this->_sessions[id];
+
+        switch(command.type)
+        {
+            case commands :: subscribe:
+            {
+                this->_emitter.template emit <archive> (archive(command.topic, messenger));
+
+                this->add({command.topic, id, false});
+                break;
+            }
+            case commands :: unsubscribe:
+            {
+                this->remove({command.topic, id, false});
+                break;
+            }
+            case commands :: once:
+            {
+                bool sent = false;
+                this->_emitter.template emit <archive> (archive(command.topic, messenger, sent));
+
+                if(!sent)
+                    this->add({command.topic, id, true});
+                break;
+            }
+        }
+    }
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: add(const subscription & subscription)
     {
@@ -189,6 +228,12 @@ namespace drop
         catch(...)
         {
         }
+    }
+
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: drop(const id & id)
+    {
+        this->clear(id);
+        this->_sessions.erase(id);
     }
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: remove_from_topic(const subscription & subscription)

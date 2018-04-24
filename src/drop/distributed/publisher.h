@@ -50,6 +50,37 @@ namespace drop
             enum type {subscribe, unsubscribe, once};
         };
 
+        // Service nested structs forward declarations
+
+        struct command;
+        struct publication;
+        struct subscription;
+
+        // Nested classes
+
+        class archive
+        {
+            // Members
+
+            const ttype * _topic;
+            const messenger <command, publication> * _messenger;
+            optional <bool *> _sent;
+
+            // Constructors
+
+            archive(const ttype &, const messenger <command, publication &>);
+            archive(const ttype &, const messenger <command, publication> &, bool &);
+
+            // Operators
+
+            const archive & operator << (const ptype &) const;
+        };
+
+        class emitter : public eventemitter <archive, archive>
+        {
+            template <typename, typename> friend class gossiper;
+        };
+
         // Service nested structs
 
         struct command
@@ -120,6 +151,7 @@ namespace drop
 
         std :: mutex _mutex;
 
+        emitter _emitter;
         crontab & _crontab;
 
     public:
@@ -132,13 +164,19 @@ namespace drop
 
         void serve(const pool :: connection &);
 
+        template <typename type, typename lambda, std :: enable_if_t <(std :: is_same <type, archive> :: value) && (eventemitter <archive, archive> :: constraints :: template callback <lambda> ())> * = nullptr> void on(const lambda &);
+
     private:
 
         // Private methods
 
+        void command(const id &, const command &);
+
         void add(const subscription &);
         void remove(const subscription &);
+
         void clear(const id &);
+        void drop(const id &);
 
         void remove_from_topic(const subscription &);
         void remove_from_session(const subscription &);
