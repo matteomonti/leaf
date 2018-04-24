@@ -124,6 +124,23 @@ namespace drop
         this->remove_from_session(topic, id, once);
     }
 
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: clear(const id & id)
+    {
+        try
+        {
+            auto & set = this->_sessions.at(id);
+
+            for(const subscription & subscription : *set)
+                this->remove_from_topic(subscription.topic, subscription.id, subscription.once);
+
+            this->_sessions.erase(id);
+
+        }
+        catch(...)
+        {
+        }
+    }
+
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: remove_from_topic(const ttype & topic, const id & id, const bool & once)
     {
         try

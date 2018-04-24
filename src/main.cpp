@@ -17,11 +17,9 @@ int main()
 
     std :: cout << "=====================================" << std :: endl;
 
-    publisher.unsubscribe(99, 100, true);
+    publisher.clear(44);
     std :: cout << "-------------------------------------" << std :: endl;
-    publisher.unsubscribe(11, 14, false);
+    publisher.clear(15);
     std :: cout << "-------------------------------------" << std :: endl;
-    publisher.unsubscribe(11, 15, false);
-    std :: cout << "-------------------------------------" << std :: endl;
-    publisher.unsubscribe(12, 14, true);
+    publisher.clear(14);
 }
