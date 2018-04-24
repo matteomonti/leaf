@@ -92,36 +92,36 @@ namespace drop
 
     // Private methods
 
-    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: subscribe(const ttype & topic, const id & id, const bool & once)
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: add(const subscription & subscription)
     {
         try
         {
-            this->_topics.at(topic);
+            this->_topics.at(subscription.topic);
         }
         catch(...)
         {
             std :: cout << "Creating topic" << std :: endl;
-            this->_topics[topic] = std :: make_shared <std :: unordered_set <subscription, shorthash>> ();
+            this->_topics[subscription.topic] = std :: make_shared <std :: unordered_set <class subscription, shorthash>> ();
         }
 
         try
         {
-            this->_sessions.at(id);
+            this->_sessions.at(subscription.id);
         }
         catch(...)
         {
             std :: cout << "Creating session" << std :: endl;
-            this->_sessions[id] = std :: make_shared <std :: unordered_set <subscription, shorthash>> ();
+            this->_sessions[subscription.id] = std :: make_shared <std :: unordered_set <class subscription, shorthash>> ();
         }
 
-        this->_topics[topic]->insert({topic, id, once});
-        this->_sessions[id]->insert({topic, id, once});
+        this->_topics[subscription.topic]->insert(subscription);
+        this->_sessions[subscription.id]->insert(subscription);
     }
 
-    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: unsubscribe(const ttype & topic, const id & id, const bool & once)
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: remove(const subscription & subscription)
     {
-        this->remove_from_topic(topic, id, once);
-        this->remove_from_session(topic, id, once);
+        this->remove_from_topic(subscription);
+        this->remove_from_session(subscription);
     }
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: clear(const id & id)
@@ -131,7 +131,7 @@ namespace drop
             auto & set = this->_sessions.at(id);
 
             for(const subscription & subscription : *set)
-                this->remove_from_topic(subscription.topic, subscription.id, subscription.once);
+                this->remove_from_topic(subscription);
 
             this->_sessions.erase(id);
 
@@ -141,17 +141,17 @@ namespace drop
         }
     }
 
-    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: remove_from_topic(const ttype & topic, const id & id, const bool & once)
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: remove_from_topic(const subscription & subscription)
     {
         try
         {
-            auto & set = this->_topics.at(topic);
-            set->erase({topic, id, once});
+            auto & set = this->_topics.at(subscription.topic);
+            set->erase(subscription);
 
             if(set->empty())
             {
                 std :: cout << "Deleting topic" << std :: endl;
-                this->_topics.erase(topic);
+                this->_topics.erase(subscription.topic);
             }
         }
         catch(...)
@@ -159,17 +159,17 @@ namespace drop
         }
     }
 
-    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: remove_from_session(const ttype & topic, const id & id, const bool & once)
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: remove_from_session(const subscription & subscription)
     {
         try
         {
-            auto & set = this->_sessions.at(id);
-            set->erase({topic, id, once});
+            auto & set = this->_sessions.at(subscription.id);
+            set->erase(subscription);
 
             if(set->empty())
             {
                 std :: cout << "Deleting session" << std :: endl;
-                this->_sessions.erase(id);
+                this->_sessions.erase(subscription.id);
             }
         }
         catch(...)

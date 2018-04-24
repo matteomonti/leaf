@@ -133,12 +133,12 @@ namespace drop
 
         // Private methods
 
-        void subscribe(const ttype &, const id &, const bool &);
-        void unsubscribe(const ttype &, const id &, const bool &);
+        void add(const subscription &);
+        void remove(const subscription &);
         void clear(const id &);
 
-        void remove_from_topic(const ttype &, const id &, const bool &);
-        void remove_from_session(const ttype &, const id &, const bool &);
+        void remove_from_topic(const subscription &);
+        void remove_from_session(const subscription &);
     };
 };
 
