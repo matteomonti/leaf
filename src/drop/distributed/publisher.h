@@ -128,8 +128,11 @@ namespace drop
 
         publisher(crontab &);
 
+        // Methods
+
+        void serve(const pool :: connection &);
+
     private:
-    public: // REMOVE ME
 
         // Private methods
 

@@ -90,6 +90,56 @@ namespace drop
     {
     }
 
+    // Methods
+
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: serve(const pool :: connection & connection)
+    {
+        this->_mutex.lock();
+        id id = this->_nonce++;
+
+        messenger <command, publication> messenger(connection, this->_crontab);
+
+        messenger.template on <command> ([=](const command & command)
+        {
+            this->_mutex.lock();
+
+            switch(command.type)
+            {
+                case commands :: subscribe:
+                {
+                    this->add({command.topic, id, false});
+                    break;
+                }
+                case commands :: unsubscribe:
+                {
+                    this->remove({command.topic, id, false});
+                    break;
+                }
+                case commands :: once:
+                {
+                    this->add({command.topic, id, true});
+                    break;
+                }
+            }
+
+            this->_mutex.unlock();
+        });
+
+        messenger.template on <drop :: close> ([=]()
+        {
+            this->_mutex.lock();
+
+            this->clear(id);
+            this->_sessions.erase(id);
+
+            this->_mutex.unlock();
+        });
+
+        this->_sessions[id] = messenger;
+
+        this->_mutex.unlock();
+    }
+
     // Private methods
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: add(const subscription & subscription)
