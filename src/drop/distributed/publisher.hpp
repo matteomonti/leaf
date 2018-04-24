@@ -144,6 +144,37 @@ namespace drop
         this->_mutex.unlock();
     }
 
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: publish(const ttype & topic, const ptype & payload)
+    {
+        this->_mutex.lock();
+
+        try
+        {
+            auto & set = this->_topics.at(topic);
+
+            for(auto iterator = set->begin(); iterator != set->end();)
+            {
+                this->_sessions[iterator->id].send(publication(topic, payload));
+                if(iterator->once)
+                {
+                    this->remove_from_session(*iterator);
+                    iterator = set->erase(iterator);
+                }
+                else
+                    iterator++;
+            }
+
+            if(set->empty())
+                this->_topics.erase(topic);
+        }
+        catch(...)
+        {
+        }
+
+
+        this->_mutex.unlock();
+    }
+
     template <typename ttype, typename ptype> template <typename type, typename lambda, std :: enable_if_t <(std :: is_same <type, typename publisher <ttype, ptype> :: archive> :: value) && (eventemitter <typename publisher <ttype, ptype> :: archive, typename publisher <ttype, ptype> :: archive> :: constraints :: template callback <lambda> ())> *> void publisher <ttype, ptype> :: on(const lambda & handler)
     {
         this->_emitter.template on <archive> (handler);

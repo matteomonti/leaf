@@ -163,6 +163,7 @@ namespace drop
         // Methods
 
         void serve(const pool :: connection &);
+        void publish(const ttype &, const ptype &);
 
         template <typename type, typename lambda, std :: enable_if_t <(std :: is_same <type, archive> :: value) && (eventemitter <archive, archive> :: constraints :: template callback <lambda> ())> * = nullptr> void on(const lambda &);
 
