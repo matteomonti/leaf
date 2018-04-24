@@ -22,6 +22,7 @@ namespace drop
 #include "drop/chrono/crontab.h"
 #include "drop/chrono/time.hpp"
 #include "drop/async/eventemitter.hpp"
+#include "drop/bytewise/bytewise.hpp"
 
 namespace drop
 {
@@ -35,6 +36,13 @@ namespace drop
         };
 
     public:
+
+        // Constraints
+
+        struct constraints
+        {
+            static constexpr bool valid();
+        };
 
         // Exceptions
 
@@ -72,6 +80,10 @@ namespace drop
 
             arc(const pool :: connection &, class crontab &);
         };
+
+        // Static asserts
+
+        static_assert(constraints :: valid(), "All messages in a messenger need to be serializable and deserializable.");
 
         // Members
 

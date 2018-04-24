@@ -7,6 +7,13 @@
 
 namespace drop
 {
+    // Constraints
+
+    template <typename... types> constexpr bool messenger <types...> :: constraints :: valid()
+    {
+        return (... && (bytewise :: constraints :: serializable <types> ())) && (... && (bytewise :: constraints :: deserializable <types> ()));
+    }
+
     // Exceptions
 
     template <typename... types> const char * messenger <types...> :: exceptions :: messenger_deleted :: what() const throw()
