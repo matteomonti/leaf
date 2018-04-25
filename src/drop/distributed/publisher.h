@@ -56,6 +56,8 @@ namespace drop
         struct publication;
         struct subscription;
 
+    public:
+
         // Nested classes
 
         class archive
@@ -68,7 +70,7 @@ namespace drop
 
             // Constructors
 
-            archive(const ttype &, const messenger <command, publication &>);
+            archive(const ttype &, const messenger <command, publication> &);
             archive(const ttype &, const messenger <command, publication> &, bool &);
 
             // Operators
@@ -76,12 +78,14 @@ namespace drop
             const archive & operator << (const ptype &) const;
         };
 
+    private:
+
+        // Service nested classes
+
         class emitter : public eventemitter <archive, archive>
         {
             template <typename, typename> friend class gossiper;
         };
-
-        // Service nested structs
 
         struct command
         {

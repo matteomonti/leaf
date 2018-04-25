@@ -18,11 +18,11 @@ namespace drop
 
     // Constructors
 
-    template <typename ttype, typename ptype> publisher <ttype, ptype> :: archive :: archive(const ttype & topic, const messenger <command, publication> & messenger) : _topic(&topic), _messenger(&messenger)
+    template <typename ttype, typename ptype> publisher <ttype, ptype> :: archive :: archive(const ttype & topic, const messenger <class command, publication> & messenger) : _topic(&topic), _messenger(&messenger)
     {
     }
 
-    template <typename ttype, typename ptype> publisher <ttype, ptype> :: archive :: archive(const ttype & topic, const messenger <command, publication> & messenger, bool & sent) : _topic(&topic), _messenger(&messenger), _sent(&sent)
+    template <typename ttype, typename ptype> publisher <ttype, ptype> :: archive :: archive(const ttype & topic, const messenger <class command, publication> & messenger, bool & sent) : _topic(&topic), _messenger(&messenger), _sent(&sent)
     {
     }
 
@@ -33,7 +33,7 @@ namespace drop
         if((this->_sent) && !(**(this->_sent)))
         {
             this->_messenger->send(publication(*(this->_topic), payload));
-            **sent = true;
+            **(this->_sent) = true;
         }
         else
             this->_messenger->send(publication(*(this->_topic), payload));
@@ -122,7 +122,7 @@ namespace drop
         this->_mutex.lock();
         id id = this->_nonce++;
 
-        messenger <command, publication> messenger(connection, this->_crontab);
+        messenger <class command, publication> messenger(connection, this->_crontab);
 
         messenger.template on <close> ([=]()
         {
@@ -131,7 +131,7 @@ namespace drop
             this->_mutex.unlock();
         });
 
-        messenger.template on <command> ([=](const command & command)
+        messenger.template on <class command> ([=](const class command & command)
         {
             this->_mutex.lock();
             this->command(id, command);
@@ -182,9 +182,9 @@ namespace drop
 
     // Private methods
 
-    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: command(const id & id, const command & command)
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: command(const id & id, const class command & command)
     {
-        const messenger <command, publication> & messenger = this->_sessions[id];
+        const messenger <class command, publication> & messenger = this->_sessions[id];
 
         switch(command.type)
         {
