@@ -22,9 +22,9 @@ struct intervals
     static constexpr interval initial = 10_s;
     static constexpr interval final = 30_s;
 
-    static constexpr interval total = 10_m;
-    static constexpr interval publish = 0.1_s;
-    static constexpr interval change = 1_m;
+    static constexpr interval total = 3_m;
+    static constexpr interval publish = 5_s;
+    static constexpr interval change = 3_m;
 };
 
 // Statement
@@ -267,14 +267,15 @@ int main(int argc, char ** args)
             for(const identifier & identifier : view)
                 dialer.connect <0> (identifier).then([&](const dial & dial)
                 {
-                    gossiper.serve(pool.bind(dial), signer.publickey() < dial.identifier()).until(timestamp(now) + interval :: random(intervals :: change));
+                    gossiper.serve(pool.bind(dial), signer.publickey() < dial.identifier()).until(timestamp(now) + intervals :: change /*interval :: random(intervals :: change)*/);
                 }).except([=](const std :: exception_ptr & exception)
                 {
                     std :: cout << "Failed to establish (view) connection to " << identifier << std :: endl;
                 });
 
-            sleep(interval :: random(intervals :: change));
+            sleep(intervals :: change/*interval :: random(intervals :: change)*/);
 
+            break; // REMOVE ME
             view = coordinator :: await(coordaddr, signer.publickey());
             sample = coordinator :: await(coordaddr, signer.publickey());
         }
