@@ -43,8 +43,9 @@ int main()
     {
         std :: cout << "[archive] Request for archive on topic " << topic << std :: endl;
 
-        if(topic != 46)
-            archive << "Hello from the Archive!";
+        archive << "Hello from the Archive!";
+        archive << "Super hello from the Archive!";
+        archive << "Duper hello from the Archive!";
     });
 
     sockets :: socketpair socketpair;
@@ -54,19 +55,38 @@ int main()
     mypublisher.serve(pool.bind(othersocketpair.beta));
 
     subscriber <uint64_t, buffer> myothersubscriber(pool.bind(othersocketpair.alpha), crontab);
-    myothersubscriber.on <buffer> ([](const uint64_t & topic, const buffer & payload)
+
+    size_t n = 0;
+    myothersubscriber.on <buffer> ([&](const uint64_t & topic, const buffer & payload)
     {
         std :: cout << "Other subscriber receives: " << topic << ", " << payload << std :: endl;
+        if(n++ >= 100)
+            myothersubscriber.unsubscribe(topic);
     });
+
+    myothersubscriber.on <drop :: close> ([]()
+    {
+        std :: cout << "Other subscriber closing" << std :: endl;
+    });
+
+    myothersubscriber.start();
 
     myothersubscriber.subscribe(46);
 
     {
         subscriber <uint64_t, buffer> mysubscriber(pool.bind(socketpair.alpha), crontab);
+
         mysubscriber.on <buffer> ([](const uint64_t & topic, const buffer & payload)
         {
             std :: cout << "Subscriber receives: " << topic << ", " << payload << std :: endl;
         });
+
+        mysubscriber.on <drop :: close> ([]()
+        {
+            std :: cout << "Subscriber closing" << std :: endl;
+        });
+
+        mysubscriber.start();
 
         mysubscriber.subscribe(44);
         sleep(4_s);

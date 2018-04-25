@@ -355,14 +355,6 @@ namespace drop
 
             this->_mutex.unlock();
         });
-
-        this->_messenger.template on <close> ([]()
-        {
-            std :: cout << "[subscriber] Messenger closing!" << std :: endl;
-            // TODO: Do something about it!
-        });
-
-        this->_messenger.start();
     }
 
     // Methods
@@ -411,6 +403,21 @@ namespace drop
         }
 
         this->_mutex.unlock();
+    }
+
+    template <typename ttype, typename ptype> template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, ptype> :: value && eventemitter <ptype, ttype, ptype> :: constraints :: template callback <lambda> ()> *> void subscriber <ttype, ptype> :: on(const lambda & handler)
+    {
+        this->eventemitter <ptype, ttype, ptype> :: template on <ptype> (handler);
+    }
+
+    template <typename ttype, typename ptype> template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, close> :: value && eventemitter <close> :: constraints :: template callback <lambda> ()> *> void subscriber <ttype, ptype> :: on(const lambda & handler)
+    {
+        this->_messenger.template on <close> (handler);
+    }
+
+    template <typename ttype, typename ptype> void subscriber <ttype, ptype> :: start()
+    {
+        this->_messenger.start();
     }
 };
 

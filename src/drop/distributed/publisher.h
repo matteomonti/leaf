@@ -237,7 +237,9 @@ namespace drop
         messenger <command, publication> _messenger;
         std :: unordered_set <subscription, shorthash> _subscriptions;
 
-        std :: mutex _mutex;
+        std :: recursive_mutex _mutex;
+
+        // Private using
 
     public:
 
@@ -249,8 +251,12 @@ namespace drop
 
         void subscribe(const ttype &);
         void unsubscribe(const ttype &);
-
         void once(const ttype &);
+
+        template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, ptype> :: value && eventemitter <ptype, ttype, ptype> :: constraints :: template callback <lambda> ()> * = nullptr> void on(const lambda &);
+        template <typename type, typename lambda, std :: enable_if_t <std :: is_same <type, close> :: value && eventemitter <close> :: constraints :: template callback <lambda> ()> * = nullptr> void on(const lambda &);
+
+        void start();
     };
 };
 
