@@ -83,9 +83,11 @@ namespace drop
             {
                 variant <types...> message = co_await arc->pipe.pop();
 
+                std :: cout << "(" << std::this_thread::get_id() << ") messenger lock a " << &(arc->mutex) << std :: endl;
                 arc->mutex.lock();
                 bool alive = arc->alive;
                 arc->lastsend = now;
+                std :: cout << "(" << std::this_thread::get_id() << ") messenger unlock a " << &(arc->mutex) << std :: endl;
                 arc->mutex.unlock();
 
                 if(!alive) break;
@@ -95,12 +97,14 @@ namespace drop
         }
         catch(...)
         {
+            std :: cout << "(" << std::this_thread::get_id() << ") messenger lock b " << &(arc->mutex) << std :: endl;
             arc->mutex.lock();
             if(arc->alive)
             {
                 arc->eventemitter <close> :: emit <close> ();
                 arc->alive = false;
             }
+            std :: cout << "(" << std::this_thread::get_id() << ") messenger unlock b " << &(arc->mutex) << std :: endl;
             arc->mutex.unlock();
         }
     }
@@ -113,8 +117,10 @@ namespace drop
             {
                 variant <types...> message = co_await arc->connection.template receive <variant <types...>> ();
 
+                std :: cout << "(" << std::this_thread::get_id() << ") messenger lock c " << &(arc->mutex) << std :: endl;
                 arc->mutex.lock();
                 bool alive = arc->alive;
+                std :: cout << "(" << std::this_thread::get_id() << ") messenger unlock c " << &(arc->mutex) << std :: endl;
                 arc->mutex.unlock();
 
                 if(!alive) break;
@@ -131,12 +137,14 @@ namespace drop
         }
         catch(...)
         {
+            std :: cout << "(" << std::this_thread::get_id() << ") messenger lock d " << &(arc->mutex) << std :: endl;
             arc->mutex.lock();
             if(arc->alive)
             {
                 arc->eventemitter <close> :: emit <close> ();
                 arc->alive = false;
             }
+            std :: cout << "(" << std::this_thread::get_id() << ") messenger unlock d " << &(arc->mutex) << std :: endl;
             arc->mutex.unlock();
         }
     }
@@ -147,9 +155,11 @@ namespace drop
         {
             while(true)
             {
+                std :: cout << "(" << std::this_thread::get_id() << ") messenger lock e " << &(arc->mutex) << std :: endl;
                 arc->mutex.lock();
                 bool alive = arc->alive;
                 timestamp lastsend = arc->lastsend;
+                std :: cout << "(" << std::this_thread::get_id() << ") messenger unlock e " << &(arc->mutex) << std :: endl;
                 arc->mutex.unlock();
 
                 if(!alive) break;
@@ -165,12 +175,14 @@ namespace drop
         }
         catch(...)
         {
+            std :: cout << "(" << std::this_thread::get_id() << ") messenger lock f " << &(arc->mutex) << std :: endl;
             arc->mutex.lock();
             if(arc->alive)
             {
                 arc->eventemitter <close> :: emit <close> ();
                 arc->alive = false;
             }
+            std :: cout << "(" << std::this_thread::get_id() << ") messenger unlock f " << &(arc->mutex) << std :: endl;
             arc->mutex.unlock();
         }
 
