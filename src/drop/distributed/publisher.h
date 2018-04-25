@@ -62,16 +62,22 @@ namespace drop
 
         class archive
         {
+            // Friends
+
+            template <typename, typename> friend class publisher;
+
             // Members
 
             const ttype * _topic;
             const messenger <command, publication> * _messenger;
             optional <bool *> _sent;
 
-            // Constructors
+            // Private constructors
 
             archive(const ttype &, const messenger <command, publication> &);
             archive(const ttype &, const messenger <command, publication> &, bool &);
+
+        public:
 
             // Operators
 
@@ -82,9 +88,9 @@ namespace drop
 
         // Service nested classes
 
-        class emitter : public eventemitter <archive, archive>
+        class emitter : public eventemitter <archive, ttype, archive>
         {
-            template <typename, typename> friend class gossiper;
+            template <typename, typename> friend class publisher;
         };
 
         struct command
@@ -169,7 +175,7 @@ namespace drop
         void serve(const pool :: connection &);
         void publish(const ttype &, const ptype &);
 
-        template <typename type, typename lambda, std :: enable_if_t <(std :: is_same <type, archive> :: value) && (eventemitter <archive, archive> :: constraints :: template callback <lambda> ())> * = nullptr> void on(const lambda &);
+        template <typename type, typename lambda, std :: enable_if_t <(std :: is_same <type, archive> :: value) && (eventemitter <archive, ttype, archive> :: constraints :: template callback <lambda> ())> * = nullptr> void on(const lambda &);
 
     private:
 

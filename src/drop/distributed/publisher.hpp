@@ -16,13 +16,13 @@ namespace drop
 
     // archive
 
-    // Constructors
+    // Private constructors
 
-    template <typename ttype, typename ptype> publisher <ttype, ptype> :: archive :: archive(const ttype & topic, const messenger <class command, publication> & messenger) : _topic(&topic), _messenger(&messenger)
+    template <typename ttype, typename ptype> publisher <ttype, ptype> :: archive :: archive(const ttype & topic, const messenger <command, publication> & messenger) : _topic(&topic), _messenger(&messenger)
     {
     }
 
-    template <typename ttype, typename ptype> publisher <ttype, ptype> :: archive :: archive(const ttype & topic, const messenger <class command, publication> & messenger, bool & sent) : _topic(&topic), _messenger(&messenger), _sent(&sent)
+    template <typename ttype, typename ptype> publisher <ttype, ptype> :: archive :: archive(const ttype & topic, const messenger <command, publication> & messenger, bool & sent) : _topic(&topic), _messenger(&messenger), _sent(&sent)
     {
     }
 
@@ -37,6 +37,8 @@ namespace drop
         }
         else
             this->_messenger->send(publication(*(this->_topic), payload));
+
+        return (*this);
     }
 
     // command
@@ -122,24 +124,26 @@ namespace drop
         this->_mutex.lock();
         id id = this->_nonce++;
 
-        messenger <class command, publication> messenger(connection, this->_crontab);
+        messenger <command, publication> messenger(connection, this->_crontab);
 
         messenger.template on <close> ([=]()
         {
+            std :: cout << "[publisher] Messenger closing!" << std :: endl;
             this->_mutex.lock();
             this->drop(id);
             this->_mutex.unlock();
         });
 
-        messenger.template on <class command> ([=](const class command & command)
+        messenger.template on <command> ([=](const command & command)
         {
+            std :: cout << "[publisher] Command received" << std :: endl;
             this->_mutex.lock();
             this->handle(id, command);
             this->_mutex.unlock();
         });
 
-        this->_sessions[id] = messenger;
-        this->_sessions[id]->start();
+        this->_messengers[id] = messenger;
+        this->_messengers[id].start();
 
         this->_mutex.unlock();
     }
@@ -154,9 +158,10 @@ namespace drop
 
             for(auto iterator = set->begin(); iterator != set->end();)
             {
-                this->_sessions[iterator->id].send(publication(topic, payload));
+                this->_messengers[iterator->id].send(publication(topic, payload));
                 if(iterator->once)
                 {
+                    std :: cout << "[publisher] Encountered a once for topic " << topic << std :: endl;
                     this->remove_from_session(*iterator);
                     iterator = set->erase(iterator);
                 }
@@ -175,38 +180,47 @@ namespace drop
         this->_mutex.unlock();
     }
 
-    template <typename ttype, typename ptype> template <typename type, typename lambda, std :: enable_if_t <(std :: is_same <type, typename publisher <ttype, ptype> :: archive> :: value) && (eventemitter <typename publisher <ttype, ptype> :: archive, typename publisher <ttype, ptype> :: archive> :: constraints :: template callback <lambda> ())> *> void publisher <ttype, ptype> :: on(const lambda & handler)
+    template <typename ttype, typename ptype> template <typename type, typename lambda, std :: enable_if_t <(std :: is_same <type, typename publisher <ttype, ptype> :: archive> :: value) && (eventemitter <typename publisher <ttype, ptype> :: archive, ttype, typename publisher <ttype, ptype> :: archive> :: constraints :: template callback <lambda> ())> *> void publisher <ttype, ptype> :: on(const lambda & handler)
     {
         this->_emitter.template on <archive> (handler);
     }
 
     // Private methods
 
-    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: handle(const id & id, const class command & command)
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: handle(const id & id, const command & command)
     {
-        const messenger <class command, publication> & messenger = this->_sessions[id];
+        const messenger <class command, publication> & messenger = this->_messengers[id];
 
         switch(command.type)
         {
             case commands :: subscribe:
             {
-                this->_emitter.template emit <archive> (archive(command.topic, messenger));
+                std :: cout << "[publisher] Subscribe received, emitting archive" << std :: endl;
+                this->_emitter.template emit <archive> (command.topic, archive(command.topic, messenger));
 
+                std :: cout << "[publisher] Adding subscription to tables" << std :: endl;
                 this->add({command.topic, id, false});
                 break;
             }
             case commands :: unsubscribe:
             {
+                std :: cout << "[publisher] Unsubscribe received, removing from tables" << std :: endl;
                 this->remove({command.topic, id, false});
                 break;
             }
             case commands :: once:
             {
+                std :: cout << "[publisher] Once received, emitting archive" << std :: endl;
                 bool sent = false;
-                this->_emitter.template emit <archive> (archive(command.topic, messenger, sent));
+                this->_emitter.template emit <archive> (command.topic, archive(command.topic, messenger, sent));
+
+                std :: cout << "[publisher] Sent is " << (sent ? "true" : "false") << std :: endl;
 
                 if(!sent)
+                {
+                    std :: cout << "[publisher] Adding once to tables" << std :: endl;
                     this->add({command.topic, id, true});
+                }
                 break;
             }
         }
@@ -220,7 +234,6 @@ namespace drop
         }
         catch(...)
         {
-            std :: cout << "Creating topic" << std :: endl;
             this->_topics[subscription.topic] = std :: make_shared <std :: unordered_set <class subscription, shorthash>> ();
         }
 
@@ -230,7 +243,6 @@ namespace drop
         }
         catch(...)
         {
-            std :: cout << "Creating session" << std :: endl;
             this->_sessions[subscription.id] = std :: make_shared <std :: unordered_set <class subscription, shorthash>> ();
         }
 
@@ -263,8 +275,10 @@ namespace drop
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: drop(const id & id)
     {
+        std :: cout << "[publisher] Dropping subscriber" << std :: endl;
         this->clear(id);
-        this->_sessions.erase(id);
+        this->_messengers.erase(id);
+        std :: cout << "[publisher] After drop, there are " << this->_messengers.size() << " messengers, " << this->_topics.size() << " topics, and " << this->_sessions.size() << " sessions" << std :: endl;
     }
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: remove_from_topic(const subscription & subscription)
@@ -275,10 +289,7 @@ namespace drop
             set->erase(subscription);
 
             if(set->empty())
-            {
-                std :: cout << "Deleting topic" << std :: endl;
                 this->_topics.erase(subscription.topic);
-            }
         }
         catch(...)
         {
@@ -293,10 +304,7 @@ namespace drop
             set->erase(subscription);
 
             if(set->empty())
-            {
-                std :: cout << "Deleting session" << std :: endl;
                 this->_sessions.erase(subscription.id);
-            }
         }
         catch(...)
         {
@@ -350,8 +358,11 @@ namespace drop
 
         this->_messenger.template on <close> ([]()
         {
+            std :: cout << "[subscriber] Messenger closing!" << std :: endl;
             // TODO: Do something about it!
         });
+
+        this->_messenger.start();
     }
 
     // Methods
@@ -364,8 +375,9 @@ namespace drop
 
         if(!(this->_subscriptions.count(subscription)))
         {
+            std :: cout << "[subscriber] Inserting subscription" << std :: endl;
             this->_subscriptions.insert(subscription);
-            this->_messenger.send(command(commands :: subscribe, topic));
+            this->_messenger.send(command(topic, commands :: subscribe));
         }
 
         this->_mutex.unlock();
@@ -379,7 +391,7 @@ namespace drop
 
         if(this->_subscriptions.count(subscription))
         {
-            this->_messenger.send(command(commands :: unsubscribe, topic));
+            this->_messenger.send(command(topic, commands :: unsubscribe));
             this->_subscriptions.erase(subscription);
         }
 
@@ -392,14 +404,10 @@ namespace drop
 
         subscription subscription(topic, true);
 
-        try
-        {
-            this->_subscriptions.at(subscription);
-        }
-        catch(...)
+        if(!(this->_subscriptions.count(subscription)))
         {
             this->_subscriptions.insert(subscription);
-            this->_messenger.send(command(commands :: once, topic));
+            this->_messenger.send(command(topic, commands :: once));
         }
 
         this->_mutex.unlock();
