@@ -116,7 +116,7 @@ namespace vine
 
     template <typename dialer, uint8_t channels> template <uint8_t idx, std :: enable_if_t <(idx < channels)> *> promise <dial> multiplexer <dialer, channels> :: connect(const vine :: identifier & identifier)
     {
-        return this->_dialer.connect(identifier).then([=](const dial & dial) -> promise <class dial>
+        return this->_dialer.connect(identifier).then([=](dial dial) -> promise <class dial>
         {
             co_await this->_pool.bind(dial).send(idx);
             co_return dial;
