@@ -128,7 +128,6 @@ namespace drop
 
         messenger.template on <close> ([=]()
         {
-            std :: cout << "[publisher] Messenger closing!" << std :: endl;
             this->_mutex.lock();
             this->drop(id);
             this->_mutex.unlock();
@@ -136,7 +135,6 @@ namespace drop
 
         messenger.template on <command> ([=](const command & command)
         {
-            std :: cout << "[publisher] Command received" << std :: endl;
             this->_mutex.lock();
             this->handle(id, command);
             this->_mutex.unlock();
@@ -161,7 +159,6 @@ namespace drop
                 this->_messengers[iterator->id].send(publication(topic, payload));
                 if(iterator->once)
                 {
-                    std :: cout << "[publisher] Encountered a once for topic " << topic << std :: endl;
                     this->remove_from_session(*iterator);
                     iterator = set->erase(iterator);
                 }
@@ -195,32 +192,23 @@ namespace drop
         {
             case commands :: subscribe:
             {
-                std :: cout << "[publisher] Subscribe received, emitting archive" << std :: endl;
                 this->_emitter.template emit <archive> (command.topic, archive(command.topic, messenger));
-
-                std :: cout << "[publisher] Adding subscription to tables" << std :: endl;
                 this->add({command.topic, id, false});
                 break;
             }
             case commands :: unsubscribe:
             {
-                std :: cout << "[publisher] Unsubscribe received, removing from tables" << std :: endl;
                 this->remove({command.topic, id, false});
                 break;
             }
             case commands :: once:
             {
-                std :: cout << "[publisher] Once received, emitting archive" << std :: endl;
                 bool sent = false;
                 this->_emitter.template emit <archive> (command.topic, archive(command.topic, messenger, sent));
 
-                std :: cout << "[publisher] Sent is " << (sent ? "true" : "false") << std :: endl;
-
                 if(!sent)
-                {
-                    std :: cout << "[publisher] Adding once to tables" << std :: endl;
                     this->add({command.topic, id, true});
-                }
+
                 break;
             }
         }
@@ -275,10 +263,8 @@ namespace drop
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: drop(const id & id)
     {
-        std :: cout << "[publisher] Dropping subscriber" << std :: endl;
         this->clear(id);
         this->_messengers.erase(id);
-        std :: cout << "[publisher] After drop, there are " << this->_messengers.size() << " messengers, " << this->_topics.size() << " topics, and " << this->_sessions.size() << " sessions" << std :: endl;
     }
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: remove_from_topic(const subscription & subscription)
@@ -367,7 +353,6 @@ namespace drop
 
         if(!(this->_subscriptions.count(subscription)))
         {
-            std :: cout << "[subscriber] Inserting subscription" << std :: endl;
             this->_subscriptions.insert(subscription);
             this->_messenger.send(command(topic, commands :: subscribe));
         }
