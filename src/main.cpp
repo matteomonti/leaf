@@ -113,6 +113,9 @@ int main(int argc, char ** args)
         // Coordinator
 
         signer signer;
+
+        std :: cout << "Node publickey: " << signer.publickey() << std :: endl;
+
         std :: array <identifier, coordinator :: settings :: view :: size> view = coordinator :: await(coordaddr, signer.publickey());
         std :: array <identifier, coordinator :: settings :: view :: size> sample = coordinator :: await(coordaddr, signer.publickey());
 
@@ -284,5 +287,7 @@ int main(int argc, char ** args)
             view = coordinator :: await(coordaddr, signer.publickey());
             sample = coordinator :: await(coordaddr, signer.publickey());
         }
+
+        std :: cout << "Main thread terminating" << std :: endl;
     }
 }
