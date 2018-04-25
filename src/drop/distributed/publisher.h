@@ -159,7 +159,7 @@ namespace drop
 
         id _nonce;
 
-        std :: mutex _mutex;
+        std :: recursive_mutex _mutex;
 
         emitter _emitter;
         crontab & _crontab;

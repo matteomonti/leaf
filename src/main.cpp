@@ -73,9 +73,9 @@ void seppuku()
 
 int main(int argc, char ** args)
 {
-    std :: thread seppuku_thread(seppuku);
-    seppuku_thread.detach();
-    
+    // std :: thread seppuku_thread(seppuku);
+    // seppuku_thread.detach();
+
     if(argc < 2)
     {
         std :: cout << "Please select a role for the node: master or peer." << std :: endl;
