@@ -134,7 +134,7 @@ namespace drop
         messenger.template on <class command> ([=](const class command & command)
         {
             this->_mutex.lock();
-            this->command(id, command);
+            this->handle(id, command);
             this->_mutex.unlock();
         });
 
@@ -182,7 +182,7 @@ namespace drop
 
     // Private methods
 
-    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: command(const id & id, const class command & command)
+    template <typename ttype, typename ptype> void publisher <ttype, ptype> :: handle(const id & id, const class command & command)
     {
         const messenger <class command, publication> & messenger = this->_sessions[id];
 
@@ -301,6 +301,108 @@ namespace drop
         catch(...)
         {
         }
+    }
+
+    // subscription
+
+    // Constructors
+
+    template <typename ttype, typename ptype> subscriber <ttype, ptype> :: subscription :: subscription(const ttype & topic, const bool & once) : topic(topic), once(once)
+    {
+    }
+
+    // Methods
+
+    template <typename ttype, typename ptype> template <typename vtype> void subscriber <ttype, ptype> :: subscription :: accept(bytewise :: reader <vtype> & reader) const
+    {
+        reader << (this->topic);
+        reader << (this->once);
+    }
+
+    // Operators
+
+    template <typename ttype, typename ptype> bool subscriber <ttype, ptype> :: subscription :: operator == (const subscription & rho) const
+    {
+        return (this->topic == rho.topic) && (this->once == rho.once);
+    }
+
+    // subscriber
+
+    // Constructors
+
+    template <typename ttype, typename ptype> subscriber <ttype, ptype> :: subscriber(const pool :: connection & connection, crontab & crontab) : _messenger(connection, crontab)
+    {
+        this->_messenger.template on <publication> ([=](const publication & publication)
+        {
+            this->_mutex.lock();
+
+            if(this->_subscriptions.count({publication.topic, false}))
+                this->template emit <ptype> (publication.topic, publication.payload);
+
+            if(this->_subscriptions.count({publication.topic, true}))
+            {
+                this->template emit <ptype> (publication.topic, publication.payload);
+                this->_subscriptions.erase({publication.topic, true});
+            }
+
+            this->_mutex.unlock();
+        });
+
+        this->_messenger.template on <close> ([]()
+        {
+            // TODO: Do something about it!
+        });
+    }
+
+    // Methods
+
+    template <typename ttype, typename ptype> void subscriber <ttype, ptype> :: subscribe(const ttype & topic)
+    {
+        this->_mutex.lock();
+
+        subscription subscription(topic, false);
+
+        if(!(this->_subscriptions.count(subscription)))
+        {
+            this->_subscriptions.insert(subscription);
+            this->_messenger.send(command(commands :: subscribe, topic));
+        }
+
+        this->_mutex.unlock();
+    }
+
+    template <typename ttype, typename ptype> void subscriber <ttype, ptype> :: unsubscribe(const ttype & topic)
+    {
+        this->_mutex.lock();
+
+        subscription subscription(topic, false);
+
+        if(this->_subscriptions.count(subscription))
+        {
+            this->_messenger.send(command(commands :: unsubscribe, topic));
+            this->_subscriptions.erase(subscription);
+        }
+
+        this->_mutex.unlock();
+    }
+
+    template <typename ttype, typename ptype> void subscriber <ttype, ptype> :: once(const ttype & topic)
+    {
+        this->_mutex.lock();
+
+        subscription subscription(topic, true);
+
+        try
+        {
+            this->_subscriptions.at(subscription);
+        }
+        catch(...)
+        {
+            this->_subscriptions.insert(subscription);
+            this->_messenger.send(command(commands :: once, topic));
+        }
+
+        this->_mutex.unlock();
     }
 };
 

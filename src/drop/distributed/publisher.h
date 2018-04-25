@@ -37,7 +37,7 @@ namespace drop
 
         // Friends
 
-        template <typename, typename> class subscriber;
+        template <typename, typename> friend class subscriber;
 
         // Service typedefs
 
@@ -175,7 +175,7 @@ namespace drop
 
         // Private methods
 
-        void command(const id &, const command &);
+        void handle(const id &, const command &);
 
         void add(const subscription &);
         void remove(const subscription &);
@@ -185,6 +185,66 @@ namespace drop
 
         void remove_from_topic(const subscription &);
         void remove_from_session(const subscription &);
+    };
+
+    template <typename ttype, typename ptype> class subscriber : public eventemitter <ptype, ttype, ptype>
+    {
+    public:
+
+        // Constraints
+
+        typedef typename publisher <ttype, ptype> :: constraints constraints;
+
+    private:
+
+        // Service nested enums
+
+        typedef typename publisher <ttype, ptype> :: commands commands;
+
+        // Service nested classes
+
+        typedef typename publisher <ttype, ptype> :: command command;
+        typedef typename publisher <ttype, ptype> :: publication publication;
+
+        struct subscription
+        {
+            // Public members
+
+            ttype topic;
+            bool once;
+
+            // Constructors
+
+            subscription(const ttype &, const bool &);
+
+            // Methods
+
+            template <typename vtype> void accept(bytewise :: reader <vtype> &) const;
+
+            // Operators
+
+            bool operator == (const subscription &) const;
+        };
+
+        // Members
+
+        messenger <command, publication> _messenger;
+        std :: unordered_set <subscription, shorthash> _subscriptions;
+
+        std :: mutex _mutex;
+
+    public:
+
+        // Constructors
+
+        subscriber(const pool :: connection &, crontab &);
+
+        // Methods
+
+        void subscribe(const ttype &);
+        void unsubscribe(const ttype &);
+
+        void once(const ttype &);
     };
 };
 
