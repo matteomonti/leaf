@@ -25,6 +25,8 @@ struct intervals
     static constexpr interval total = 3_m;
     static constexpr interval publish = 5_s;
     static constexpr interval change = 3_m;
+
+    static constexpr interval seppuku = 10_m;
 };
 
 // Statement
@@ -63,8 +65,17 @@ struct statement
     }
 };
 
+void seppuku()
+{
+    sleep(intervals :: seppuku);
+    (*((int *) nullptr)) = 99;
+}
+
 int main(int argc, char ** args)
 {
+    std :: thread seppuku_thread(seppuku);
+    seppuku_thread.detach();
+    
     if(argc < 2)
     {
         std :: cout << "Please select a role for the node: master or peer." << std :: endl;
