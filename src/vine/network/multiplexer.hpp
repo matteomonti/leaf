@@ -134,10 +134,16 @@ namespace vine
     {
         this->_dialer.template on <dial> ([=](dial dial) -> promise <void>
         {
-            uint8_t channel = co_await this->_pool.bind(dial).template receive <uint8_t> ();
+            try
+            {
+                uint8_t channel = co_await this->_pool.bind(dial).template receive <uint8_t> ();
 
-            if(channel < channels)
-                this->dispatch <channels - 1> (channel, dial);
+                if(channel < channels)
+                    this->dispatch <channels - 1> (channel, dial);
+            }
+            catch(...)
+            {
+            }
         });
     }
 
