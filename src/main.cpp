@@ -159,6 +159,7 @@ int main(int argc, char ** args)
 
             mutex.lock();
             statements[statement.id] = statement.message;
+            votes[statement.id] = 0;
 
             for(size_t i = 0; i < coordinator :: settings :: view :: size; i++)
                 if(subscribers[i])
@@ -220,14 +221,18 @@ int main(int argc, char ** args)
                     delete subscribers[i];
                     subscribers[i] = nullptr;
                 }
+
+            std :: cout << (uint64_t) timestamp(now) << " reset" << std :: endl;
+            for(auto & vote : votes)
+                vote.second = 0;
+
             mutex.unlock();
 
-            for(size_t i = 0; i < coordinator :: settings :: view :: size; i++)
+            for(size_t index = 0; index < coordinator :: settings :: view :: size; index++)
             {
-                size_t index = i;
                 identifier identifier = sample[index];
 
-                dialer.connect <1> (identifier).then([&](const dial & dial)
+                dialer.connect <1> (identifier).then([&, index](const dial & dial)
                 {
                     mutex.lock();
 
@@ -235,14 +240,8 @@ int main(int argc, char ** args)
                     subscribers[index]->on <buffer> ([&](const uint64_t & id, const buffer & message)
                     {
                         mutex.lock();
-                        try
-                        {
-                            votes.at(id)++;
-                        }
-                        catch(...)
-                        {
-                            votes[id] = 1;
-                        }
+                        votes[id]++;
+                        std :: cout << (uint64_t) timestamp(now) << " votes " << id << " " << votes[id] << std :: endl;
 
                         if(votes[id] == coordinator :: settings :: view :: size)
                         {
@@ -264,10 +263,6 @@ int main(int argc, char ** args)
                     std :: cout << "Failed to establish (sample) connection to " << identifier << std :: endl;
                 });
             }
-
-            mutex.lock();
-            votes.clear();
-            mutex.unlock();
 
             for(const identifier & identifier : view)
                 dialer.connect <0> (identifier).then([&](const dial & dial)
