@@ -252,6 +252,11 @@ int main(int argc, char ** args)
                         mutex.unlock();
                     });
 
+                    subscribers[index]->on <drop :: close> ([=]()
+                    {
+                        std :: cout << "Subscriber " << index << "lost the connection" << std :: endl;
+                    });
+
                     for(const auto & vote : votes)
                         subscribers[index]->once(vote.first);
 
