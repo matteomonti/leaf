@@ -26,7 +26,7 @@ TTREE := $(patsubst %/,%,$(dir $(TOBJS)))
 SCPPFLAGS  = -MMD -MP -MF $(@:$(SOBJDIR)/%.o=$(SDEPDIR)/%.d)
 TCPPFLAGS  = -MMD -MP -MF $(@:$(TOBJDIR)/%.o=$(TDEPDIR)/%.d)
 
-BCXXFLAGS = -I$(SRCDIR) -I$(TESTDIR) `pkg-config --cflags libsodium` -O3 -std=c++2a -fcoroutines-ts -stdlib=libc++
+BCXXFLAGS = -I$(SRCDIR) -I$(TESTDIR) `pkg-config --cflags libsodium` -O0 -g -std=c++2a -fcoroutines-ts -stdlib=libc++
 BLINKERFLAGS = `pkg-config --libs libsodium` -stdlib=libc++ -lc++abi -pthread
 
 all: CXXFLAGS = $(BCXXFLAGS) -D __main__
