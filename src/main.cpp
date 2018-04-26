@@ -68,6 +68,7 @@ struct statement
 void seppuku()
 {
     sleep(intervals :: seppuku);
+    std :: cout << "Seppuku is forced to terminate the process. See core dump for further information." << std :: endl;
     (*((int *) nullptr)) = 99;
 }
 

@@ -64,16 +64,16 @@ namespace drop
 
     template <typename event, typename... types> template <typename etype, typename lambda, std :: enable_if_t <(std :: is_same <etype, event> :: value) && (eventemitter <event, types...> :: constraints :: template callback <lambda> ())> *> void eventemitter <event, types...> :: on(const lambda & handler)
     {
-        std :: cout << "(" << std::this_thread::get_id() << ") eventemitter lock a " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
+        // std :: cout << "(" << std::this_thread::get_id() << ") eventemitter lock a " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
         this->_mutex.lock();
         this->_callbacks.push_back(new callback <lambda> (handler));
-        std :: cout << "(" << std::this_thread::get_id() << ") eventemitter unlock a " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
+        // std :: cout << "(" << std::this_thread::get_id() << ") eventemitter unlock a " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
         this->_mutex.unlock();
     }
 
     template <typename event, typename... types> void eventemitter <event, types...> :: clear()
     {
-        std :: cout << "(" << std::this_thread::get_id() << ") eventemitter lock b " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
+        // std :: cout << "(" << std::this_thread::get_id() << ") eventemitter lock b " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
         this->_mutex.lock();
 
         for(size_t i = 0; i < this->_callbacks.size(); i++)
@@ -81,7 +81,7 @@ namespace drop
 
         this->_callbacks.clear();
 
-        std :: cout << "(" << std::this_thread::get_id() << ") eventemitter unlock b " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
+        // std :: cout << "(" << std::this_thread::get_id() << ") eventemitter unlock b " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
         this->_mutex.unlock();
     }
 
@@ -89,7 +89,7 @@ namespace drop
 
     template <typename event, typename... types> template <typename etype, std :: enable_if_t <std :: is_same <etype, event> :: value> *> bool eventemitter <event, types...> :: emit(const types & ... values)
     {
-        std :: cout << "(" << std::this_thread::get_id() << ") eventemitter lock c " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
+        // std :: cout << "(" << std::this_thread::get_id() << ") eventemitter lock c " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
         this->_mutex.lock();
 
         for(size_t i = 0; i < this->_callbacks.size(); i++)
@@ -107,7 +107,7 @@ namespace drop
                 return false;
             }
 
-        std :: cout << "(" << std::this_thread::get_id() << ") eventemitter unlock c " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
+        // std :: cout << "(" << std::this_thread::get_id() << ") eventemitter unlock c " << &(this->_mutex) << " [" << __PRETTY_FUNCTION__ << "]" << std :: endl;
         this->_mutex.unlock();
         return true;
     }
