@@ -121,33 +121,26 @@ namespace drop
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: serve(const pool :: connection & connection)
     {
-        // std :: cout << "(" << std::this_thread::get_id() << ") publisher lock a " << &(this->_mutex) << std :: endl;
         this->_mutex.lock();
         id id = this->_nonce++;
 
         messenger <command, publication> messenger(connection, this->_crontab);
 
-        /*messenger.template on <close> ([=]()
+        messenger.template on <close> ([=]()
         {
-            // std :: cout << "(" << std::this_thread::get_id() << ") publisher lock b " << &(this->_mutex) << std :: endl;
             this->_mutex.lock();
             this->drop(id);
-            // std :: cout << "(" << std::this_thread::get_id() << ") publisher unlock b " << &(this->_mutex) << std :: endl;
             this->_mutex.unlock();
-        });*/ // REMOVE ME (comments, needs to be re-enabled)
+        });
 
         messenger.template on <command> ([=](const command & command)
         {
-            // std :: cout << "(" << std::this_thread::get_id() << ") publisher lock c " << &(this->_mutex) << std :: endl;
             this->_mutex.lock();
             this->handle(id, command);
-            // std :: cout << "(" << std::this_thread::get_id() << ") publisher unlock c " << &(this->_mutex) << std :: endl;
             this->_mutex.unlock();
         });
 
         this->_messengers[id] = messenger;
-
-        // std :: cout << "(" << std::this_thread::get_id() << ") publisher unlock a " << &(this->_mutex) << std :: endl;
         this->_mutex.unlock();
 
         messenger.start();
@@ -155,7 +148,6 @@ namespace drop
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: publish(const ttype & topic, const ptype & payload)
     {
-        // std :: cout << "(" << std::this_thread::get_id() << ") publisher lock d " << &(this->_mutex) << std :: endl;
         this->_mutex.lock();
 
         try
@@ -181,7 +173,6 @@ namespace drop
         {
         }
 
-        // std :: cout << "(" << std::this_thread::get_id() << ") publisher unlock d " << &(this->_mutex) << std :: endl;
         this->_mutex.unlock();
     }
 
@@ -336,7 +327,6 @@ namespace drop
     {
         this->_messenger.template on <publication> ([=](const publication & publication)
         {
-            // std :: cout << "(" << std::this_thread::get_id() << ") publisher lock e " << &(this->_mutex) << std :: endl;
             this->_mutex.lock();
 
             if(this->_subscriptions.count({publication.topic, false}))
@@ -348,7 +338,6 @@ namespace drop
                 this->_subscriptions.erase({publication.topic, true});
             }
 
-            // std :: cout << "(" << std::this_thread::get_id() << ") publisher unlock e " << &(this->_mutex) << std :: endl;
             this->_mutex.unlock();
         });
     }
@@ -357,7 +346,6 @@ namespace drop
 
     template <typename ttype, typename ptype> void subscriber <ttype, ptype> :: subscribe(const ttype & topic)
     {
-        // std :: cout << "(" << std::this_thread::get_id() << ") publisher lock f " << &(this->_mutex) << std :: endl;
         this->_mutex.lock();
 
         subscription subscription(topic, false);
@@ -368,13 +356,11 @@ namespace drop
             this->_messenger.send(command(topic, commands :: subscribe));
         }
 
-        // std :: cout << "(" << std::this_thread::get_id() << ") publisher unlock f " << &(this->_mutex) << std :: endl;
         this->_mutex.unlock();
     }
 
     template <typename ttype, typename ptype> void subscriber <ttype, ptype> :: unsubscribe(const ttype & topic)
     {
-        // std :: cout << "(" << std::this_thread::get_id() << ") publisher lock g " << &(this->_mutex) << std :: endl;
         this->_mutex.lock();
 
         subscription subscription(topic, false);
@@ -385,13 +371,11 @@ namespace drop
             this->_subscriptions.erase(subscription);
         }
 
-        // std :: cout << "(" << std::this_thread::get_id() << ") publisher unlock g " << &(this->_mutex) << std :: endl;
         this->_mutex.unlock();
     }
 
     template <typename ttype, typename ptype> void subscriber <ttype, ptype> :: once(const ttype & topic)
     {
-        // std :: cout << "(" << std::this_thread::get_id() << ") publisher lock h " << &(this->_mutex) << std :: endl;
         this->_mutex.lock();
 
         subscription subscription(topic, true);
@@ -401,8 +385,7 @@ namespace drop
             this->_subscriptions.insert(subscription);
             this->_messenger.send(command(topic, commands :: once));
         }
-
-        // std :: cout << "(" << std::this_thread::get_id() << ") publisher unlock h " << &(this->_mutex) << std :: endl;
+        
         this->_mutex.unlock();
     }
 

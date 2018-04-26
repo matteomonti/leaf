@@ -205,7 +205,7 @@ namespace drop
                     }
                     catch(const std :: exception & exception)
                     {
-                        std :: cout << "Unforwardable reject: " << exception.what();
+                        std :: cerr << "Unforwardable reject: " << exception.what();
                     }
 
                     throw (class exceptions :: unforwardable_reject){};
