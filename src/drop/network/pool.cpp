@@ -223,6 +223,15 @@ namespace drop
                     }
                     catch(...)
                     {
+                        try
+                        {
+                            std :: rethrow_exception(std :: current_exception());
+                        }
+                        catch(const std :: exception & exception)
+                        {
+                            std :: cout << "Exception: " << exception.what() << std :: endl;
+                        }
+
                         std :: cout << "Rejecting request promise " << request.promise << std :: endl;
                         request.promise.reject(std :: current_exception());
                         std :: cout << "Promise rejected" << std :: endl;
