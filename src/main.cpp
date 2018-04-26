@@ -305,9 +305,8 @@ int main(int argc, char ** args)
                     for(const auto & vote : votes)
                         subscribers[index]->once(vote.first);
 
-                    subscribers[index]->start();
-
                     mutex.unlock();
+                    subscribers[index]->start();
                 }).except([=](const std :: exception_ptr & exception)
                 {
                     std :: cout << "Failed to establish (sample) connection to " << identifier << std :: endl;
