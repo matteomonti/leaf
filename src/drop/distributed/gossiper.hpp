@@ -210,9 +210,9 @@ namespace drop
                 else
                     this->_addbuffer.insert(element);
 
-                for(const auto & session : this->_sessions)
+                for(const auto session : this->_sessions)
                 {
-                    std :: cout << "[gossiper] Calling send on " << &session << std :: endl;
+                    std :: cout << "[gossiper] Calling send on " << session.first << ": " << &session << std :: endl;
                     std :: cout << "[gossiper] (Messenger is " << &(session.second.messenger) << ")" << std :: endl;
                     session.second.messenger.send(element);
                 }
