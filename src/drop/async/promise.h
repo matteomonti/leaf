@@ -209,7 +209,7 @@ namespace drop
             std :: exception_ptr _exception;
             rejector_interface * _rejector;
 
-            std :: mutex _mutex;
+            std :: recursive_mutex _mutex;
 
         public:
 
