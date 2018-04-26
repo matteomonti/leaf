@@ -18,6 +18,7 @@ namespace drop
 
     template <typename type> void pipe <type> :: push(const type & element)
     {
+        std :: cout << "[pipe] Calling push on " << this << std :: endl;
         optional <promise <type>> promise;
 
         this->_mutex.lock();

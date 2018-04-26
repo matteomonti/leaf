@@ -50,6 +50,8 @@ namespace drop
 
     template <typename... types> template <typename type, std :: enable_if_t <(... || (std :: is_same <type, types> :: value))> *> void messenger <types...> :: send(const type & message) const
     {
+        std :: cout << "[messenger] Calling send on " << this->_arc << std :: endl;
+        std :: cout << "(use count: " << this->_arc.use_count() << ")" << std :: endl;
         this->_arc->pipe.push(message);
     }
 
