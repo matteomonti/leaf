@@ -163,7 +163,7 @@ namespace drop
             messenger.send(element);
 
         this->_sessions[id] = session{.messenger = messenger, .promise = promise};
-        this->_sessions[id].messenger.start();
+        this->_sessions[id]->messenger.start();
 
         this->unlock();
         this->_mutex.unlock();
@@ -210,11 +210,18 @@ namespace drop
                 else
                     this->_addbuffer.insert(element);
 
-                for(const auto session : this->_sessions)
+                for(auto iterator = this->_sessions.begin(); iterator != this->_sessions.end();)
                 {
-                    std :: cout << "[gossiper] Calling send on " << session.first << ": " << &session << std :: endl;
-                    std :: cout << "[gossiper] (Messenger is " << &(session.second.messenger) << ")" << std :: endl;
-                    session.second.messenger.send(element);
+                    if(!(iterator->second))
+                    {
+                        iterator = this->_sessions.erase(iterator);
+                        continue;
+                    }
+
+                    std :: cout << "[gossiper] Calling send on " << iterator->first << ": " << &(iterator->second) << std :: endl;
+                    std :: cout << "[gossiper] (Messenger is " << &(iterator->second->messenger) << ")" << std :: endl;
+
+                    iterator->second->messenger.send(element);
                 }
             }
     }
@@ -235,7 +242,7 @@ namespace drop
         try
         {
             session = this->_sessions.at(id);
-            this->_sessions.erase(id);
+            this->_sessions[id] = null;
         }
         catch(...)
         {

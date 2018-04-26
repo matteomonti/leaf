@@ -109,7 +109,7 @@ namespace drop
 
         syncset <type> _syncset;
         std :: unordered_set <type, shorthash> _addbuffer;
-        std :: unordered_map <id, session> _sessions;
+        std :: unordered_map <id, optional <session>> _sessions;
 
         size_t _locks;
 
