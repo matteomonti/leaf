@@ -213,15 +213,15 @@ namespace drop
                 for(auto iterator = this->_sessions.begin(); iterator != this->_sessions.end();)
                 {
                     if(!(iterator->second))
-                    {
                         iterator = this->_sessions.erase(iterator);
-                        continue;
+                    else
+                    {
+                        std :: cout << "[gossiper] Calling send on " << iterator->first << ": " << &(iterator->second) << std :: endl;
+                        std :: cout << "[gossiper] (Messenger is " << &(iterator->second->messenger) << ")" << std :: endl;
+
+                        iterator->second->messenger.send(element);
+                        iterator++;
                     }
-
-                    std :: cout << "[gossiper] Calling send on " << iterator->first << ": " << &(iterator->second) << std :: endl;
-                    std :: cout << "[gossiper] (Messenger is " << &(iterator->second->messenger) << ")" << std :: endl;
-
-                    iterator->second->messenger.send(element);
                 }
             }
     }
