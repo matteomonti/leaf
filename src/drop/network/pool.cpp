@@ -88,15 +88,40 @@ namespace drop
 
     promise <void> pool :: send(const std :: shared_ptr <:: drop :: connection :: arc> & arc, const buffer & message)
     {
-        arc->send_lock();
-        arc->block(false);
-        arc->send_init(message);
-
-        if(arc->send_step())
+        try
         {
-            arc->block(true);
-            arc->send_unlock();
-            return promise <void> :: resolved();
+            arc->send_lock();
+            arc->block(false);
+            arc->send_init(message);
+        }
+        catch(...)
+        {
+            return promise <void> :: rejected(std :: current_exception());
+        }
+
+        bool complete;
+
+        try
+        {
+            complete = arc->send_step();
+        }
+        catch(...)
+        {
+            return promise <void> :: rejected(std :: current_exception());
+        }
+
+        if(complete)
+        {
+            try
+            {
+                arc->block(true);
+                arc->send_unlock();
+                return promise <void> :: resolved();
+            }
+            catch(...)
+            {
+                return promise <void> :: rejected(std :: current_exception());
+            }
         }
         else
         {
@@ -112,13 +137,27 @@ namespace drop
 
             request.promise.then([=]()
             {
-                arc->block(true);
-                arc->send_unlock();
-                promise.resolve();
+                try
+                {
+                    arc->block(true);
+                    arc->send_unlock();
+                    promise.resolve();
+                }
+                catch(...)
+                {
+                    promise.reject(std :: current_exception());
+                }
             }).except([=](const std :: exception_ptr & exception)
             {
-                arc->block(true);
-                arc->send_unlock();
+                try
+                {
+                    arc->block(true);
+                    arc->send_unlock();
+                }
+                catch(...)
+                {
+                }
+
                 promise.reject(exception);
             });
 
@@ -128,16 +167,41 @@ namespace drop
 
     promise <buffer> pool :: receive(const std :: shared_ptr <:: drop :: connection :: arc> & arc)
     {
-        arc->receive_lock();
-        arc->block(false);
-        arc->receive_init();
-
-        if(arc->receive_step())
+        try
         {
-            promise <buffer> promise = :: drop :: promise <buffer> :: resolved(arc->receive_yield());
-            arc->block(true);
-            arc->receive_unlock();
-            return promise;
+            arc->receive_lock();
+            arc->block(false);
+            arc->receive_init();
+        }
+        catch(...)
+        {
+            return promise <buffer> :: rejected(std :: current_exception());
+        }
+
+        bool complete;
+
+        try
+        {
+            complete = arc->receive_step();
+        }
+        catch(...)
+        {
+            return promise <buffer> :: rejected(std :: current_exception());
+        }
+
+        if(complete)
+        {
+            try
+            {
+                promise <buffer> promise = :: drop :: promise <buffer> :: resolved(arc->receive_yield());
+                arc->block(true);
+                arc->receive_unlock();
+                return promise;
+            }
+            catch(...)
+            {
+                return promise <buffer> :: rejected(std :: current_exception());
+            }
         }
         else
         {
@@ -153,18 +217,28 @@ namespace drop
 
             request.promise.then([=]()
             {
-                buffer message = arc->receive_yield();
-                arc->block(true);
-                arc->receive_unlock();
-                promise.resolve(message);
+                try
+                {
+                    buffer message = arc->receive_yield();
+                    arc->block(true);
+                    arc->receive_unlock();
+                    promise.resolve(message);
+                }
+                catch(...)
+                {
+                    promise.reject(std :: current_exception());
+                }
             }).except([=](const std :: exception_ptr & exception)
             {
-                std :: cout << "In request promise except" << std :: endl;
-                std :: cout << "Calling block" << std :: endl;
-                arc->block(true);
-                std :: cout << "Calling receive_unlock" << std :: endl;
-                arc->receive_unlock();
-                std :: cout << "Calling promise.reject" << std :: endl;
+                try
+                {
+                    arc->block(true);
+                    arc->receive_unlock();
+                }
+                catch(...)
+                {
+                }
+
                 promise.reject(exception);
             });
 
