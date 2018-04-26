@@ -38,7 +38,7 @@ namespace poseidon
         {
             struct view
             {
-                static constexpr size_t size = 8;
+                static constexpr size_t size = 16;
             };
 
             struct intervals

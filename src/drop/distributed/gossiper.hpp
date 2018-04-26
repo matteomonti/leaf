@@ -148,6 +148,7 @@ namespace drop
 
         messenger.template on <close> ([=]()
         {
+            std :: cout << "[gossiper] Lost connection to " << id << std :: endl;
             this->drop(id);
         });
 
