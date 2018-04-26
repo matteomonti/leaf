@@ -146,10 +146,11 @@ namespace drop
         });
 
         this->_messengers[id] = messenger;
-        this->_messengers[id].start();
 
         // std :: cout << "(" << std::this_thread::get_id() << ") publisher unlock a " << &(this->_mutex) << std :: endl;
         this->_mutex.unlock();
+
+        messenger.start();
     }
 
     template <typename ttype, typename ptype> void publisher <ttype, ptype> :: publish(const ttype & topic, const ptype & payload)
