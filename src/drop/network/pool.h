@@ -117,7 +117,7 @@ namespace drop
 
         channel <request> _new;
         std :: mutex _newmtx;
-        
+
         std :: unordered_map <int, request> _write;
         std :: unordered_map <int, request> _read;
 

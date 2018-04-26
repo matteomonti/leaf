@@ -546,6 +546,13 @@ namespace drop
         return (*this);
     }
 
+    // Ostream integration
+
+    template <typename type> std :: ostream & operator << (std :: ostream & out, const promise <type> & promise)
+    {
+        return out << "(promise @ " << promise._arc << ")";
+    }
+
     // Coroutine interface
 
     // promise <void>

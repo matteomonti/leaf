@@ -242,6 +242,10 @@ namespace drop
             void unlock();
         };
 
+        // Friends
+
+        template <typename ptype> friend std :: ostream & operator << (std :: ostream &, const promise <ptype> &);
+
         // Members
 
         std :: shared_ptr <arc> _arc;
@@ -298,6 +302,10 @@ namespace drop
         promise & operator = (const promise &);
         promise & operator = (promise &&);
     };
+
+    // Ostream integration
+
+    template <typename type> std :: ostream & operator << (std :: ostream &, const promise <type> &);
 
     // Coroutine interface
 

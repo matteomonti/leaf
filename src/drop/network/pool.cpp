@@ -188,21 +188,29 @@ namespace drop
 
             for(size_t i = 0; i < count; i++)
             {
+                std :: cout << "Looping over queue[" << i << "]" << std :: endl;
                 if(this->_queue[i].descriptor() == this->_wakepipe)
                 {
+                    std :: cout << "Just the wakepipe" << std :: endl;
                     this->_wakepipe.flush();
                     continue;
                 }
 
+                std :: cout << "Event type is " << this->_queue[i].type() << std :: endl;
+                std :: cout << "Descriptor is " << this->_queue[i].descriptor() << std :: endl;
                 auto & table = ((this->_queue[i].type() == queue :: write) ? this->_write : this->_read);
                 request & request = table[this->_queue[i].descriptor()];
 
                 if(this->_queue[i].error())
+                {
+                    std :: cout << "Event error: rejecting request promise " << request.promise << std :: endl;
                     request.promise.reject(exceptions :: event_error());
+                }
                 else
                 {
                     try
                     {
+                        std :: cout << "Calling either receive_step or send_step" << std :: endl;
                         if(!(request.type == queue :: write ? request.arc->send_step() : request.arc->receive_step()))
                             continue;
 
@@ -210,18 +218,21 @@ namespace drop
                     }
                     catch(...)
                     {
+                        std :: cout << "Rejecting request promise " << request.promise << std :: endl;
                         request.promise.reject(std :: current_exception());
                     }
                 }
 
                 try
                 {
+                    std :: cout << "Removing from queue descriptor " << this->_queue[i].descriptor() << " for event " << this->_queue[i].type() << std :: endl;
                     this->_queue.remove(this->_queue[i].descriptor(), this->_queue[i].type());
                 }
                 catch(...)
                 {
                 }
 
+                std :: cout << "Removing from table descriptor " << this->_queue[i].descriptor();
                 table.erase(this->_queue[i].descriptor());
             }
 
@@ -237,19 +248,28 @@ namespace drop
 
                     if(request.version == timeout.version)
                     {
+                        std :: cout << "Request timeout for descriptor " << timeout.descriptor << std :: endl;
                         if(timeout.type == queue :: write)
+                        {
+                            std :: cout << "Rejecting request promise " << request.promise << std :: endl;
                             request.promise.reject(sockets :: exceptions :: send_timeout());
+                        }
                         else
+                        {
+                            std :: cout << "Rejecting request promise " << request.promise << std :: endl;
                             request.promise.reject(sockets :: exceptions :: receive_timeout());
+                        }
 
                         try
                         {
+                            std :: cout << "Removing " << timeout.descriptor << " from queue" << std :: endl;
                             this->_queue.remove(timeout.descriptor, timeout.type);
                         }
                         catch(...)
                         {
                         }
 
+                        std :: cout << "Erasing " << timeout.descriptor << " from table" << std :: endl;
                         table.erase(timeout.descriptor);
                     }
                 }
@@ -266,11 +286,12 @@ namespace drop
 
                 try
                 {
+                    std :: cout << "Adding " << request->arc->descriptor() << " to the queue" << std :: endl;
                     this->_queue.add(request->arc->descriptor(), request->type);
 
+                    std :: cout << "Request promise is " << request->promise << std :: endl;
                     (request->type == queue :: write ? this->_write : this->_read)[request->arc->descriptor()] = (*request);
                     this->_timeouts.push_back({.descriptor = request->arc->descriptor(), .type = request->type, .timeout = timestamp(now) + settings :: timeout, .version = request->version});
-
                 }
                 catch(...)
                 {
