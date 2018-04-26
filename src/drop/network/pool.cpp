@@ -159,8 +159,12 @@ namespace drop
                 promise.resolve(message);
             }).except([=](const std :: exception_ptr & exception)
             {
+                std :: cout << "In request promise except" << std :: endl;
+                std :: cout << "Calling block" << std :: endl;
                 arc->block(true);
+                std :: cout << "Calling receive_unlock" << std :: endl;
                 arc->receive_unlock();
+                std :: cout << "Calling promise.reject" << std :: endl;
                 promise.reject(exception);
             });
 
@@ -214,12 +218,14 @@ namespace drop
                         if(!(request.type == queue :: write ? request.arc->send_step() : request.arc->receive_step()))
                             continue;
 
+                        std :: cout << "Success. Resolving request promise " << request.promise << std :: endl;
                         request.promise.resolve();
                     }
                     catch(...)
                     {
                         std :: cout << "Rejecting request promise " << request.promise << std :: endl;
                         request.promise.reject(std :: current_exception());
+                        std :: cout << "Promise rejected" << std :: endl;
                     }
                 }
 
