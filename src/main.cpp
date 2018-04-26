@@ -6,6 +6,7 @@
 #include "drop/crypto/signature.hpp"
 #include "vine/dialers/directory.hpp"
 #include "vine/network/multiplexer.hpp"
+#include "drop/thread/semaphore.h"
 
 using namespace drop;
 using namespace vine;
@@ -26,7 +27,7 @@ struct intervals
     static constexpr interval publish = 5_s;
     static constexpr interval change = 3_m;
 
-    static constexpr interval seppuku = 10_m;
+    static constexpr interval seppuku = 10_s;
 };
 
 // Statement
@@ -65,8 +66,11 @@ struct statement
     }
 };
 
+semaphore seppuku_semaphore;
+
 void seppuku()
 {
+    seppuku_semaphore.wait();
     sleep(intervals :: seppuku);
     std :: cout << "Seppuku is forced to terminate the process. See core dump for further information." << std :: endl;
     (*((int *) nullptr)) = 99;
@@ -301,5 +305,6 @@ int main(int argc, char ** args)
         }
 
         std :: cout << "Main thread terminating" << std :: endl;
+        seppuku_semaphore.post();
     }
 }
