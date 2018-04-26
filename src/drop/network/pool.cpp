@@ -231,6 +231,10 @@ namespace drop
                         {
                             std :: cout << "Exception: " << exception.what() << std :: endl;
                         }
+                        catch(...)
+                        {
+                            std :: cout << "Unknown exception...!!" << std :: endl;
+                        }
 
                         std :: cout << "Rejecting request promise " << request.promise << std :: endl;
                         request.promise.reject(std :: current_exception());
