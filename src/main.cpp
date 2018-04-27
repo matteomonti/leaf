@@ -23,7 +23,7 @@ struct intervals
     static constexpr interval final = 30_s;
 
     static constexpr interval total = 3_m;
-    static constexpr interval publish = 5_s;
+    static constexpr interval publish = 0.1_s;
     static constexpr interval change = 1_h;
 
     static constexpr interval seppuku = 10_s;
