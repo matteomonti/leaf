@@ -76,7 +76,7 @@ int main(int argc, char ** args)
 
         staticsample :: peer peer(instanceid, signer, rate, view, sample, diraddr);
 
-        wait(10_s);
+        sleep(10_s);
         peer.start();
 
         while(true)
