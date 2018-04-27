@@ -150,7 +150,7 @@ namespace vine :: dialers
         {
             std :: cout << "[directory / connect] Entry not found." << std :: endl;
         }
-        
+
         this->_mutex.unlock();
 
         if(!entry)
@@ -173,7 +173,7 @@ namespace vine :: dialers
         std :: cout << "[directory / connect] Sending publickey." << std :: endl;
         co_await connection.send(this->_signer.publickey());
 
-        std :: cout << "[directory / connect] Sending keyexchanger publickey." << std :: endl;
+        /*std :: cout << "[directory / connect] Sending keyexchanger publickey." << std :: endl;
         co_await connection.send(this->_keyexchanger.publickey());
 
         std :: cout << "[directory / connect] Sending timestamp." << std :: endl;
@@ -184,7 +184,7 @@ namespace vine :: dialers
         co_await connection.send(this->_signer.sign(signatures :: entry, this->_keyexchanger.publickey(), timestamp));
 
         std :: cout << "[directory / connect] Authenticating." << std :: endl;
-        co_await connection.authenticate(this->_keyexchanger, entry->publickey);
+        co_await connection.authenticate(this->_keyexchanger, entry->publickey);*/
 
         std :: cout << "[directory / connect] Returning dial." << std :: endl;
         co_return dial(identifier, sync_connection);

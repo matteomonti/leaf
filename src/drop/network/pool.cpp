@@ -284,7 +284,14 @@ namespace drop
                         if(!(request.type == queue :: write ? request.arc->send_step() : request.arc->receive_step()))
                             continue;
 
-                        request.promise.resolve();
+                        try
+                        {
+                            request.promise.resolve();
+                        }
+                        catch(const std :: exception & exception)
+                        {
+                            std :: cout << "------> request.promise.resolve threw an exception: " << exception.what() << std :: endl;
+                        }
                     }
                     catch(...)
                     {

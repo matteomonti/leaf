@@ -24,7 +24,14 @@ namespace drop
 
         this->receive().then([=](const buffer & message)
         {
-            promise.resolve(bytewise :: deserialize <types...> (message));
+            try
+            {
+                promise.resolve(bytewise :: deserialize <types...> (message));
+            }
+            catch(...)
+            {
+                promise.reject(std :: current_exception());
+            }
         }).except([=](const std :: exception_ptr & exception)
         {
             promise.reject(exception);

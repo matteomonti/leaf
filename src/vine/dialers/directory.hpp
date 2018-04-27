@@ -39,7 +39,7 @@ namespace vine :: dialers
                 std :: cout << "[directory / on] Receiving identifier." << std :: endl;
                 signature :: publickey identifier = co_await connection.receive <signature :: publickey> ();
 
-                std :: cout << "[directory / on] Receiving publickey." << std :: endl;
+                /*std :: cout << "[directory / on] Receiving publickey." << std :: endl;
                 class keyexchanger :: publickey publickey = co_await connection.receive <class keyexchanger :: publickey> ();
 
                 std :: cout << "[directory / on] Receiving timestamp." << std :: endl;
@@ -53,7 +53,7 @@ namespace vine :: dialers
                 verifier.verify(signature, signatures :: entry, publickey, timestamp);
 
                 std :: cout << "[directory / on] Authenticating." << std :: endl;
-                co_await connection.authenticate(this->_keyexchanger, publickey);
+                co_await connection.authenticate(this->_keyexchanger, publickey);*/
 
                 std :: cout << "[directory / on] Calling handler " << &handler << "." << std :: endl;
                 handler(dial(identifier, sync_connection));
