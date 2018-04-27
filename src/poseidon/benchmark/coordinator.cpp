@@ -24,6 +24,7 @@ namespace poseidon
         try
         {
             identifier identifier = co_await connection.receive <vine :: identifier> ();
+            uint32_t size = co_await connection.receive <uint32_t> ();
 
             this->_mutex.lock();
 
@@ -50,8 +51,16 @@ namespace poseidon
                 if(this->_identifiers.vector.size())
                 {
                     ready = true;
-                    for(size_t i = 0; i < settings :: view :: size; i++)
-                        view.push_back(this->_identifiers.vector[randombytes_uniform(this->_identifiers.vector.size())]);
+                    for(size_t i = 0; i < size; i++)
+                        while(true)
+                        {
+                            vine :: identifier random = this->_identifiers.vector[randombytes_uniform(this->_identifiers.vector.size())];
+                            if(random == identifier)
+                                continue;
+
+                            view.push_back(random);
+                            break;
+                        }
                 }
 
                 this->_mutex.unlock();
@@ -69,7 +78,7 @@ namespace poseidon
 
     // Static methods
 
-    std :: array <identifier, coordinator :: settings :: view :: size> coordinator :: await(const address & server, const identifier & identifier)
+    std :: vector <identifier> coordinator :: await(const address & server, const identifier & identifier, const size_t & size)
     {
         while(true)
         {
@@ -77,6 +86,7 @@ namespace poseidon
             {
                 connection connection = connectors :: tcp :: sync :: connect(server);
                 connection.send(identifier);
+                connection.send <uint32_t> (size);
 
                 while(true)
                 {
@@ -85,12 +95,7 @@ namespace poseidon
 
                     if(ready)
                     {
-                        std :: vector <vine :: identifier> viewvec = connection.receive <std :: vector <vine :: identifier>> ();
-                        std :: array <vine :: identifier, settings :: view :: size> view;
-
-                        for(size_t i = 0; i < settings :: view :: size; i++)
-                            view[i] = viewvec[i];
-
+                        std :: vector <vine :: identifier> view = connection.receive <std :: vector <vine :: identifier>> ();
                         return view;
                     }
 

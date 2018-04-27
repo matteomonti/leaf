@@ -36,11 +36,6 @@ namespace poseidon
 
         struct settings
         {
-            struct view
-            {
-                static constexpr size_t size = 16;
-            };
-
             struct intervals
             {
                 static constexpr interval poll = 1_s;
@@ -80,7 +75,7 @@ namespace poseidon
 
         // Static methods
 
-        static std :: array <identifier, settings :: view :: size> await(const address &, const identifier &);
+        static std :: vector <identifier> await(const address &, const identifier &, const size_t &);
     };
 };
 

@@ -1,11 +1,7 @@
 #include <iostream>
 
-#include "drop/distributed/gossiper.hpp"
-#include "drop/distributed/publisher.hpp"
-#include "poseidon/benchmark/coordinator.h"
-#include "drop/crypto/signature.hpp"
-#include "vine/dialers/directory.hpp"
-#include "drop/thread/semaphore.h"
+#include "poseidon/benchmark/staticsample/master.h"
+#include "poseidon/benchmark/staticsample/peer.h"
 
 using namespace drop;
 using namespace vine;
@@ -17,69 +13,16 @@ struct ports
     static constexpr uint16_t directory = 7778;
 };
 
-struct intervals
+struct sizes
 {
-    static constexpr interval initial = 10_s;
-    static constexpr interval final = 30_s;
-
-    static constexpr interval total = 3_m;
-    static constexpr interval publish = 0.1_s;
-    static constexpr interval change = 1_h;
-
-    static constexpr interval seppuku = 10_s;
+    static constexpr size_t view = 4;
+    static constexpr size_t sample = 8;
 };
 
-// Statement
-
-struct statement
-{
-    // Public members
-
-    uint64_t id;
-    buffer message;
-
-    // Methods
-
-    template <typename vtype> void accept(bytewise :: reader <vtype> & reader) const
-    {
-        reader << (this->id);
-        reader << (this->message);
-    }
-
-    template <typename vtype> void accept(bytewise :: writer <vtype> & writer)
-    {
-        writer >> (this->id);
-        writer >> (this->message);
-    }
-
-    // Operators
-
-    bool operator == (const statement & rho) const
-    {
-        return (this->id == rho.id) && (this->message == rho.message);
-    }
-
-    bool operator != (const statement & rho) const
-    {
-        return !((*this) == rho);
-    }
-};
-
-semaphore seppuku_semaphore;
-
-void seppuku()
-{
-    seppuku_semaphore.wait();
-    sleep(intervals :: seppuku);
-    std :: cout << "Seppuku is forced to terminate the process. See core dump for further information." << std :: endl;
-    (*((int *) nullptr)) = 99;
-}
+static constexpr interval rate = 5_s;
 
 int main(int argc, char ** args)
 {
-    std :: thread seppuku_thread(seppuku);
-    seppuku_thread.detach();
-
     if(argc < 2)
     {
         std :: cout << "Please select a role for the node: master or peer." << std :: endl;
@@ -102,8 +45,7 @@ int main(int argc, char ** args)
             return -1;
         }
 
-        coordinator coordinator(ports :: coordinator, nodes);
-        dialers :: directory :: server directory(ports :: directory);
+        staticsample :: master master(ports :: coordinator, ports :: directory, nodes);
 
         while(true)
             sleep(10_h);
@@ -127,210 +69,14 @@ int main(int argc, char ** args)
         address coordaddr(args[2], ports :: coordinator);
         address diraddr(args[2], ports :: directory);
 
-        // Coordinator
-
         signer signer;
 
-        std :: cout << "Node publickey: " << signer.publickey() << std :: endl;
+        std :: vector <identifier> view = coordinator :: await(coordaddr, signer.publickey(), sizes :: view);
+        std :: vector <identifier> sample = coordinator :: await(coordaddr, signer.publickey(), sizes :: sample);
 
-        std :: array <identifier, coordinator :: settings :: view :: size> view = coordinator :: await(coordaddr, signer.publickey());
-        std :: array <identifier, coordinator :: settings :: view :: size> sample = coordinator :: await(coordaddr, signer.publickey());
-
-        // Various declarations
-
-        connectors :: tcp :: async connector;
-        pool pool;
-        crontab crontab;
-
-        // Publisher
-
-        std :: mutex mutex;
-
-        std :: unordered_map <uint64_t, buffer> statements;
-        std :: unordered_map <uint64_t, size_t> votes;
-
-        publisher <uint64_t, buffer> ppublisher(crontab);
-
-        ppublisher.on <publisher <uint64_t, buffer> :: archive> ([&](const auto & id, const auto & archive)
-        {
-            mutex.lock();
-
-            try
-            {
-                buffer message = statements.at(id);
-                archive << message;
-            }
-            catch(...)
-            {
-            }
-
-            mutex.unlock();
-        });
-
-        subscriber <uint64_t, buffer> * subscribers[coordinator :: settings :: view :: size]{};
-
-        // Gossiper
-
-        gossiper <statement> gossiper(crontab);
-
-        gossiper.on <statement> ([&](const auto & id, const statement & statement)
-        {
-            std :: cout << (uint64_t) timestamp(now) << " gossip " << statement.id << ": " << statement.message << std :: endl;
-
-            mutex.lock();
-            statements[statement.id] = statement.message;
-            votes[statement.id] = 0;
-
-            for(size_t i = 0; i < coordinator :: settings :: view :: size; i++)
-                if(subscribers[i])
-                    subscribers[i]->once(statement.id);
-
-            mutex.unlock();
-
-            ppublisher.publish(statement.id, statement.message);
-        });
-
-        // Dialer
-
-        dialers :: directory :: client dialer(diraddr, signer, connector, pool, crontab);
-
-        dialer.on <dial> ([&](dial dial) -> promise <void>
-        {
-            try
-            {
-                auto connection = pool.bind(dial);
-                bool channel = co_await connection.receive <bool> ();
-
-                if(!channel)
-                    gossiper.serve(connection, signer.publickey() < dial.identifier());
-                else
-                    ppublisher.serve(connection);
-            }
-            catch(...)
-            {
-            }
-        });
-
-        // Seeding
-
-        timestamp start = now;
-
-        if(instanceid == 0)
-        {
-            [&]() -> promise <void>
-            {
-                for(uint64_t round = 0; (timestamp(now) - start) < intervals :: total; round++)
-                {
-                    std :: cout << (uint64_t) timestamp(now) << " seed " << round << std :: endl;
-
-                    char message[1024];
-                    sprintf(message, "Message number %llu", round);
-                    gossiper.publish({.id = round, .message = message});
-
-                    co_await crontab.wait(intervals :: publish);
-                }
-            }();
-        }
-
-        sleep(intervals :: initial);
-
-        // Experiment
+        staticsample :: peer peer(instanceid, signer, rate, view, sample, diraddr);
 
         while(true)
-        {
-            if(timestamp(now) - start > intervals :: total + intervals :: final)
-                break;
-
-            mutex.lock();
-            for(size_t i = 0; i < coordinator :: settings :: view :: size; i++)
-                if(subscribers[i])
-                {
-                    delete subscribers[i];
-                    subscribers[i] = nullptr;
-                }
-
-            std :: cout << (uint64_t) timestamp(now) << " reset" << std :: endl;
-            for(auto & vote : votes)
-                vote.second = 0;
-
-            mutex.unlock();
-
-            for(size_t index = 0; index < coordinator :: settings :: view :: size; index++)
-            {
-                identifier identifier = sample[index];
-
-                dialer.connect(identifier).then([&, index](const dial & dial)
-                {
-                    try
-                    {
-                        dial.send(true); // This is a synchronous send!
-                    }
-                    catch(...)
-                    {
-                        std :: cout << "Failed to establish (sample, send) connection to " << identifier << std :: endl;
-                        return;
-                    }
-
-                    mutex.lock();
-
-                    subscribers[index] = new subscriber <uint64_t, buffer> (pool.bind(dial), crontab);
-                    subscribers[index]->on <buffer> ([&](const uint64_t & id, const buffer & message)
-                    {
-                        mutex.lock();
-                        votes[id]++;
-                        std :: cout << (uint64_t) timestamp(now) << " votes " << id << " " << votes[id] << std :: endl;
-
-                        if(votes[id] == coordinator :: settings :: view :: size)
-                        {
-                            std :: cout << (uint64_t) timestamp(now) << " accept " << id << ": " << message << std :: endl;
-                            votes.erase(id);
-                        }
-
-                        mutex.unlock();
-                    });
-
-                    subscribers[index]->on <drop :: close> ([=]()
-                    {
-                        std :: cout << "Subscriber " << index << "lost the connection" << std :: endl;
-                    });
-
-                    for(const auto & vote : votes)
-                        subscribers[index]->once(vote.first);
-
-                    mutex.unlock();
-                    subscribers[index]->start();
-                }).except([=](const std :: exception_ptr & exception)
-                {
-                    std :: cout << "Failed to establish (sample) connection to " << identifier << std :: endl;
-                });
-            }
-
-            for(const identifier & identifier : view)
-                dialer.connect(identifier).then([&](const dial & dial)
-                {
-                    try
-                    {
-                        dial.send(false); // This is a synchronous send!
-                    }
-                    catch(...)
-                    {
-                        std :: cout << "Failed to establish (view, send) connection to " << identifier << std :: endl;
-                    }
-
-                    gossiper.serve(pool.bind(dial), signer.publickey() < dial.identifier()).until(timestamp(now) + intervals :: change /*interval :: random(intervals :: change)*/);
-                }).except([=](const std :: exception_ptr & exception)
-                {
-                    std :: cout << "Failed to establish (view) connection to " << identifier << std :: endl;
-                });
-
-            sleep(intervals :: change/*interval :: random(intervals :: change)*/);
-
-            break; // REMOVE ME
-            view = coordinator :: await(coordaddr, signer.publickey());
-            sample = coordinator :: await(coordaddr, signer.publickey());
-        }
-
-        std :: cout << "Main thread terminating" << std :: endl;
-        seppuku_semaphore.post();
+            sleep(10_h);
     }
 }
