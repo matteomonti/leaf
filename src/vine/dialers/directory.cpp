@@ -133,34 +133,58 @@ namespace vine :: dialers
 
     promise <dial> directory :: client :: connect(vine :: identifier identifier)
     {
+        std :: cout << "[directory / connect] Establishing connection." << std :: endl;
+
         optional <entry> entry;
 
+        std :: cout << "[directory / connect] Looking up entry in cache." << std :: endl;
         try
         {
+            this->_mutex.lock();
             entry = this->_cache.at(identifier);
+            this->_mutex.unlock();
+
+            std :: cout << "[directory / connect] Entry found in cache." << std :: endl;
         }
         catch(...)
         {
+            std :: cout << "[directory / connect] Entry not found." << std :: endl;
         }
 
         if(!entry)
         {
+            std :: cout << "[directory / connect] Looking up entry." << std :: endl;
             entry = co_await this->lookup(identifier);
+
+            std :: cout << "[directory / connect] Saving entry in cache." << std :: endl;
+            this->_mutex.lock();
             this->_cache[identifier] = *entry;
+            this->_mutex.unlock();
         }
 
+        std :: cout << "[directory / connect] Establishing connection." << std :: endl;
         connection sync_connection = co_await this->_connector.connect(entry->address);
+
+        std :: cout << "[directory / connect] Connection established. Binding." << std :: endl;
         pool :: connection connection = this->_pool.bind(sync_connection);
 
+        std :: cout << "[directory / connect] Sending publickey." << std :: endl;
         co_await connection.send(this->_signer.publickey());
+
+        std :: cout << "[directory / connect] Sending keyexchanger publickey." << std :: endl;
         co_await connection.send(this->_keyexchanger.publickey());
 
+        std :: cout << "[directory / connect] Sending timestamp." << std :: endl;
         timestamp timestamp = now;
         co_await connection.send(timestamp);
 
+        std :: cout << "[directory / connect] Sending signature." << std :: endl;
         co_await connection.send(this->_signer.sign(signatures :: entry, this->_keyexchanger.publickey(), timestamp));
+
+        std :: cout << "[directory / connect] Authenticating." << std :: endl;
         co_await connection.authenticate(this->_keyexchanger, entry->publickey);
 
+        std :: cout << "[directory / connect] Returning dial." << std :: endl;
         co_return dial(identifier, sync_connection);
     }
 

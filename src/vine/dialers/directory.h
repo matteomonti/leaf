@@ -146,6 +146,8 @@ namespace vine :: dialers
             pool & _pool;
             crontab & _crontab;
 
+            std :: mutex _mutex;
+
         public:
 
             // Constructors
