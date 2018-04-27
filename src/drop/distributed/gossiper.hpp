@@ -148,7 +148,6 @@ namespace drop
 
         messenger.template on <close> ([=]()
         {
-            std :: cout << "[gossiper] Lost connection to " << id << std :: endl;
             this->drop(id);
         });
 
@@ -216,9 +215,6 @@ namespace drop
                         iterator = this->_sessions.erase(iterator);
                     else
                     {
-                        std :: cout << "[gossiper] Calling send on " << iterator->first << ": " << &(iterator->second) << std :: endl;
-                        std :: cout << "[gossiper] (Messenger is " << &(iterator->second->messenger) << ")" << std :: endl;
-
                         iterator->second->messenger.send(element);
                         iterator++;
                     }

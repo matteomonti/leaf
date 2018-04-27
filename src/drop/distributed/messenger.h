@@ -79,13 +79,6 @@ namespace drop
             // Constructors
 
             arc(const pool :: connection &, class crontab &);
-
-            // Destructor
-
-            ~arc() // REMOVE ME
-            {
-                std :: cout << "[messenger] Destroying arc " << this << std :: endl;
-            }
         };
 
         // Static asserts
