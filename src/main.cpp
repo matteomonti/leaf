@@ -13,13 +13,7 @@ struct ports
     static constexpr uint16_t directory = 7778;
 };
 
-struct sizes
-{
-    static constexpr size_t view = 4;
-    static constexpr size_t sample = 8;
-};
-
-static constexpr interval rate = 5_s;
+static constexpr interval rate = 1_s;
 
 int main(int argc, char ** args)
 {
@@ -64,15 +58,30 @@ int main(int argc, char ** args)
             return -1;
         }
 
+        if(argc < 5)
+        {
+            std :: cout << "Please insert the size of the view" << std :: endl;
+            return -1;
+        }
+
+        if(argc < 6)
+        {
+            std :: cout << "Please insert the size of the sample" << std :: endl;
+            return -1;
+        }
+
         size_t instanceid = atoi(args[3]);
+
+        size_t viewsize = atoi(args[4]);
+        size_t samplesize = atoi(args[5]);
 
         address coordaddr(args[2], ports :: coordinator);
         address diraddr(args[2], ports :: directory);
 
         signer signer;
 
-        std :: vector <identifier> view = coordinator :: await(coordaddr, signer.publickey(), sizes :: view);
-        std :: vector <identifier> sample = coordinator :: await(coordaddr, signer.publickey(), sizes :: sample);
+        std :: vector <identifier> view = coordinator :: await(coordaddr, signer.publickey(), viewsize);
+        std :: vector <identifier> sample = coordinator :: await(coordaddr, signer.publickey(), samplesize);
 
         staticsample :: peer peer(instanceid, signer, rate, view, sample, diraddr);
 
