@@ -137,19 +137,21 @@ namespace vine :: dialers
 
         optional <entry> entry;
 
+        this->_mutex.lock();
+
         std :: cout << "[directory / connect] Looking up entry in cache." << std :: endl;
+
         try
         {
-            this->_mutex.lock();
             entry = this->_cache.at(identifier);
-            this->_mutex.unlock();
-
             std :: cout << "[directory / connect] Entry found in cache." << std :: endl;
         }
         catch(...)
         {
             std :: cout << "[directory / connect] Entry not found." << std :: endl;
         }
+        
+        this->_mutex.unlock();
 
         if(!entry)
         {
