@@ -290,7 +290,6 @@ namespace drop
                         }
                         catch(const std :: exception & exception)
                         {
-                            std :: cout << "------> request.promise.resolve threw an exception: " << exception.what() << std :: endl;
                         }
                     }
                     catch(...)
