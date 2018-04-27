@@ -91,8 +91,9 @@ namespace poseidon :: staticsample
             }
             catch(...)
             {
-                co_await this->_crontab.wait(0.5_s);
             }
+
+            co_await this->_crontab.wait(0.5_s);
         }
     }
 
@@ -141,8 +142,9 @@ namespace poseidon :: staticsample
             }
             catch(...)
             {
-                co_await this->_crontab.wait(0.5_s);
             }
+
+            co_await this->_crontab.wait(0.5_s);
         }
     }
 
