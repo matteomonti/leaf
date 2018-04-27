@@ -9,7 +9,7 @@ namespace poseidon :: staticsample
 
     // Constructors
 
-    peer :: peer(const size_t & id, const signer & signer, const interval & rate, const std :: vector <identifier> & view, const std :: vector <identifier> & sample, const address & directory) : _signer(signer), _rate(rate), _dialer(directory, this->_signer, this->_connector, this->_pool, this->_crontab), _publisher(this->_crontab), _gossiper(this->_crontab), _view(view), _sample(sample), _subscribers(new subscriber <uint64_t, buffer> * [this->_sample.size()] {})
+    peer :: peer(const size_t & id, const signer & signer, const interval & rate, const std :: vector <identifier> & view, const std :: vector <identifier> & sample, const address & directory) : _id(id), _signer(signer), _rate(rate), _dialer(directory, this->_signer, this->_connector, this->_pool, this->_crontab), _publisher(this->_crontab), _gossiper(this->_crontab), _view(view), _sample(sample), _subscribers(new subscriber <uint64_t, buffer> * [this->_sample.size()] {})
     {
         this->_publisher.on <publisher <uint64_t, buffer> :: archive> ([=](const auto & id, const auto & archive)
         {
