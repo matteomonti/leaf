@@ -156,7 +156,6 @@ namespace vine :: dialers
             this->_mutex.unlock();
         }
 
-        throw exceptions :: node_not_found(); // REMOVE ME, I am using this only to cause the segmentation fault.
         connection sync_connection = co_await this->_connector.connect(entry->address);
 
         pool :: connection connection = this->_pool.bind(sync_connection);
@@ -202,6 +201,8 @@ namespace vine :: dialers
 
             verifier verifier(identifier);
             verifier.verify(signature, signatures :: entry, entry.publickey, entry.timestamp);
+
+            throw exceptions :: node_not_found(); // REMOVE ME, this is just to cause segfault.
 
             co_return entry;
         }
