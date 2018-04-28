@@ -55,11 +55,13 @@ namespace poseidon
 
         std :: mutex _mutex;
 
+        std :: ostream & log;
+
     public:
 
         // Constructors
 
-        brahms(const signer &, const view &, dialer &, pool &, crontab &);
+        brahms(const signer &, const view &, dialer &, pool &, crontab &, std :: ostream &);
 
         // Methods
 

@@ -9,7 +9,7 @@ namespace poseidon
 
     // Constructors
 
-    brahms :: brahms(const signer & signer, const view & view, dialer & dialer, pool & pool, crontab & crontab) : _signer(signer), _view(view), _dialer(dialer), _pool(pool), _crontab(crontab)
+    brahms :: brahms(const signer & signer, const view & view, dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _view(view), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
         for(size_t index = 0; index < settings :: sample :: size; index++)
             this->_sample[index].init(this->_view);
