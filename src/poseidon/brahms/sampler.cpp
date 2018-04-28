@@ -27,6 +27,8 @@ namespace poseidon
         this->_key = hash :: key :: random();
 
         this->_sample = view[0];
+        this->_hash = hash :: keyed(this->_key, this->_sample);
+        
         for(size_t index = 1; index < settings :: view :: size; index++)
             this->next(view[index]);
     }

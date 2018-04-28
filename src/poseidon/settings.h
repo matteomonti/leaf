@@ -24,23 +24,23 @@ namespace poseidon
     {
         struct sample
         {
-            static constexpr size_t size = 32;
+            static constexpr size_t size = 16;
         };
 
         struct view
         {
-            static constexpr size_t size = 16;
+            static constexpr size_t size = 8;
         };
 
         static constexpr size_t channels = 3;
 
         struct brahms
         {
-            static constexpr interval interval = 1_m;
+            static constexpr interval interval = 10_s;
 
-            static constexpr size_t alpha = 6;
-            static constexpr size_t beta = 6;
-            static constexpr size_t gamma = 4;
+            static constexpr size_t alpha = 3;
+            static constexpr size_t beta = 3;
+            static constexpr size_t gamma = 2;
         };
     };
 };

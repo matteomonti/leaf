@@ -7,7 +7,7 @@ using namespace drop;
 using namespace vine;
 using namespace poseidon;
 
-static constexpr size_t nodes = 256;
+static constexpr size_t nodes = 64;
 
 int main()
 {
@@ -56,7 +56,6 @@ int main()
 
     for(size_t i = 0; i < nodes; i++)
     {
-        std :: cout << "Starting node " << i << std :: endl;
         brahms[i]->start();
         sleep(0.1_s);
     }
