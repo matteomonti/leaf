@@ -8,20 +8,24 @@ promise <void> my_promise;
 
 promise <double> g()
 {
-    co_await my_promise;
-    co_return 4.44;
-}
+    /*co_await my_promise;
+    co_return 4.44;*/
 
-promise <int> f()
-{
-    int i = co_await g();
-    throw "Tua madre puzza!";
-
-    co_return i;
+    return my_promise.then([]()
+    {
+        return promise <double> :: resolved(4.44);
+    });
 }
 
 int main()
 {
-    f();
+    g().then([](const double & value)
+    {
+        std :: cout << "Resolved with value " << value << std :: endl;
+    }).except([](const std :: exception_ptr & exception)
+    {
+        std :: cout << "Exception!" << std :: endl;
+    });
+
     my_promise.resolve();
 }
