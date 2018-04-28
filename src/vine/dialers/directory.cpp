@@ -206,8 +206,9 @@ namespace vine :: dialers
         }
         catch(...)
         {
-            throw exceptions :: node_not_found();
         }
+
+        throw exceptions :: node_not_found();
     }
 
     promise <void> directory :: client :: refresh()
