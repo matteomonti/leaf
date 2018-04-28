@@ -44,21 +44,14 @@ namespace poseidon :: staticsample
             this->_publisher.publish(statement.id, statement.message);
         });
 
-        this->_dialer.on <dial> ([=](dial dial) -> promise <void>
+        this->_dialer.on <0> ([=](dial dial)
         {
-            try
-            {
-                auto connection = this->_pool.bind(dial);
-                bool channel = co_await connection.receive <bool> ();
+            this->_gossiper.serve(this->_pool.bind(dial), this->_signer.publickey() < dial.identifier());
+        });
 
-                if(!channel)
-                    this->_gossiper.serve(connection, this->_signer.publickey() < dial.identifier());
-                else
-                    this->_publisher.serve(connection);
-            }
-            catch(...)
-            {
-            }
+        this->_dialer.on <1> ([=](dial dial)
+        {
+            this->_publisher.serve(this->_pool.bind(dial));
         });
     }
 
@@ -84,9 +77,7 @@ namespace poseidon :: staticsample
         {
             try
             {
-                dial dial = co_await this->_dialer.connect(this->_view[index]);
-                dial.send(false);
-
+                dial dial = co_await this->_dialer.connect <0> (this->_view[index]);
                 co_await this->_gossiper.serve(this->_pool.bind(dial), this->_signer.publickey() < dial.identifier());
             }
             catch(...)
@@ -103,8 +94,7 @@ namespace poseidon :: staticsample
         {
             try
             {
-                dial dial = co_await this->_dialer.connect(this->_sample[index]);
-                dial.send(true);
+                dial dial = co_await this->_dialer.connect <1> (this->_sample[index]);
 
                 if(this->_subscribers[index])
                     delete this->_subscribers[index];

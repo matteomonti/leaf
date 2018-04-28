@@ -18,6 +18,7 @@ namespace poseidon
 #include "drop/distributed/publisher.hpp"
 #include "drop/crypto/signature.hpp"
 #include "vine/dialers/directory.hpp"
+#include "vine/network/multiplexer.hpp"
 
 namespace poseidon :: staticsample
 {
@@ -75,7 +76,7 @@ namespace poseidon :: staticsample
         pool _pool;
         crontab _crontab;
 
-        dialers :: directory :: client _dialer;
+        multiplexer <dialers :: directory :: client, 2> _dialer;
 
         publisher <uint64_t, buffer> _publisher;
         gossiper <statement> _gossiper;
