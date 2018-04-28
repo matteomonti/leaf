@@ -1,94 +1,27 @@
 #include <iostream>
 
-#include "poseidon/benchmark/staticsample/master.h"
-#include "poseidon/benchmark/staticsample/peer.h"
+#include "drop/async/promise.hpp"
 
 using namespace drop;
-using namespace vine;
-using namespace poseidon;
 
-struct ports
+promise <void> my_promise;
+
+promise <double> g()
 {
-    static constexpr uint16_t coordinator = 7777;
-    static constexpr uint16_t directory = 7778;
-};
+    co_await my_promise;
+    co_return 4.44;
+}
 
-static constexpr interval rate = 1_s;
-
-int main(int argc, char ** args)
+promise <int> f()
 {
-    if(argc < 2)
-    {
-        std :: cout << "Please select a role for the node: master or peer." << std :: endl;
-        return -1;
-    }
+    int i = co_await g();
+    throw "Tua madre puzza!";
 
-    if(!strcmp(args[1], "master"))
-    {
-        if(argc < 3)
-        {
-            std :: cout << "Please insert the number of nodes to coordinate." << std :: endl;
-            return -1;
-        }
+    co_return i;
+}
 
-        size_t nodes = atoi(args[2]);
-
-        if(nodes == 0)
-        {
-            std :: cout << "The network cannot have zero nodes." << std :: endl;
-            return -1;
-        }
-
-        staticsample :: master master(ports :: coordinator, ports :: directory, nodes);
-
-        while(true)
-            sleep(10_h);
-    }
-    else if(!strcmp(args[1], "peer"))
-    {
-        if(argc < 3)
-        {
-            std :: cout << "Please insert the IP address of the master." << std :: endl;
-            return -1;
-        }
-
-        if(argc < 4)
-        {
-            std :: cout << "Please insert the ID of the current instance." << std :: endl;
-            return -1;
-        }
-
-        if(argc < 5)
-        {
-            std :: cout << "Please insert the size of the view" << std :: endl;
-            return -1;
-        }
-
-        if(argc < 6)
-        {
-            std :: cout << "Please insert the size of the sample" << std :: endl;
-            return -1;
-        }
-
-        size_t instanceid = atoi(args[3]);
-
-        size_t viewsize = atoi(args[4]);
-        size_t samplesize = atoi(args[5]);
-
-        address coordaddr(args[2], ports :: coordinator);
-        address diraddr(args[2], ports :: directory);
-
-        signer signer;
-
-        std :: vector <identifier> view = coordinator :: await(coordaddr, signer.publickey(), viewsize);
-        std :: vector <identifier> sample = coordinator :: await(coordaddr, signer.publickey(), samplesize);
-
-        staticsample :: peer peer(instanceid, signer, rate, view, sample, diraddr);
-
-        sleep(10_s);
-        peer.start();
-
-        while(true)
-            sleep(10_h);
-    }
+int main()
+{
+    f();
+    my_promise.resolve();
 }
