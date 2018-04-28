@@ -1,11 +1,14 @@
 #include <iostream>
 
-#include "poseidon/brahms/brahms.h"
+#include "drop/bytewise/bytewise.hpp"
 
 using namespace drop;
-using namespace vine;
-using namespace poseidon;
 
 int main()
 {
+    std :: array <int, 3> x{1, 2, 3};
+    buffer serialized = bytewise :: serialize(x);
+    std :: array <int, 3> y = bytewise :: deserialize <std :: array <int, 3>> (serialized);
+
+    std :: cout << y[0] << ", " << y[1] << ", " << y[2] << std :: endl;
 }

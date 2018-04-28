@@ -12,6 +12,7 @@ namespace drop
 
 #include <type_traits>
 #include <vector>
+#include <array>
 
 // Forward includes
 
@@ -55,6 +56,18 @@ namespace drop
             };
 
             template <typename vtype> struct is_vector
+            {
+                static constexpr bool value = false;
+            };
+
+            template <typename type> struct is_std_array;
+            template <typename itype, size_t size> struct is_std_array <std :: array <itype, size>>
+            {
+                static constexpr bool value = true;
+                typedef itype type;
+            };
+
+            template <typename atype> struct is_std_array
             {
                 static constexpr bool value = false;
             };

@@ -42,6 +42,8 @@ namespace drop
             return readable <std :: remove_all_extents_t <atype>, vtype> ();
         else if constexpr (traits :: is_vector <atype> :: value)
             return readable <typename traits :: is_vector <atype> :: type, vtype> ();
+        else if constexpr (traits :: is_std_array <atype> :: value)
+            return readable <typename traits :: is_std_array <atype> :: type, vtype> ();
         else
             return traits :: can_accept_reader <atype, vtype> () || std :: is_integral <atype> :: value;
     }
@@ -52,6 +54,8 @@ namespace drop
             return writable <std :: remove_all_extents_t <atype>, vtype> ();
         else if constexpr (traits :: is_vector <atype> :: value)
             return writable <typename traits :: is_vector <atype> :: type, vtype> ();
+        else if constexpr (traits :: is_std_array <atype> :: value)
+            return writable <typename traits :: is_std_array <atype> :: type, vtype> ();
         else
             return traits :: can_accept_writer <atype, vtype> () || std :: is_integral <atype> :: value;
     }
@@ -105,6 +109,9 @@ namespace drop
             for(size_t i = 0; i < acceptor.size(); i++)
                 (*this) << acceptor[i];
         }
+        else if constexpr (traits :: is_std_array <atype> :: value)
+            for(size_t i = 0; i < acceptor.size(); i++)
+                (*this) << acceptor[i];
         else if constexpr (traits :: can_accept_reader <atype, vtype> ())
             acceptor.accept(*this);
         else if constexpr (std :: is_integral <atype> :: value)
@@ -146,6 +153,9 @@ namespace drop
             for(size_t i = 0; i < size; i++)
                 (*this) >> acceptor[i];
         }
+        else if constexpr (traits :: is_std_array <atype> :: value)
+            for(size_t i = 0; i < acceptor.size(); i++)
+                (*this) >> acceptor[i];
         else if constexpr (traits :: can_accept_writer <atype, vtype> ())
             acceptor.accept(*this);
         else if constexpr (std :: is_integral <atype> :: value)
