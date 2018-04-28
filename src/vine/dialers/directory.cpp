@@ -202,8 +202,6 @@ namespace vine :: dialers
             verifier verifier(identifier);
             verifier.verify(signature, signatures :: entry, entry.publickey, entry.timestamp);
 
-            throw exceptions :: node_not_found(); // REMOVE ME, this is just to cause segfault.
-
             co_return entry;
         }
         catch(...)

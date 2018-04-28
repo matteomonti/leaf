@@ -84,8 +84,7 @@ int main(int argc, char ** args)
         std :: vector <identifier> sample = coordinator :: await(coordaddr, signer.publickey(), samplesize);
 
         staticsample :: peer peer(instanceid, signer, rate, view, sample, diraddr);
-
-        sleep(10_s);
+        
         peer.start();
 
         while(true)
