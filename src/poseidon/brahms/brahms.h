@@ -80,6 +80,8 @@ namespace poseidon
 
         void update_sample(const view &);
         void update_sample(const std :: vector <identifier> &);
+
+        void reset_sampler(const size_t &);
     };
 
     // Events

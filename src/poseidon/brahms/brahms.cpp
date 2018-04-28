@@ -11,7 +11,8 @@ namespace poseidon
 
     brahms :: brahms(const signer & signer, const view & view, dialer & dialer, pool & pool, crontab & crontab) : _signer(signer), _view(view), _dialer(dialer), _pool(pool), _crontab(crontab)
     {
-        this->update_sample(this->_view);
+        for(size_t index = 0; index < settings :: sample :: size; index++)
+            this->_sample[index].init(this->_view);
     }
 
     // Methods
@@ -145,17 +146,7 @@ namespace poseidon
                 }
 
                 for(size_t index = settings :: brahms :: alpha + settings :: brahms :: beta; index < settings :: brahms :: alpha + settings :: brahms :: beta + settings :: brahms :: gamma; index++)
-                {
-                    while(true)
-                    {
-                        size_t element = randombytes_uniform(settings :: sample :: size);
-                        if(this->_sample[element].sample())
-                        {
-                            newview[index] = *(this->_sample[element].sample());
-                            break;
-                        }
-                    }
-                }
+                    newview[index] = this->_sample[randombytes_uniform(settings :: sample :: size)].sample();
 
                 this->_view = newview;
             }
@@ -177,5 +168,10 @@ namespace poseidon
         for(const identifier & identifier : buffer)
             for(sampler & sampler : this->_sample)
                 sampler.next(identifier);
+    }
+
+    void brahms :: reset_sampler(const size_t & index)
+    {
+        this->_sample[index].init(this->_view);
     }
 };

@@ -27,7 +27,7 @@ namespace poseidon
 
         hash :: key _key;
 
-        optional <identifier> _sample;
+        identifier _sample;
         hash _hash;
 
     public:
@@ -38,12 +38,12 @@ namespace poseidon
 
         // Getters
 
-        const optional <identifier> & sample() const;
+        const identifier & sample() const;
 
         // Methods
 
-        void init();
-        bool next(const identifier &);
+        void init(const std :: array <identifier, settings :: view :: size> &);
+        void next(const identifier &);
     };
 };
 

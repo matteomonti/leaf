@@ -11,45 +11,33 @@ namespace poseidon
 
     sampler :: sampler()
     {
-        this->init();
     }
 
     // Getters
 
-    const optional <identifier> & sampler :: sample() const
+    const identifier & sampler :: sample() const
     {
         return this->_sample;
     }
 
     // Methods
 
-    void sampler :: init()
+    void sampler :: init(const std :: array <identifier, settings :: view :: size> & view)
     {
         this->_key = hash :: key :: random();
-        this->_sample = null;
+
+        this->_sample = view[0];
+        for(size_t index = 1; index < settings :: view :: size; index++)
+            this->next(view[index]);
     }
 
-    bool sampler :: next(const identifier & identifier)
+    void sampler :: next(const identifier & identifier)
     {
-        if(!(this->_sample))
+        hash idhash = hash :: keyed(this->_key, identifier);
+        if(idhash < this->_hash)
         {
             this->_sample = identifier;
-            this->_hash = hash :: keyed(this->_key, identifier);
-
-            return true;
+            this->_hash = idhash;
         }
-        else
-        {
-            hash idhash = hash :: keyed(this->_key, identifier);
-            if(idhash < this->_hash)
-            {
-                this->_sample = identifier;
-                this->_hash = idhash;
-
-                return true;
-            }
-        }
-
-        return false;
     }
 };
