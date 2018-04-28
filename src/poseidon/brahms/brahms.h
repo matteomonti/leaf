@@ -10,6 +10,7 @@ namespace poseidon
 
 // Includes
 
+#include "poseidon/settings.h"
 #include "drop/network/pool.hpp"
 #include "drop/async/collector.hpp"
 #include "vine/network/dial.h"
