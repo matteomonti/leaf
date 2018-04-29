@@ -9,7 +9,7 @@ namespace poseidon
 
     // Constructors
 
-    gossiper :: gossiper(const signer & signer, brahms & brahms, dialer & dialer, pool & pool, crontab & crontab) : _signer(signer), _brahms(brahms), _gossiper(crontab), _dialer(dialer), _pool(pool), _crontab(crontab)
+    gossiper :: gossiper(const signer & signer, brahms & brahms, dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _brahms(brahms), _gossiper(crontab), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
     {
     }
 
@@ -19,19 +19,22 @@ namespace poseidon
     {
         this->_dialer.on <1> ([=](const dial & dial)
         {
+            this->log << "Connection incoming from " << dial.identifier() << std :: endl;
             this->serve(this->_pool.bind(dial), dial.identifier());
         });
 
         for(size_t index = 0; index < settings :: sample :: size; index++)
             this->maintain(index);
 
-        this->ban();
+        // this->ban();
     }
 
     // Private methods
 
     promise <void> gossiper :: serve(pool :: connection connection, identifier identifier)
     {
+        log << "Serving connection with " << identifier << std :: endl;
+
         timestamp begin = now;
 
         promise <void> promise = this->_gossiper.serve(connection, (this->_signer.publickey() < identifier)).until(begin + settings :: gossiper :: intervals :: gossip);
@@ -39,9 +42,13 @@ namespace poseidon
 
         timestamp end = now;
 
+        log << "Connection with " << identifier << " completed, it lasted for " << (end - begin) << std :: endl;
+
         if(end - begin > settings :: gossiper :: intervals :: reward)
         {
             this->_mutex.lock();
+
+            log << "A reward should be awarded!" << std :: endl;
 
             try
             {
@@ -52,6 +59,8 @@ namespace poseidon
             {
                 this->_scores[identifier] = 1;
             }
+
+            log << "The new score of " << identifier << " is " << this->_scores[identifier] << std :: endl;
 
             this->_mutex.unlock();
         }
@@ -65,12 +74,20 @@ namespace poseidon
             {
                 identifier identifier = this->_brahms[index];
 
+                log << "Maintaining " << identifier << std :: endl;
                 pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <1> (identifier));
                 co_await this->serve(connection, identifier);
             }
+            catch(const std :: exception & exception)
+            {
+                log << "Exception: " << exception.what() << std :: endl;
+            }
             catch(...)
             {
+                log << "Unknown exception" << std :: endl;
             }
+
+            co_await this->_crontab.wait(5_s);
         }
     }
 

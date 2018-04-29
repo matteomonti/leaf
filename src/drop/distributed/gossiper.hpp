@@ -126,6 +126,8 @@ namespace drop
         catch(...)
         {
             this->_mutex.unlock();
+            promise.resolve();
+
             co_return;
         }
 
@@ -138,6 +140,8 @@ namespace drop
             this->_mutex.lock();
             this->unlock();
             this->_mutex.unlock();
+
+            promise.resolve();
 
             co_return;
         }

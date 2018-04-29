@@ -52,7 +52,7 @@ int main()
     for(size_t i = 0; i < nodes; i++)
     {
         brahms[i] = new class brahms(signers[i], views[i], *(dialers[i]), pool, crontab);
-        gossipers[i] = new poseidon :: gossiper(signers[i], *(brahms[i]), *(dialers[i]), pool, crontab);
+        gossipers[i] = new poseidon :: gossiper(signers[i], *(brahms[i]), *(dialers[i]), pool, crontab, (i == 0 ? std :: cout : mute));
     }
 
     // Experiment
@@ -67,5 +67,11 @@ int main()
     }
 
     while(true)
-        sleep(10_h);
+    {
+        char buffer[1024];
+        std :: cin >> buffer;
+
+        if(!strcmp(buffer, "seppuku"))
+            *((int *) nullptr) = 5;
+    }
 }
