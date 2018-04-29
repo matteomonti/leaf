@@ -1,77 +1,90 @@
 #include <iostream>
-#include <fstream>
 
 #include "poseidon/brahms/brahms.h"
 #include "poseidon/poseidon/gossiper.h"
+#include "poseidon/benchmark/coordinator.h"
 
 using namespace drop;
 using namespace vine;
 using namespace poseidon;
 
-static constexpr size_t nodes = 64;
-
-int main()
+struct ports
 {
-    // Mute
+    static constexpr uint16_t coordinator = 7777;
+    static constexpr uint16_t directory = 7778;
+};
 
-    std :: ofstream mute;
-    mute.open("/dev/null", std :: ios :: out);
+static constexpr interval rate = 1_s;
 
-    // Runners
-
-    pool pool;
-    crontab crontab;
-
-    // Signers
-
-    signer signers[nodes];
-
-    // Dialers
-
-    dialers :: local :: server server;
-
-    multiplexer <dialers :: local :: client, settings :: channels> * dialers[nodes];
-    for(size_t i = 0; i < nodes; i++)
-        dialers[i] = new multiplexer <dialers :: local :: client, settings :: channels> (server, signers[i], pool);
-
-    // Views
-
-    view views[nodes];
-
-    for(size_t i = 0; i < nodes; i++)
-        for(size_t j = 0; j < settings :: view :: size; j++)
-            views[i][j] = signers[randombytes_uniform(nodes)].publickey();
-
-    // Brahms
-
-    std :: cout << "Creating nodes" << std :: endl;
-
-    brahms * brahms[nodes];
-    poseidon :: gossiper * gossipers[nodes];
-
-    for(size_t i = 0; i < nodes; i++)
+int main(int argc, char ** args)
+{
+    if(argc < 2)
     {
-        brahms[i] = new class brahms(signers[i], views[i], *(dialers[i]), pool, crontab);
-        gossipers[i] = new poseidon :: gossiper(signers[i], *(brahms[i]), *(dialers[i]), pool, crontab, (i == 0 ? std :: cout : mute));
+        std :: cout << "Please select a role for the node: master or peer." << std :: endl;
+        return -1;
     }
 
-    // Experiment
-
-    std :: cout << "Starting nodes" << std :: endl;
-
-    for(size_t i = 0; i < nodes; i++)
+    if(!strcmp(args[1], "master"))
     {
-        brahms[i]->start();
-        gossipers[i]->start();
-        sleep(0.1_s);
+        if(argc < 3)
+        {
+            std :: cout << "Please insert the number of nodes to coordinate." << std :: endl;
+            return -1;
+        }
+
+        size_t nodes = atoi(args[2]);
+
+        if(nodes == 0)
+        {
+            std :: cout << "The network cannot have zero nodes." << std :: endl;
+            return -1;
+        }
+
+        coordinator coordinator(ports :: coordinator, nodes);
+        dialers :: directory :: server directory(ports :: directory);
+
+        while(true)
+            sleep(10_h);
     }
-
-    while(true)
+    else if(!strcmp(args[1], "peer"))
     {
-        char buffer[1024];
-        std :: cin >> buffer;
+        if(argc < 3)
+        {
+            std :: cout << "Please insert the IP address of the master." << std :: endl;
+            return -1;
+        }
 
-        if(!strcmp(buffer, "seppuku"))
-            *((int *) nullptr) = 5;
+        if(argc < 4)
+        {
+            std :: cout << "Please insert the ID of the current instance." << std :: endl;
+            return -1;
+        }
+
+        size_t instanceid = atoi(args[3]);
+
+        address coordaddr(args[2], ports :: coordinator);
+        address diraddr(args[2], ports :: directory);
+
+        signer signer;
+
+        std :: vector <identifier> viewvec = coordinator :: await(coordaddr, signer.publickey(), settings :: view :: size);
+
+        view view;
+        for(size_t i = 0; i < settings :: view :: size; i++)
+            view[i] = viewvec[i];
+
+        pool pool;
+        crontab crontab;
+        connectors :: tcp :: async connector;
+
+        multiplexer <dialers :: directory :: client, settings :: channels> dialer(diraddr, signer, connector, pool, crontab);
+
+        class brahms brahms(signer, view, dialer, pool, crontab);
+        poseidon :: gossiper gossiper(signer, brahms, dialer, pool, crontab, std :: cout);
+        brahms.start();
+        gossiper.start();
+
+        while(true)
+            sleep(10_h);
     }
 }
