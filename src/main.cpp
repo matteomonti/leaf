@@ -82,6 +82,7 @@ int main(int argc, char ** args)
         class brahms brahms(signer, view, dialer, pool, crontab);
         poseidon :: gossiper gossiper(signer, brahms, dialer, pool, crontab, std :: cout);
         brahms.start();
+        gossiper.start();
 
         while(true)
             sleep(10_h);
