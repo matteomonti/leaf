@@ -80,7 +80,7 @@ int main(int argc, char ** args)
         multiplexer <dialers :: directory :: client, settings :: channels> dialer(diraddr, signer, connector, pool, crontab);
 
         class brahms brahms(signer, view, dialer, pool, crontab);
-        poseidon :: gossiper gossiper(signer, brahms, dialer, pool, crontab, std :: cout);
+        poseidon :: gossiper gossiper(signer, brahms, dialer, pool, crontab);
 
         gossiper.on <statement> ([](const statement & statement)
         {

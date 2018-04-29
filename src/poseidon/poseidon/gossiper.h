@@ -48,13 +48,11 @@ namespace poseidon
 
         std :: mutex _mutex;
 
-        std :: ostream & log;
-
     public:
 
         // Constructors
 
-        gossiper(const signer &, brahms &, dialer &, pool &, crontab &, std :: ostream &);
+        gossiper(const signer &, brahms &, dialer &, pool &, crontab &);
 
         // Methods
 

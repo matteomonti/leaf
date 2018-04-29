@@ -9,7 +9,7 @@ namespace poseidon
 
     // Constructors
 
-    gossiper :: gossiper(const signer & signer, brahms & brahms, dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _brahms(brahms), _gossiper(crontab), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
+    gossiper :: gossiper(const signer & signer, brahms & brahms, dialer & dialer, pool & pool, crontab & crontab) : _signer(signer), _brahms(brahms), _gossiper(crontab), _dialer(dialer), _pool(pool), _crontab(crontab)
     {
     }
 
@@ -32,8 +32,6 @@ namespace poseidon
             }
             this->_mutex.unlock();
 
-            log << "Received push from " << identifier << ": " << (accept ? "accepting it" : "rejecting it") << std :: endl;
-
             return accept;
         });
 
@@ -53,18 +51,13 @@ namespace poseidon
         this->_gossiper.on <statement> ([=](const auto & id, const statement & statement)
         {
             statement.verify();
-            
+
             this->_mutex.lock();
             bool accept = (this->_blacklist.count(id) == 0);
             this->_mutex.unlock();
 
             if(accept)
-            {
-                this->log << "Received statement from someone in whose sample I am not. Emitting it." << std :: endl;
                 this->emit <class statement> (statement);
-            }
-            else
-                this->log << "Received statement from someone in whose sample I am. Blocking it." << std :: endl;
 
             return accept;
         });
@@ -149,34 +142,17 @@ namespace poseidon
 
             this->_mutex.lock();
 
-            log << "Lowering scores for everyone" << std :: endl;
-
-            log << "Initial scores snapshot:" << std :: endl;
-
-            for(const auto & score : this->_scores)
-                log << score.first << ": " << score.second << std :: endl;
-
-            log << std :: endl;
-
             for(auto iterator = this->_scores.begin(); iterator != this->_scores.end();)
             {
                 iterator->second--;
                 if(iterator->second <= settings :: gossiper :: thresholds :: ban)
                 {
-                    log << "Banning " << iterator->first << std :: endl;
                     this->_brahms.ban(iterator->first);
                     iterator = this->_scores.erase(iterator);
                 }
                 else
                     iterator++;
             }
-
-            log << std :: endl << "Final scores snapshot:" << std :: endl;
-
-            for(const auto & score : this->_scores)
-                log << score.first << ": " << score.second << std :: endl;
-
-            log << std :: endl << std :: endl;
 
             for(size_t index = 0; index < settings :: sample :: size; index++)
             {
