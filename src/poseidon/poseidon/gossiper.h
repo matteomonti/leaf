@@ -28,7 +28,7 @@ namespace poseidon
     {
         // Typedefs
 
-        typedef multiplexer <dialers :: local :: client, settings :: channels> dialer;
+        typedef multiplexer <dialers :: directory :: client, settings :: channels> dialer;
 
         // Members
 
