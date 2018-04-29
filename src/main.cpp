@@ -2,6 +2,7 @@
 #include <fstream>
 
 #include "poseidon/brahms/brahms.h"
+#include "poseidon/poseidon/gossiper.h"
 
 using namespace drop;
 using namespace vine;
@@ -46,9 +47,13 @@ int main()
     std :: cout << "Creating nodes" << std :: endl;
 
     brahms * brahms[nodes];
+    poseidon :: gossiper * gossipers[nodes];
 
     for(size_t i = 0; i < nodes; i++)
+    {
         brahms[i] = new class brahms(signers[i], views[i], *(dialers[i]), pool, crontab);
+        gossipers[i] = new poseidon :: gossiper(signers[i], *(brahms[i]), *(dialers[i]), pool, crontab);
+    }
 
     // Experiment
 
@@ -57,6 +62,7 @@ int main()
     for(size_t i = 0; i < nodes; i++)
     {
         brahms[i]->start();
+        gossipers[i]->start();
         sleep(0.1_s);
     }
 

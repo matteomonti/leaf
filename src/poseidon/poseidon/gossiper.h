@@ -32,12 +32,15 @@ namespace poseidon
 
         // Members
 
+        signer _signer;
+
         brahms & _brahms;
         drop :: gossiper <statement> _gossiper;
 
         std :: unordered_map <identifier, int32_t, shorthash> _scores;
 
         dialer & _dialer;
+        pool & _pool;
         crontab & _crontab;
 
         std :: mutex _mutex;
@@ -46,13 +49,17 @@ namespace poseidon
 
         // Constructors
 
-        gossiper(brahms &, dialer &, crontab &);
+        gossiper(const signer &, brahms &, dialer &, pool &, crontab &);
+
+        // Methods
+
+        void start();
 
     private:
 
         // Private methods
 
-        promise <void> serve(pool :: connection);
+        promise <void> serve(pool :: connection, identifier);
         promise <void> maintain(size_t);
         promise <void> ban();
     };
