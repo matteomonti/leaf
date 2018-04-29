@@ -27,6 +27,17 @@ namespace poseidon
         this->run();
     }
 
+    void brahms :: ban(const identifier & identifier)
+    {
+        this->_mutex.lock();
+
+        for(size_t index = 0; index < settings :: sample :: size; index++)
+            if(this->_sample[index].sample() == identifier)
+                this->_sample[index].init(this->_view);
+
+        this->_mutex.unlock();
+    }
+
     // Private methods
 
     promise <void> brahms :: push(identifier identifier)
@@ -174,5 +185,18 @@ namespace poseidon
     void brahms :: reset_sampler(const size_t & index)
     {
         this->_sample[index].init(this->_view);
+    }
+
+    // Operators
+
+    identifier brahms :: operator [] (const size_t & index)
+    {
+        identifier identifier;
+
+        this->_mutex.lock();
+        identifier = this->_sample[index].sample();
+        this->_mutex.unlock();
+
+        return identifier;
     }
 };

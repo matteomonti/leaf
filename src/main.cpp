@@ -61,5 +61,18 @@ int main()
     }
 
     while(true)
-        sleep(10_h);
+    {
+        size_t index;
+        std :: cin >> index;
+
+        identifier identifier = (*(brahms[0]))[index];
+        std :: cout << "brahms[" << index << "] = " << identifier << std :: endl;
+        std :: cout << "ban?" << std :: endl;
+
+        char ban;
+        std :: cin >> ban;
+
+        if(ban == 'y')
+            brahms[0]->ban(identifier);
+    }
 }

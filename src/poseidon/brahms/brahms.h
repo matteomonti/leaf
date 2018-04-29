@@ -64,6 +64,7 @@ namespace poseidon
         // Methods
 
         void start();
+        void ban(const identifier &);
 
     private:
 
@@ -82,6 +83,12 @@ namespace poseidon
         void update_sample(const std :: vector <identifier> &);
 
         void reset_sampler(const size_t &);
+
+    public:
+
+        // Operators
+
+        identifier operator [] (const size_t &);
     };
 
     // Events
