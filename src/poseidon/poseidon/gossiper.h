@@ -11,9 +11,11 @@ namespace poseidon
 // Libraries
 
 #include <unordered_map>
+#include <unordered_set>
 
 // Includes
 
+#include "drop/async/eventemitter.hpp"
 #include "drop/distributed/gossiper.hpp"
 #include "statement.hpp"
 #include "poseidon/brahms/brahms.h"
@@ -24,11 +26,11 @@ namespace poseidon
     using namespace drop;
     using namespace vine;
 
-    class gossiper
+    class gossiper : public eventemitter <statement, statement>
     {
         // Typedefs
 
-        typedef multiplexer <dialers :: directory :: client, settings :: channels> dialer;
+        typedef multiplexer <dialers :: local :: client, settings :: channels> dialer;
 
         // Members
 
@@ -38,6 +40,7 @@ namespace poseidon
         drop :: gossiper <statement> _gossiper;
 
         std :: unordered_map <identifier, int32_t, shorthash> _scores;
+        std :: unordered_set <typename drop :: gossiper <statement> :: id> _blacklist;
 
         dialer & _dialer;
         pool & _pool;
@@ -56,12 +59,13 @@ namespace poseidon
         // Methods
 
         void start();
+        void publish(const statement &);
 
     private:
 
         // Private methods
 
-        promise <void> serve(pool :: connection, identifier);
+        promise <void> serve(pool :: connection, identifier, bool);
         promise <void> maintain(bool, size_t);
         promise <void> ban();
     };

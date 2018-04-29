@@ -37,9 +37,36 @@ namespace poseidon
             return accept;
         });
 
-        this->_dialer.on <1> ([=](const dial & dial)
+        this->_dialer.on <1> ([=](const dial & dial) -> promise <void>
         {
-            this->serve(this->_pool.bind(dial), dial.identifier());
+            try
+            {
+                pool :: connection connection = this->_pool.bind(dial);
+                bool sample = co_await connection.receive <bool> ();
+                this->serve(connection, dial.identifier(), sample);
+            }
+            catch(...)
+            {
+            }
+        });
+
+        this->_gossiper.on <statement> ([=](const auto & id, const statement & statement)
+        {
+            statement.verify();
+            
+            this->_mutex.lock();
+            bool accept = (this->_blacklist.count(id) == 0);
+            this->_mutex.unlock();
+
+            if(accept)
+            {
+                this->log << "Received statement from someone in whose sample I am not. Emitting it." << std :: endl;
+                this->emit <class statement> (statement);
+            }
+            else
+                this->log << "Received statement from someone in whose sample I am. Blocking it." << std :: endl;
+
+            return accept;
         });
 
         for(size_t index = 0; index < settings :: sample :: size; index++)
@@ -51,14 +78,27 @@ namespace poseidon
         this->ban();
     }
 
+    void gossiper :: publish(const statement & statement)
+    {
+        this->_gossiper.publish(statement);
+    }
+
     // Private methods
 
-    promise <void> gossiper :: serve(pool :: connection connection, identifier identifier)
+    promise <void> gossiper :: serve(pool :: connection connection, identifier identifier, bool ignore)
     {
         timestamp begin = now;
 
-        promise <void> promise = this->_gossiper.serve(connection, (this->_signer.publickey() < identifier)).until(begin + settings :: gossiper :: intervals :: gossip);
-        co_await promise;
+        auto handle = this->_gossiper.serve(connection, (this->_signer.publickey() < identifier)).until(begin + settings :: gossiper :: intervals :: gossip);
+
+        if(ignore)
+        {
+            this->_mutex.lock();
+            this->_blacklist.insert(handle);
+            this->_mutex.unlock();
+        }
+
+        co_await handle;
 
         timestamp end = now;
 
@@ -89,7 +129,9 @@ namespace poseidon
                 identifier identifier = (sample ? this->_brahms[index] : this->_brahms[index]);
 
                 pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <1> (identifier));
-                co_await this->serve(connection, identifier);
+                co_await connection.send(sample);
+
+                co_await this->serve(connection, identifier, false);
             }
             catch(...)
             {
