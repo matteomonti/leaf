@@ -28,7 +28,7 @@ namespace poseidon
     {
         // Typedefs
 
-        typedef multiplexer <dialers :: directory :: client, settings :: channels> dialer;
+        typedef multiplexer <dialers :: local :: client, settings :: channels> dialer;
 
         // Members
 
@@ -62,7 +62,7 @@ namespace poseidon
         // Private methods
 
         promise <void> serve(pool :: connection, identifier);
-        promise <void> maintain(size_t);
+        promise <void> maintain(bool, size_t);
         promise <void> ban();
     };
 };

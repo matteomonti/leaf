@@ -17,24 +17,44 @@ namespace poseidon
 
     void gossiper :: start()
     {
+        this->_brahms.on <push> ([=](const identifier & identifier)
+        {
+            bool accept = false;
+
+            this->_mutex.lock();
+
+            try
+            {
+                accept = (this->_scores.at(identifier) >= settings :: gossiper :: thresholds :: push);
+            }
+            catch(...)
+            {
+            }
+            this->_mutex.unlock();
+
+            log << "Received push from " << identifier << ": " << (accept ? "accepting it" : "rejecting it") << std :: endl;
+
+            return accept;
+        });
+
         this->_dialer.on <1> ([=](const dial & dial)
         {
-            this->log << "Connection incoming from " << dial.identifier() << std :: endl;
             this->serve(this->_pool.bind(dial), dial.identifier());
         });
 
         for(size_t index = 0; index < settings :: sample :: size; index++)
-            this->maintain(index);
+            this->maintain(true, index);
 
-        // this->ban();
+        for(size_t index = 0; index < settings :: view :: size; index++)
+            this->maintain(false, index);
+
+        this->ban();
     }
 
     // Private methods
 
     promise <void> gossiper :: serve(pool :: connection connection, identifier identifier)
     {
-        log << "Serving connection with " << identifier << std :: endl;
-
         timestamp begin = now;
 
         promise <void> promise = this->_gossiper.serve(connection, (this->_signer.publickey() < identifier)).until(begin + settings :: gossiper :: intervals :: gossip);
@@ -42,13 +62,9 @@ namespace poseidon
 
         timestamp end = now;
 
-        log << "Connection with " << identifier << " completed, it lasted for " << (end - begin) << std :: endl;
-
         if(end - begin > settings :: gossiper :: intervals :: reward)
         {
             this->_mutex.lock();
-
-            log << "A reward should be awarded!" << std :: endl;
 
             try
             {
@@ -60,31 +76,23 @@ namespace poseidon
                 this->_scores[identifier] = 1;
             }
 
-            log << "The new score of " << identifier << " is " << this->_scores[identifier] << std :: endl;
-
             this->_mutex.unlock();
         }
     }
 
-    promise <void> gossiper :: maintain(size_t index)
+    promise <void> gossiper :: maintain(bool sample, size_t index)
     {
         while(true)
         {
             try
             {
-                identifier identifier = this->_brahms[index];
+                identifier identifier = (sample ? this->_brahms[index] : this->_brahms[index]);
 
-                log << "Maintaining " << identifier << std :: endl;
                 pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <1> (identifier));
                 co_await this->serve(connection, identifier);
             }
-            catch(const std :: exception & exception)
-            {
-                log << "Exception: " << exception.what() << std :: endl;
-            }
             catch(...)
             {
-                log << "Unknown exception" << std :: endl;
             }
 
             co_await this->_crontab.wait(5_s);
@@ -99,17 +107,34 @@ namespace poseidon
 
             this->_mutex.lock();
 
+            log << "Lowering scores for everyone" << std :: endl;
+
+            log << "Initial scores snapshot:" << std :: endl;
+
+            for(const auto & score : this->_scores)
+                log << score.first << ": " << score.second << std :: endl;
+
+            log << std :: endl;
+
             for(auto iterator = this->_scores.begin(); iterator != this->_scores.end();)
             {
                 iterator->second--;
                 if(iterator->second <= settings :: gossiper :: thresholds :: ban)
                 {
+                    log << "Banning " << iterator->first << std :: endl;
                     this->_brahms.ban(iterator->first);
                     iterator = this->_scores.erase(iterator);
                 }
                 else
                     iterator++;
             }
+
+            log << std :: endl << "Final scores snapshot:" << std :: endl;
+
+            for(const auto & score : this->_scores)
+                log << score.first << ": " << score.second << std :: endl;
+
+            log << std :: endl << std :: endl;
 
             for(size_t index = 0; index < settings :: sample :: size; index++)
             {

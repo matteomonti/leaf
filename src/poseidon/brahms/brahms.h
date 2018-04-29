@@ -38,7 +38,7 @@ namespace poseidon
     {
         // Typedefs
 
-        typedef multiplexer <dialers :: directory :: client, settings :: channels> dialer;
+        typedef multiplexer <dialers :: local :: client, settings :: channels> dialer;
 
         // Members
 
@@ -89,6 +89,7 @@ namespace poseidon
         // Operators
 
         identifier operator [] (const size_t &);
+        identifier operator () (const size_t &);
     };
 
     // Events

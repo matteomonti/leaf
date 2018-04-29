@@ -199,4 +199,15 @@ namespace poseidon
 
         return identifier;
     }
+
+    identifier brahms :: operator () (const size_t & index)
+    {
+        identifier identifier;
+
+        this->_mutex.lock();
+        identifier = this->_view[index];
+        this->_mutex.unlock();
+
+        return identifier;
+    }
 };
