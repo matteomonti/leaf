@@ -96,5 +96,8 @@ int main(int argc, char ** args)
                 gossiper.publish({signer, sequence, "I love apples"});
                 sleep(1_s);
             }
+        else
+            while(true)
+                sleep(10_h);
     }
 }
