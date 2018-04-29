@@ -180,14 +180,16 @@ namespace drop
 
         bool complete;
 
-        try
+        /*try
         {
             complete = arc->receive_step();
         }
         catch(...)
         {
             return promise <buffer> :: rejected(std :: current_exception());
-        }
+        }*/ // REMOVE ME (comment): this disables the on-the-go receiving of data.
+
+        complete = false;
 
         if(complete)
         {
