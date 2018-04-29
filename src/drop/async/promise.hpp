@@ -638,6 +638,7 @@ namespace drop
         };
 
         context * context = new (class context){.promise = def, .count = 0};
+        promise <void> promise = *(context->promise);
 
         for(size_t i = 0;i < size; i++)
             promises[i].then([=]()
@@ -676,7 +677,7 @@ namespace drop
                     context->mutex.unlock();
             });
 
-        return *(context->promise);
+        return promise;
     }
 
     template <typename... types, std :: enable_if_t <(... && (std :: is_same <types, promise <void>> :: value))> *> promise <void> all(const types & ... promises)
@@ -696,6 +697,7 @@ namespace drop
         };
 
         context * context = new (class context){.promise = def, .count = 0};
+        promise <std :: array <type, size>> promise = *(context->promise);
 
         for(size_t i = 0; i < size; i++)
             promises[i].then([=](const type & value)
@@ -744,7 +746,7 @@ namespace drop
                     context->mutex.unlock();
             });
 
-        return *(context->promise);
+        return promise;
     }
 
     template <typename type, typename... ptypes, std :: enable_if_t <(... && (std :: is_same <ptypes, promise <type>> :: value))> *> promise <std :: array <type, 1 + sizeof...(ptypes)>> all(const promise <type> & head, const ptypes & ... tail)
@@ -764,6 +766,7 @@ namespace drop
         };
 
         context * context = new (class context){.promise = def, .count = 0};
+        promise <void> promise = *(context->promise);
 
         for(size_t i = 0;i < size; i++)
             promises[i].then([=]()
@@ -805,7 +808,7 @@ namespace drop
                     context->mutex.unlock();
             });
 
-        return *(context->promise);
+        return promise;
     }
 
     template <typename... types, std :: enable_if_t <(... && (std :: is_same <types, promise <void>> :: value))> *> promise <void> first(const types & ... promises)
@@ -825,6 +828,7 @@ namespace drop
         };
 
         context * context = new (class context){.promise = def, .count = 0};
+        promise <type> promise = *(context->promise);
 
         for(size_t i = 0; i < size; i++)
             promises[i].then([=](const type & value)
@@ -866,7 +870,7 @@ namespace drop
                     context->mutex.unlock();
             });
 
-        return *(context->promise);
+        return promise;
     }
 
     template <typename type, typename... ptypes, std :: enable_if_t <(... && (std :: is_same <ptypes, promise <type>> :: value))> *> promise <type> first(const promise <type> & head, const ptypes & ... tail)

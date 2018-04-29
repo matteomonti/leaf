@@ -62,8 +62,13 @@ int main()
 
     std :: cout << "All started" << std :: endl;
 
-    // sleep(10_s);
-    // peers[44]->publish(0, "I love apples!");
-    
+    sleep(10_s);
+
+    for(uint64_t sequence = 0;; sequence++)
+    {
+        peers[44]->publish(sequence, "I love apples!");
+        sleep(1_s);
+    }
+
     sleep(10_h);
 }
