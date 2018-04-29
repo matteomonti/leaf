@@ -38,7 +38,7 @@ namespace poseidon
     {
         // Typedefs
 
-        typedef multiplexer <dialers :: directory :: client, settings :: channels> dialer;
+        typedef multiplexer <dialers :: local :: client, settings :: channels> dialer;
 
         // Members
 
@@ -55,13 +55,11 @@ namespace poseidon
 
         std :: mutex _mutex;
 
-        std :: ostream & log;
-
     public:
 
         // Constructors
 
-        brahms(const signer &, const view &, dialer &, pool &, crontab &, std :: ostream &);
+        brahms(const signer &, const view &, dialer &, pool &, crontab &);
 
         // Methods
 

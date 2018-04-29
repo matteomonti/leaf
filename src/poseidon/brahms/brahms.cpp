@@ -9,7 +9,7 @@ namespace poseidon
 
     // Constructors
 
-    brahms :: brahms(const signer & signer, const view & view, dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _view(view), _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
+    brahms :: brahms(const signer & signer, const view & view, dialer & dialer, pool & pool, crontab & crontab) : _signer(signer), _view(view), _dialer(dialer), _pool(pool), _crontab(crontab)
     {
         for(size_t index = 0; index < settings :: sample :: size; index++)
             this->_sample[index].init(this->_view);
@@ -74,7 +74,6 @@ namespace poseidon
 
             if(push && this->emit <poseidon :: push> (identifier))
             {
-                log << "Received push from " << identifier << std :: endl;
                 this->_mutex.lock();
                 this->_pushbuffer.push_back(identifier);
                 this->_mutex.unlock();
@@ -97,24 +96,8 @@ namespace poseidon
     {
         while(true)
         {
-            log << std :: endl << std :: endl << "Sample and view at the beginning of the round:" << std :: endl;
-
-            for(size_t i = 0; i < settings :: sample :: size; i++)
-            {
-                log << i << ": " << this->_sample[i].sample();
-
-                if(i < settings :: view :: size)
-                    log << " " << this->_view[i] << std :: endl;
-                else
-                    log << std :: endl;
-            }
-
-            log << std :: endl << "Starting pushing and pulling" << std :: endl;
-
             this->push();
             auto collector = co_await this->pull();
-
-            log << "Pushing and pulling completed" << std :: endl;
 
             this->_mutex.lock();
 
@@ -128,13 +111,8 @@ namespace poseidon
                 }
                 catch(...) {}
 
-            log << "Pull was " << (pullsuccess ? "successful" : "unsuccessful") << std :: endl;
-            log << "Pushbuffer has " << this->_pushbuffer.size() << " elements" << std :: endl;
-
             if(this->_pushbuffer.size() <= settings :: brahms :: alpha && this->_pushbuffer.size() > 0 && pullsuccess)
             {
-                log << "Round was successful" << std :: endl;
-
                 // Update the sample
 
                 this->update_sample(this->_pushbuffer);
@@ -147,28 +125,10 @@ namespace poseidon
 
                 // Compute the new view
 
-                log << "Computing the new view" << std :: endl;
-
                 view newview;
 
                 for(size_t index = 0; index < settings :: brahms :: alpha; index++)
                     newview[index] = this->_pushbuffer[randombytes_uniform(this->_pushbuffer.size())];
-
-                log << "Pull results:" << std :: endl;
-
-                for(size_t i = 0; i < settings :: view :: size; i++)
-                {
-                    log << i << ": ";
-
-                    for(size_t j = 0; j < settings :: brahms :: beta; j++)
-                        try
-                        {
-                            log << collector.get <0> (j)[i] << " ";
-                        }
-                        catch(...) {}
-
-                    log << std :: endl;
-                }
 
                 for(size_t index = settings :: brahms :: alpha; index < settings :: brahms :: alpha + settings :: brahms :: beta; index++)
                 {
@@ -176,8 +136,6 @@ namespace poseidon
                     {
                         size_t view = randombytes_uniform(settings :: brahms :: beta);
                         size_t element = randombytes_uniform(settings :: view :: size);
-
-                        log << "Picking (" << view << ", " << element << ")" << std :: endl;
 
                         try
                         {
@@ -193,8 +151,6 @@ namespace poseidon
 
                 this->_view = newview;
             }
-            else
-                log << "Round unsuccessful" << std :: endl;
 
             this->_pushbuffer.clear();
             this->_mutex.unlock();
