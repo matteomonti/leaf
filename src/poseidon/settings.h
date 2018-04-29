@@ -36,11 +36,27 @@ namespace poseidon
 
         struct brahms
         {
-            static constexpr interval interval = 10_s;
+            static constexpr interval interval = 3_m;
 
             static constexpr size_t alpha = 3;
             static constexpr size_t beta = 3;
             static constexpr size_t gamma = 2;
+        };
+
+        struct gossiper
+        {
+            struct intervals
+            {
+                static constexpr interval gossip = 30_s;
+                static constexpr interval reward = 20_s;
+                static constexpr interval ban = 1_m;
+            };
+
+            struct thresholds
+            {
+                static constexpr int32_t push = 2;
+                static constexpr int32_t ban = -4;
+            };
         };
     };
 };
