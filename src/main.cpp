@@ -1,8 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "poseidon/brahms/brahms.h"
-#include "poseidon/poseidon/gossiper.h"
+#include "poseidon/poseidon/poseidon.h"
 
 using namespace drop;
 using namespace vine;
@@ -42,18 +41,14 @@ int main()
         for(size_t j = 0; j < settings :: view :: size; j++)
             views[i][j] = signers[randombytes_uniform(nodes)].publickey();
 
-    // Brahms
+    // Poseidon
 
     std :: cout << "Creating nodes" << std :: endl;
 
-    brahms * brahms[nodes];
-    poseidon :: gossiper * gossipers[nodes];
+    class poseidon * peers[nodes];
 
     for(size_t i = 0; i < nodes; i++)
-    {
-        brahms[i] = new class brahms(signers[i], views[i], *(dialers[i]), pool, crontab);
-        gossipers[i] = new poseidon :: gossiper(signers[i], *(brahms[i]), *(dialers[i]), pool, crontab);
-    }
+        peers[i] = new class poseidon(signers[i], views[i], *(dialers[i]), pool, crontab, ((i == 0) ? std :: cout : mute));
 
     // Experiment
 
@@ -61,19 +56,14 @@ int main()
 
     for(size_t i = 0; i < nodes; i++)
     {
-        brahms[i]->start();
-        gossipers[i]->start();
+        peers[i]->start();
         sleep(0.1_s);
     }
 
-    gossipers[0]->on <statement> ([](const statement & statement)
-    {
-        std :: cout << "Received statement: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
-    });
+    std :: cout << "All started" << std :: endl;
 
-    for(size_t i = 0;; i++)
-    {
-        gossipers[44]->publish({signers[44], i, "I love apples!"});
-        sleep(1_s);
-    }
+    // sleep(10_s);
+    // peers[44]->publish(0, "I love apples!");
+    
+    sleep(10_h);
 }
