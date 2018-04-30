@@ -192,7 +192,7 @@ namespace poseidon
         // log << "Best score: " << best.value.value << " with " << best.score << " votes" << std :: endl;
         log << instanceid << " " << (uint64_t) timestamp(now) << " vote " << index.identifier() << " " << index.sequence() << " " << best.value.value << " " << best.score << std :: endl;
 
-        if(best.score > settings :: poseidon :: thresholds :: accept)
+        if(best.score >= settings :: poseidon :: thresholds :: accept)
         {
             // log << "Accepting the best value" << std :: endl;
             this->_votes[index] = {.value = best.value, .accepted = true};
