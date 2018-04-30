@@ -78,14 +78,18 @@ int main(int argc, char ** args)
 
         multiplexer <dialers :: directory :: client, settings :: channels> dialer(diraddr, signer, connector, pool, crontab);
 
-        class poseidon peer(signer, view, dialer, pool, crontab, std :: cout);
+        class poseidon peer(signer, view, dialer, pool, crontab, instanceid, std :: cout);
 
         peer.start();
 
         if(instanceid == 0)
             for(uint64_t sequence = 0;; sequence++)
             {
-                peer.publish(sequence, "I love apples");
+                char buffer[1024];
+                sprintf(buffer, "message%lu", sequence);
+
+                std :: cout << instanceid << " " << (uint64_t) timestamp(now) << " seed " << signer.publickey() << " " << sequence << " " << buffer << std :: endl;
+                peer.publish(sequence, buffer);
                 sleep(1_s);
             }
         else

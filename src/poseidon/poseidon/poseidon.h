@@ -52,13 +52,14 @@ namespace poseidon
 
         std :: mutex _mutex;
 
+        size_t instanceid;
         std :: ostream & log;
 
     public:
 
         // Constructors
 
-        poseidon(const signer &, const view &, dialer &, pool &, crontab &, std :: ostream &);
+        poseidon(const signer &, const view &, dialer &, pool &, crontab &, const size_t &, std :: ostream &);
 
         // Methods
 

@@ -6,7 +6,7 @@ namespace poseidon
 {
     // Constructors
 
-    poseidon :: poseidon(const signer & signer, const view & view, dialer & dialer, pool & pool, crontab & crontab, std :: ostream & log) : _signer(signer), _brahms(signer, view, dialer, pool, crontab), _gossiper(signer, this->_brahms, dialer, pool, crontab), _publisher(crontab), _subscribers{}, _dialer(dialer), _pool(pool), _crontab(crontab), log(log)
+    poseidon :: poseidon(const signer & signer, const view & view, dialer & dialer, pool & pool, crontab & crontab, const size_t & instanceid, std :: ostream & log) : _signer(signer), _brahms(signer, view, dialer, pool, crontab), _gossiper(signer, this->_brahms, dialer, pool, crontab), _publisher(crontab), _subscribers{}, _dialer(dialer), _pool(pool), _crontab(crontab), instanceid(instanceid), log(log)
     {
     }
 
@@ -36,7 +36,7 @@ namespace poseidon
 
         this->_gossiper.on <statement> ([=](const statement & statement)
         {
-            this->log << "Gossiped statement: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
+            this->log << instanceid << " " << (uint64_t) timestamp(now) << " gossip " << statement.identifier() << " " << statement.sequence() << " " << statement.value() << std :: endl;
 
             this->_mutex.lock();
 
@@ -78,7 +78,7 @@ namespace poseidon
     {
         while(true)
         {
-            log << "[slot " << slot << "] " << "Starting loop" << std :: endl;
+            // log << "[slot " << slot << "] " << "Starting loop" << std :: endl;
             promise <void> disconnected;
 
             this->_mutex.lock();
@@ -87,10 +87,10 @@ namespace poseidon
 
             try
             {
-                log << "[slot " << slot << "] " << "Establishing connection" << std :: endl;
+                // log << "[slot " << slot << "] " << "Establishing connection" << std :: endl;
                 pool :: connection connection = this->_pool.bind(co_await this->_dialer.connect <2> (this->_brahms[slot]));
 
-                log << "[slot " << slot << "] " << "Connection established, creating subscriber" << std :: endl;
+                // log << "[slot " << slot << "] " << "Connection established, creating subscriber" << std :: endl;
                 subscriber <index, value> subscriber(connection, this->_crontab);
 
                 subscriber.on <value> ([=](const index & index, const value & value)
@@ -98,7 +98,7 @@ namespace poseidon
                     try
                     {
                         statement(index, value).verify();
-                        this->log << "Slot " << slot << " votes for " << index.identifier() << " / " << index.sequence() << ": " << value.value << std :: endl;
+                        // this->log << "Slot " << slot << " votes for " << index.identifier() << " / " << index.sequence() << ": " << value.value << std :: endl;
                         this->_mutex.lock();
                         this->_sample[slot][index] = value;
                         this->quorum(index);
@@ -123,7 +123,7 @@ namespace poseidon
                 subscriber.start();
                 co_await first(this->_crontab.wait(settings :: brahms :: interval), disconnected);
                 co_await this->_crontab.wait(10_ms); // THIS IS HERE ONLY TO PREVENT THE MESSENGER CALLBACK FROM DELETING ITSELF.
-                log << "[slot " << slot << "] " << "Disconnected or expired. Removing subscriber pointer" << std :: endl;
+                // log << "[slot " << slot << "] " << "Disconnected or expired. Removing subscriber pointer" << std :: endl;
 
                 this->_mutex.lock();
                 this->_subscribers[slot] = nullptr;
@@ -134,8 +134,8 @@ namespace poseidon
                 disconnected.resolve();
             }
 
-            log << "[slot " << slot << "] " << "Waiting before retrying" << std :: endl;
-            co_await this->_crontab.wait(5_s);
+            // log << "[slot " << slot << "] " << "Waiting before retrying" << std :: endl;
+            co_await this->_crontab.wait(0.1_s);
         }
     }
 
@@ -144,8 +144,8 @@ namespace poseidon
         if(!(this->_pending.count(index)))
             return;
 
-        log << "*************************" << std :: endl;
-        log << "Checking the quorum of " << index.identifier() << " / " << index.sequence() << std :: endl;
+        // log << "*************************" << std :: endl;
+        // log << "Checking the quorum of " << index.identifier() << " / " << index.sequence() << std :: endl;
 
         std :: unordered_map <value, size_t, shorthash> votes;
         size_t total = 0;
@@ -167,12 +167,12 @@ namespace poseidon
             }
             catch(...) {}
 
-        for(const auto & vote : votes)
-            log << vote.first.value << ": " << vote.second << std :: endl;
+        // for(const auto & vote : votes)
+            // log << vote.first.value << ": " << vote.second << std :: endl;
 
         if(total < settings :: poseidon :: thresholds :: quorum)
         {
-            log << "Not enough votes" << std :: endl;
+            // log << "Not enough votes" << std :: endl;
             return;
         }
 
@@ -189,20 +189,21 @@ namespace poseidon
                 best.score = vote.second;
             }
 
-        log << "Best score: " << best.value.value << " with " << best.score << " votes" << std :: endl;
+        // log << "Best score: " << best.value.value << " with " << best.score << " votes" << std :: endl;
+        log << instanceid << " " << (uint64_t) timestamp(now) << " vote " << index.identifier() << " " << index.sequence() << " " << best.value.value << " " << best.score << std :: endl;
 
         if(best.score > settings :: poseidon :: thresholds :: accept)
         {
-            log << "Accepting the best value" << std :: endl;
+            // log << "Accepting the best value" << std :: endl;
             this->_votes[index] = {.value = best.value, .accepted = true};
             this->_pending.erase(index);
         }
         else if((settings :: poseidon :: thresholds :: accept - best.score) > (settings :: sample :: size - total))
         {
-            log << "There is no clear winner: dropping the statement" << std :: endl;
+            // log << "There is no clear winner: dropping the statement" << std :: endl;
             this->_pending.erase(index);
         }
 
-        log << "*************************" << std :: endl;
+        // log << "*************************" << std :: endl;
     }
 };

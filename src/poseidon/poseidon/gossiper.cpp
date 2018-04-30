@@ -130,7 +130,7 @@ namespace poseidon
             {
             }
 
-            co_await this->_crontab.wait(5_s);
+            co_await this->_crontab.wait(0.1_s);
         }
     }
 
