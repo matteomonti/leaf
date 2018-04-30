@@ -1,7 +1,6 @@
 #include <iostream>
 
-#include "poseidon/brahms/brahms.h"
-#include "poseidon/poseidon/gossiper.h"
+#include "poseidon/poseidon/poseidon.h"
 #include "poseidon/benchmark/coordinator.h"
 
 using namespace drop;
@@ -79,21 +78,14 @@ int main(int argc, char ** args)
 
         multiplexer <dialers :: directory :: client, settings :: channels> dialer(diraddr, signer, connector, pool, crontab);
 
-        class brahms brahms(signer, view, dialer, pool, crontab);
-        poseidon :: gossiper gossiper(signer, brahms, dialer, pool, crontab);
+        class poseidon peer(signer, view, dialer, pool, crontab, std :: cout);
 
-        gossiper.on <statement> ([](const statement & statement)
-        {
-            std :: cout << "Received statement: " << statement.identifier() << " / " << statement.sequence() << ": " << statement.value() << std :: endl;
-        });
-
-        brahms.start();
-        gossiper.start();
+        peer.start();
 
         if(instanceid == 0)
             for(uint64_t sequence = 0;; sequence++)
             {
-                gossiper.publish({signer, sequence, "I love apples"});
+                peer.publish(sequence, "I love apples");
                 sleep(1_s);
             }
         else
