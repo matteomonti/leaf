@@ -95,11 +95,16 @@ namespace poseidon
 
                 subscriber.on <value> ([=](const index & index, const value & value)
                 {
-                    this->log << "Slot " << slot << " votes for " << index.identifier() << " / " << index.sequence() << ": " << value.value << std :: endl;
-                    this->_mutex.lock();
-                    this->_sample[slot][index] = value;
-                    this->quorum(index);
-                    this->_mutex.unlock();
+                    try
+                    {
+                        statement(index, value).verify();
+                        this->log << "Slot " << slot << " votes for " << index.identifier() << " / " << index.sequence() << ": " << value.value << std :: endl;
+                        this->_mutex.lock();
+                        this->_sample[slot][index] = value;
+                        this->quorum(index);
+                        this->_mutex.unlock();
+                    }
+                    catch(...) {}
                 });
 
                 subscriber.on <drop :: close> ([=]()
@@ -117,7 +122,7 @@ namespace poseidon
 
                 subscriber.start();
                 co_await first(this->_crontab.wait(settings :: brahms :: interval), disconnected);
-
+                co_await this->_crontab.wait(10_ms); // THIS IS HERE ONLY TO PREVENT THE MESSENGER CALLBACK FROM DELETING ITSELF.
                 log << "[slot " << slot << "] " << "Disconnected or expired. Removing subscriber pointer" << std :: endl;
 
                 this->_mutex.lock();
@@ -136,6 +141,68 @@ namespace poseidon
 
     void poseidon :: quorum(const index & index)
     {
-        // TODO: Check the quorum!
+        if(!(this->_pending.count(index)))
+            return;
+
+        log << "*************************" << std :: endl;
+        log << "Checking the quorum of " << index.identifier() << " / " << index.sequence() << std :: endl;
+
+        std :: unordered_map <value, size_t, shorthash> votes;
+        size_t total = 0;
+
+        for(size_t slot = 0; slot < settings :: sample :: size; slot++)
+            try
+            {
+                value value = this->_sample[slot].at(index);
+                try
+                {
+                    votes.at(value)++;
+                }
+                catch(...)
+                {
+                    votes[value] = 1;
+                }
+
+                total++;
+            }
+            catch(...) {}
+
+        for(const auto & vote : votes)
+            log << vote.first.value << ": " << vote.second << std :: endl;
+
+        if(total < settings :: poseidon :: thresholds :: quorum)
+        {
+            log << "Not enough votes" << std :: endl;
+            return;
+        }
+
+        struct
+        {
+            value value;
+            size_t score;
+        } best {.score = 0};
+
+        for(const auto & vote : votes)
+            if(vote.second > best.score)
+            {
+                best.value = vote.first;
+                best.score = vote.second;
+            }
+
+        log << "Best score: " << best.value.value << " with " << best.score << " votes" << std :: endl;
+
+        if(best.score > settings :: poseidon :: thresholds :: accept)
+        {
+            log << "Accepting the best value" << std :: endl;
+            this->_votes[index] = {.value = best.value, .accepted = true};
+            this->_pending.erase(index);
+        }
+        else if((settings :: poseidon :: thresholds :: accept - best.score) > (settings :: sample :: size - total))
+        {
+            log << "There is no clear winner: dropping the statement" << std :: endl;
+            this->_pending.erase(index);
+        }
+
+        log << "*************************" << std :: endl;
     }
 };

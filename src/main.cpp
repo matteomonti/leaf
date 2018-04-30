@@ -64,10 +64,23 @@ int main()
 
     sleep(10_s);
 
-    for(uint64_t sequence = 0;; sequence++)
+    [&]() -> promise <void>
     {
-        peers[44]->publish(sequence, "I love apples!");
-        sleep(1_s);
+        for(uint64_t sequence = 0;; sequence++)
+        {
+            peers[44]->publish(sequence, "I love apples!");
+            // peers[44]->publish(sequence, "I hate apples!");
+            co_await crontab.wait(1_s);
+        }
+    }();
+
+    while(true)
+    {
+        char buffer[1024];
+        std :: cin >> buffer;
+
+        if(!strcmp(buffer, "seppuku"))
+            *((int *) nullptr) = 77;
     }
 
     sleep(10_h);

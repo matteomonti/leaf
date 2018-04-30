@@ -58,6 +58,15 @@ namespace poseidon
                 static constexpr int32_t ban = -4;
             };
         };
+
+        struct poseidon
+        {
+            struct thresholds
+            {
+                static constexpr size_t quorum = 14;
+                static constexpr size_t accept = 12;    
+            };
+        };
     };
 };
 
