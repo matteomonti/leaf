@@ -102,7 +102,7 @@ namespace poseidon
             try
             {
                 int32_t score = this->_scores.at(identifier);
-                this->_scores[identifier] = score + 1;
+                this->_scores[identifier] = (score + 1 > settings :: gossiper :: thresholds :: cap) ? (settings :: gossiper :: thresholds :: cap) : (score + 1);
             }
             catch(...)
             {
