@@ -170,11 +170,11 @@ namespace poseidon
         // for(const auto & vote : votes)
             // log << vote.first.value << ": " << vote.second << std :: endl;
 
-        if(total < settings :: poseidon :: thresholds :: quorum)
+        /*if(total < settings :: poseidon :: thresholds :: quorum)
         {
             // log << "Not enough votes" << std :: endl;
             return;
-        }
+        }*/
 
         struct
         {
